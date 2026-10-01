@@ -14,7 +14,7 @@
   <title>TRIP QUEST · 국내여행 AI 플래너</title>
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="./styles.css?v=20261001-1945" />
+  <link rel="stylesheet" href="./styles.css?v=20261001-2015" />
 </head>
 <body>
   <div class="app-shell">
@@ -47,11 +47,12 @@
         </div>
         <div class="ai-composer">
           <label class="sr-only" for="aiInput">AI에게 여행 요청</label>
-          <textarea id="aiInput" rows="2" placeholder="예: 오늘 100km 안쪽으로 바다 보고 조용한 카페 가고 싶어. 저녁 7시 전에는 돌아오고 싶어."></textarea>
+          <textarea id="aiInput" rows="2" placeholder="예: 오늘 비 오는데 파도도 보고 따뜻한 라떼 마시고 싶어. 사람이 많지 않은 카페면 좋겠어."></textarea>
           <button id="aiSend" class="btn primary ai-send">AI로 찾기</button>
         </div>
+        <div id="aiSearchStatus" class="ai-search-status" role="status" aria-live="polite" hidden></div>
         <div class="quick-prompts" id="quickPrompts">
-          <button data-prompt="100km 안쪽 바다와 카페 중심으로 찾아줘">바다 + 카페</button>
+          <button data-prompt="오늘 비 오는데 파도 보고 따뜻한 라떼 마시고 싶어. 사람이 많지 않은 카페면 좋겠어">파도 + 라떼 + 한적함</button>
           <button data-prompt="비 오는 날 가기 좋은 실내 여행지 찾아줘">비 오는 날</button>
           <button data-prompt="가까운 곳으로 가볍게 당일치기 추천해줘">가까운 당일치기</button>
           <button data-prompt="TRIP QUEST 사용법 알려줘">사용법</button>
@@ -62,6 +63,7 @@
             <div>
               <div class="ai-mode" id="aiMode">여행 전용 AI</div>
               <p id="aiReply"></p>
+              <div id="aiAnalysisTags" class="ai-analysis-tags" hidden></div>
               <div id="aiChoices" class="ai-choices"></div>
             </div>
           </div>
@@ -212,6 +214,7 @@
       </section>
     </main>
   </div>
+  <footer class="app-version-footer">TRIP QUEST · v0.10</footer>
 
   <div id="iosInstallTip" class="install-sheet" hidden>
     <div class="install-card">
@@ -222,6 +225,6 @@
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script type="module" src="./app.js?v=20261001-1945"></script>
+  <script type="module" src="./app.js?v=20261001-2015"></script>
 </body>
 </html>
