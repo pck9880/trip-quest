@@ -57,3 +57,8 @@ button,input,textarea{font:inherit}button{color:inherit}.app-shell{width:min(132
 .nearby-link.cafe{color:#ecffd0}.nearby-link.food{color:#f4f7fa}
 @media(max-width:980px){.nearby-places{grid-template-columns:1fr 1fr}}
 @media(max-width:680px){#courseMap{height:330px}.course-detail-head,.nearby-head{display:block}.course-detail-head small{display:block;margin-top:8px}.nearby-head p{text-align:left;margin-top:7px}.nearby-places{grid-template-columns:1fr}.nearby-actions{grid-template-columns:1fr 1fr}.nearby-link{min-height:46px}}
+
+
+.course-action-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;padding:12px;border:1px solid var(--line);border-radius:16px;background:#0f161f}
+.course-action-buttons .btn{min-height:44px}
+@media(max-width:680px){.course-action-buttons{display:grid;grid-template-columns:1fr}.course-action-buttons .btn{width:100%;min-height:48px}}
