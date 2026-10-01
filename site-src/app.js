@@ -212,6 +212,28 @@ function renderNearbyPlaceLinks(course,type='전체'){
   el.hidden=false;
   el.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
+function renderCourseActionButtons(course){
+  if(!course)return;
+  let box=document.querySelector('#courseActionButtons');
+  if(!box){
+    box=document.createElement('div');
+    box.id='courseActionButtons';
+    box.className='course-action-buttons';
+    const panel=document.querySelector('#courseDetailPanel');
+    if(panel)panel.insertBefore(box,panel.firstChild);
+  }
+  box.innerHTML=`
+    <button class="btn primary course-nearby-btn" data-type="카페">주변 카페 추천</button>
+    <button class="btn primary course-nearby-btn" data-type="맛집">주변 음식점 추천</button>
+    <button class="btn secondary course-nearby-btn" data-type="전체">카페 + 음식점 같이 보기</button>
+  `;
+  box.onclick=e=>{
+    const b=e.target.closest('.course-nearby-btn');if(!b)return;
+    const type=b.dataset.type;
+    renderNearbyPlaceLinks(course,type);
+    toast(type==='전체'?'주변 카페와 음식점을 표시했습니다.':type==='맛집'?'주변 음식점을 표시했습니다.':'주변 카페를 표시했습니다.');
+  };
+}
 function drawCourseRoute(course){
   if(!course||!state.origin)return;
   initCourseMap();if(!state.courseMap)return;clearCourseMap();
