@@ -285,7 +285,7 @@ function drawCourseRoute(course){
 
 async function loadConfig(){
   state.config=await api('/api/config');$('#gasPrice').value=state.config.defaultGasPrice;const p=state.config.providers;
-  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.10 · 날씨 LIVE · 경로 근사');
+  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.11 · 날씨 LIVE · 경로 근사');
 }
 async function useLocation(goNext=false){
   if(!navigator.geolocation){toast('브라우저 위치 기능을 사용할 수 없습니다. 출발지를 검색해주세요.');return}
@@ -402,6 +402,22 @@ function showAI(result){
     setTimeout(()=>document.querySelector('#step4')?.scrollIntoView({behavior:'smooth',block:'start'}),180);
   }
 }
+function ensureAIOrigin(){
+  if(state.origin)return Promise.resolve(state.origin);
+  return new Promise((resolve,reject)=>{
+    if(!navigator.geolocation){reject(new Error('현재 위치를 사용할 수 없습니다. 출발지를 먼저 설정해주세요.'));return}
+    setText('#resultCaption','AI 추천 · 현재 위치 확인 중');
+    $('#ranking').className='ranking empty-state';
+    $('#ranking').innerHTML='추천지를 계산하기 위해 현재 위치를 확인하고 있습니다…';
+    navigator.geolocation.getCurrentPosition(async pos=>{
+      try{
+        await setOrigin({lat:pos.coords.latitude,lng:pos.coords.longitude,name:'현재 위치'});
+        resolve(state.origin);
+      }catch(e){reject(e)}
+    },()=>reject(new Error('위치 권한이 필요합니다. 위치를 허용하거나 출발지를 직접 설정해주세요.')),{enableHighAccuracy:true,timeout:8000});
+  });
+}
+
 async function askAI(message){
   if(!message.trim()||state.aiBusy)return;
   state.aiBusy=true;
@@ -411,22 +427,49 @@ async function askAI(message){
   if(status){status.hidden=false;status.className='ai-search-status working';status.textContent='1/2 · 키워드와 여행 의도 분석 중…'}
   btn.disabled=true;btn.classList.remove('ai-done','ai-error');btn.textContent='분석 중…';
 
+  // AI 검색은 즉시 추천지 페이지로 전환한다.
+  state.selected=null;
+  setStep(4);
+  $('#ranking').className='ranking empty-state';
+  $('#ranking').innerHTML='AI가 요청을 분석하고 추천지를 찾고 있습니다…';
+  setText('#resultCaption','AI 분석 중 · 잠시만 기다려주세요');
+  setText('#mapStatus','AI 추천 준비 중');
+  setTimeout(()=>document.querySelector('#step4')?.scrollIntoView({behavior:'smooth',block:'start'}),80);
+
   try{
-    await new Promise(r=>setTimeout(r,260));
+    await ensureAIOrigin();
+    await new Promise(r=>setTimeout(r,220));
     btn.textContent='추천지 찾는 중…';
-    if(status)status.textContent='2/2 · 조건이 겹치는 추천지 계산 중…';
+    if(status)status.textContent='2/2 · 분석한 취향과 조건으로 추천지 계산 중…';
+
     const result=await api('/api/ai-search',{method:'POST',body:JSON.stringify({message:message.trim(),context:currentPayload()})});
-    await new Promise(r=>setTimeout(r,260));
+    await new Promise(r=>setTimeout(r,220));
+
     showAI(result);
     const count=Array.isArray(result.items)?result.items.length:0;
+    const keys=(result.analysisKeywords||[]).join(' · ');
+    if(Array.isArray(result.items)){
+      setText('#resultCaption',keys?`AI 분석: ${keys} · 추천지 ${count}곳`:`AI 추천지 ${count}곳`);
+      setText('#mapStatus',`AI 분석 기반 후보 ${count}곳`);
+      setStep(4);
+      setTimeout(()=>document.querySelector('#step4')?.scrollIntoView({behavior:'smooth',block:'start'}),100);
+    } else if(result.intent==='travel_search'){
+      $('#ranking').className='ranking empty-state';
+      $('#ranking').innerHTML='조건에 맞는 추천지를 찾지 못했습니다. 거리나 취향을 조금 넓혀보세요.';
+      setStep(4);
+    }
+
     btn.classList.add('ai-done');
     btn.textContent=count?`추천 완료 ✓ · ${count}곳`:'분석 완료 ✓';
-    if(status){status.className='ai-search-status done';status.textContent=count?`완료 · 추천지 ${count}곳을 찾았습니다.`:'완료 · 요청 분석이 끝났습니다.'}
+    if(status){status.className='ai-search-status done';status.textContent=count?`완료 · AI 분석을 반영한 추천지 ${count}곳입니다.`:'완료 · 요청 분석이 끝났습니다.'}
     setTimeout(()=>{if(!state.aiBusy){btn.classList.remove('ai-done');btn.textContent='AI로 찾기'}},1800);
   }catch(e){
     btn.classList.add('ai-error');btn.textContent='검색 실패 · 다시 시도';
-    if(status){status.className='ai-search-status error';status.textContent='검색 중 문제가 생겼습니다. 다시 눌러주세요.'}
-    showAI({mode:'local',message:`AI 요청을 처리하지 못했습니다. ${e.message}`,analysisKeywords:[],choices:[{label:'조건 직접 선택하기',action:'goto',step:2},{label:'다시 입력하기',action:'focus'}]});
+    if(status){status.className='ai-search-status error';status.textContent=e.message||'검색 중 문제가 생겼습니다.'}
+    $('#ranking').className='ranking empty-state';
+    $('#ranking').innerHTML=`<span class="error">${esc(e.message||'AI 추천을 진행하지 못했습니다.')}</span>`;
+    setText('#resultCaption','AI 추천을 진행하려면 출발지 또는 위치 권한이 필요합니다.');
+    showAI({mode:'local',message:e.message||'AI 요청을 처리하지 못했습니다.',analysisKeywords:[],choices:[{label:'출발지 설정하기',action:'goto',step:1},{label:'다시 입력하기',action:'focus'}]});
   }finally{
     state.aiBusy=false;btn.disabled=false;
   }
