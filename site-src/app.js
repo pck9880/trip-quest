@@ -252,7 +252,7 @@ function drawCourseRoute(course){
 
 async function loadConfig(){
   state.config=await api('/api/config');$('#gasPrice').value=state.config.defaultGasPrice;const p=state.config.providers;
-  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.8 · 날씨 LIVE · 경로 근사');
+  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.9 · 날씨 LIVE · 경로 근사');
 }
 async function useLocation(goNext=false){
   if(!navigator.geolocation){toast('브라우저 위치 기능을 사용할 수 없습니다. 출발지를 검색해주세요.');return}
@@ -301,8 +301,47 @@ async function selectPlace(i,goCourse=false){
   try{const [sum,c]=await Promise.all([api('/api/trip-summary',{method:'POST',body:JSON.stringify(base)}),api('/api/courses',{method:'POST',body:JSON.stringify({...base,categories:state.categories,departure:$('#departTime').value,returnTime:$('#returnTime').value})})]);renderSummary(sum);renderCourses(c);drawRoute(sum.outbound.coords);setText('#mapStatus',`${state.selected.name} · 왕복 ${sum.total.distanceKm.toFixed(1)}km`)}catch(e){$('#tripSummary').innerHTML=`<span class="error">${esc(e.message)}</span>`;$('#courseList').innerHTML=`<span class="error">${esc(e.message)}</span>`}finally{loading(false);if(goCourse)setStep(5)}
 }
 function renderSummary(s){const src=s.outbound.source==='tmap'?'실시간 경로 데이터':'근사 경로';$('#tripSummary').className='summary-box';$('#tripSummary').innerHTML=`<div class="metric-grid"><div class="metric"><span>왕복 거리</span><strong>${fmtKm(s.total.distanceKm)}</strong></div><div class="metric"><span>운전 시간</span><strong>${fmtMin(s.total.drivingMin)}</strong></div><div class="metric"><span>통행료</span><strong>${fmtWon(s.total.toll)}</strong></div><div class="metric"><span>예상 연료</span><strong>${s.total.fuelLiters.toFixed(1)}L</strong></div><div class="metric"><span>기름값</span><strong>${fmtWon(s.total.fuelCost)}</strong></div><div class="metric"><span>교통비 합계</span><strong>${fmtWon(s.total.tripCost)}</strong></div></div><div class="source-note">${src} · 캐스퍼 연비 11km/L 기준 · 식비/주차비/입장료 제외</div>`}
-function renderCourses(j){const w=j.weather;if(w.source==='fallback')setText('#courseWeather','날씨 API 연결이 되면 방문 예정시간 기준으로 코스를 다시 판단합니다.');else setText('#courseWeather',`예상 ${w.condition} · ${Math.round(w.temperature_2m)}°C · 강수 ${w.precipitation_probability||0}% · 바람 ${Math.round(w.wind_speed_10m)}km/h`);$('#courseDetailPanel').hidden=true;$('#courseList').className='course-list';$('#courseList').innerHTML=j.courses.map(c=>`<article class="course-card" data-course="${c.id}"><div class="course-top"><span class="course-id">${c.id}</span><span class="badge">날씨 적합 ${esc(c.weatherFit)}</span></div><h4>${esc(c.title)}</h4><p>${esc(c.reason)}</p><ol class="stops">${c.stops.map((s,i)=>`<li>${i+1}. ${esc(s.name)}</li>`).join('')}</ol><div class="course-stats"><span>${fmtKm(c.route.distanceKm)}</span><span>${fmtMin(c.route.timeMin)}</span><span>약 ${fmtWon(c.estimatedCost.total)}</span></div><button class="btn secondary choose-course">${c.id}코스 선택</button></article>`).join('');$('#courseList').onclick=e=>{const card=e.target.closest('.course-card');if(!card||!e.target.closest('.choose-course'))return;state.selectedCourse=card.dataset.course;state.selectedCourseData=j.courses.find(c=>c.id===state.selectedCourse)||null;$('.course-card').forEach(x=>x.classList.toggle('selected',x===card));$('.choose-course').forEach(x=>x.textContent=`${x.closest('.course-card').dataset.course}코스 선택`);e.target.textContent='선택 완료 ✓';drawCourseRoute(state.selectedCourseData);renderCourseActionButtons(state.selectedCourseData);setStep(5);toast(`${state.selectedCourse}코스를 선택했습니다.`)}}
+function renderCourses(j){
+  const w=j.weather;
+  const courses=Array.isArray(j.courses)?j.courses:[];
+  if(w.source==='fallback')setText('#courseWeather','날씨 API 연결이 되면 방문 예정시간 기준으로 코스를 다시 판단합니다.');
+  else setText('#courseWeather',`예상 ${w.condition} · ${Math.round(w.temperature_2m)}°C · 강수 ${w.precipitation_probability||0}% · 바람 ${Math.round(w.wind_speed_10m)}km/h`);
+  $('#courseDetailPanel').hidden=true;
+  $('#courseList').className='course-list';
+  $('#courseList').innerHTML=courses.map(c=>`<article class="course-card" data-course="${c.id}"><div class="course-top"><span class="course-id">${c.id}</span><span class="badge">날씨 적합 ${esc(c.weatherFit)}</span></div><h4>${esc(c.title)}</h4><p>${esc(c.reason)}</p><ol class="stops">${c.stops.map((s,i)=>`<li>${i+1}. ${esc(s.name)}</li>`).join('')}</ol><div class="course-stats"><span>${fmtKm(c.route.distanceKm)}</span><span>${fmtMin(c.route.timeMin)}</span><span>약 ${fmtWon(c.estimatedCost.total)}</span></div><button class="btn secondary choose-course" type="button">${c.id}코스 선택</button></article>`).join('');
 
+  $('#courseList').onclick=e=>{
+    const button=e.target.closest('.choose-course');
+    const card=e.target.closest('.course-card');
+    if(!button||!card)return;
+
+    const id=card.dataset.course;
+    const course=courses.find(c=>c.id===id);
+    if(!course){toast('코스 정보를 다시 불러와주세요.');return}
+
+    state.selectedCourse=id;
+    state.selectedCourseData=course;
+
+    $$('.course-card').forEach(x=>x.classList.toggle('selected',x===card));
+    $$('.choose-course').forEach(x=>x.textContent=`${x.closest('.course-card').dataset.course}코스 선택`);
+    button.textContent='선택 완료 ✓';
+
+    const panel=$('#courseDetailPanel');
+    if(panel)panel.hidden=false;
+    renderCourseActionButtons(course);
+
+    try{
+      drawCourseRoute(course);
+    }catch(err){
+      console.error('course route error',err);
+      setText('#courseMapStatus','지도 표시 중 오류가 있어도 카페·음식점 추천은 사용할 수 있습니다.');
+    }
+
+    setText('#actionHint',`${id}코스를 선택했습니다. 아래에서 주변 카페·음식점을 확인할 수 있습니다.`);
+    toast(`${id}코스를 선택했습니다.`);
+    setTimeout(()=>document.querySelector('#courseDetailPanel')?.scrollIntoView({behavior:'smooth',block:'start'}),80);
+  };
+}
 function applyPatch(patch={}){
   if(Number.isFinite(Number(patch.targetKm))){state.targetKm=Math.max(30,Math.min(250,Math.round(Number(patch.targetKm)/10)*10));$('#distanceRange').value=state.targetKm;syncDistanceUI()}
   if(patch.direction&&['전체','북','북동','동','남동','남','남서','서','북서'].includes(patch.direction)){state.direction=patch.direction;syncDirectionUI()}
