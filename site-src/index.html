@@ -14,7 +14,7 @@
   <title>TRIP QUEST · 국내여행 AI 플래너</title>
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="./styles.css?v=20261001-2348" />
+  <link rel="stylesheet" href="./styles.css?v=20261001-2358" />
 </head>
 <body>
   <section id="mainLanding" class="main-landing" aria-labelledby="mainLandingTitle">
@@ -218,16 +218,16 @@
           </div>
           </div>
           <div id="tripSummary" class="summary-box empty-state">여행지 정보를 계산하고 있습니다.</div>
-          <div class="course-head"><div><span>날씨 맞춤 코스</span><h3>A / B / C 중 원하는 코스를 선택하세요.</h3></div><p id="courseWeather"></p></div>
+          <div class="course-head"><div><span>날씨 맞춤 코스</span><h3>A 도보 근거리 / B 드라이브 중 원하는 코스를 선택하세요.</h3></div><p id="courseWeather"></p></div>
           <div id="courseList" class="course-list empty-state">코스를 만들고 있습니다.</div>
           <section id="courseDetailPanel" class="course-detail-panel" hidden>
             <div class="course-detail-head">
-              <div><span>SELECTED ROUTE</span><h3>선택한 코스 동선</h3><p>검정 지도 위 흰색 도로와 형광색 경로로 이동 순서를 표시합니다.</p></div>
+              <div><span>SELECTED ROUTE</span><h3>선택한 코스 동선</h3><p>출발지는 제외하고 선택한 지역의 코스만 확대합니다. 위치 아이콘과 장소 유형을 함께 표시합니다.</p></div>
               <small id="courseMapStatus">코스를 선택하면 동선이 표시됩니다.</small>
             </div>
             <div class="course-route-map-card">
               <div id="courseMap"></div>
-              <div class="course-map-legend"><span><i class="legend-route"></i> 선택 경로</span><span><i class="legend-road"></i> 도로</span></div>
+              <div class="course-map-legend"><span><i class="legend-route"></i> 지역 코스</span><span>⌖ 위치 아이콘 · 장소 유형 표시</span></div>
             </div>
             <div class="nearby-head">
               <div><span>NEARBY</span><h3>경유지 주변 카페 · 음식점</h3></div>
@@ -245,7 +245,7 @@
       </section>
     </main>
   </div>
-  <footer class="app-version-footer">TRIP QUEST · v0.19</footer>
+  <footer class="app-version-footer">TRIP QUEST · v0.20</footer>
 
   <div id="iosInstallTip" class="install-sheet" hidden>
     <div class="install-card">
@@ -256,6 +256,6 @@
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script type="module" src="./app.js?v=20261001-2348"></script>
+  <script type="module" src="./app.js?v=20261001-2358"></script>
 </body>
 </html>

@@ -238,7 +238,11 @@ function localCandidates(anchor,cats,maxLegKm){
 function buildLocalChain(start,pool,maxLegKm,limit=2){
   const chosen=[],used=new Set(),remaining=[...pool];let current=start;
   while(chosen.length<limit){
-    const options=remaining.filter(p=>!used.has(p.id)).map(p=>({p,leg:geoKm(current,p)})).filter(x=>x.leg<=maxLegKm).sort((a,b)=>a.leg-b.leg);
+    const options=remaining
+      .filter(p=>!used.has(p.id))
+      .map(p=>({p,leg:geoKm(current,p)}))
+      .filter(x=>x.leg<=maxLegKm)
+      .sort((a,b)=>a.leg-b.leg);
     if(!options.length)break;
     const next=options[0].p;chosen.push(next);used.add(next.id);current=next;
   }
@@ -268,51 +272,61 @@ async function buildRoadChain(start,pool,maxLegKm,limit=2){
   }
   return chosen;
 }
+function walkingLeg(a,b){
+  const distanceKm=geoKm(a,b)*1.12;
+  return {distanceKm,timeMin:distanceKm/4.5*60,toll:0,coords:[[a.lat,a.lng],[b.lat,b.lng]],source:'walk-estimate'};
+}
+async function buildLocalCourseRoute(stops,mode){
+  if(!Array.isArray(stops)||stops.length<2)return {distanceKm:0,timeMin:0,toll:0,coords:stops?.length?[[stops[0].lat,stops[0].lng]]:[],source:mode==='walk'?'walk-estimate':'osrm'};
+  let distanceKm=0,timeMin=0,maxLegKm=0,allRoad=true,coords=[];
+  for(let i=1;i<stops.length;i++){
+    const r=mode==='walk'?walkingLeg(stops[i-1],stops[i]):await roadRoute(stops[i-1],stops[i]);
+    distanceKm+=r.distanceKm;timeMin+=r.timeMin;maxLegKm=Math.max(maxLegKm,r.distanceKm);
+    if(mode==='drive')allRoad=allRoad&&r.source==='osrm';
+    if(coords.length&&r.coords?.length)coords.push(...r.coords.slice(1));else if(r.coords?.length)coords.push(...r.coords);
+  }
+  return {distanceKm,timeMin,maxLegKm,toll:0,coords,source:mode==='walk'?'walk-estimate':allRoad?'osrm':'mixed'};
+}
 async function coursePack(body,w){
   const d=body.destination,cats=body.categories||[];
   const rain=Number(w.precipitation_probability)>=55||['비','눈','뇌우','이슬비'].includes(w.condition);
 
   const walkPool=localCandidates(d,cats,1.5);
   const drivePool=await roadCandidatePool(d,cats,4);
-  const indoorPool=drivePool.filter(p=>['뮤지엄','관광지','전통시장','체험마을','카페'].includes(p.category));
-  const outdoorPool=drivePool.filter(p=>['바다','산','공원','관광지'].includes(p.category));
 
   const walkStops=buildLocalChain(d,walkPool,1.5,2);
-  const nearStops=await buildRoadChain(d,drivePool,4,2);
-  const themedBase=rain?(indoorPool.length?indoorPool:drivePool):(outdoorPool.length?outdoorPool:drivePool);
-  const themedStops=await buildRoadChain(d,themedBase,4,2);
+  const driveStops=await buildRoadChain(d,drivePool,4,2);
 
-  const sets=[
-    {id:'A',title:'WALK · 도보 코스',mode:'walk',maxLegKm:1.5,
-      reason:walkStops.length?'목적지 주변을 걸어서 이어갈 수 있도록 도보권을 약 1.5km 이내로 묶었습니다.':'현재 데이터에서 도보권 추가 장소가 부족해 목적지 중심으로 구성했습니다.',
-      stops:[d,...walkStops]},
-    {id:'B',title:'NEAR DRIVE · 근거리 차량',mode:'drive',maxLegKm:4,
-      reason:nearStops.length?'실제 도로 경로를 우선 확인해 각 차량 경유 구간을 4km 이내로 구성했습니다.':'도로거리 4km 이내 추가 장소가 부족해 먼 장소를 억지로 포함하지 않았습니다.',
-      stops:[d,...nearStops]},
-    {id:'C',title:rain?'RAIN · 근거리 실내':'TASTE · 근거리 취향',mode:'drive',maxLegKm:4,
-      reason:themedStops.length?(rain?'날씨와 실제 도로거리 4km 이내 조건을 함께 반영했습니다.':'취향 장소를 실제 도로거리 4km 이내에서 우선 연결했습니다.'):'도로거리 4km 이내 적합한 추가 장소가 부족해 목적지 중심으로 구성했습니다.',
-      stops:[d,...themedStops]}
+  const configs=[
+    {
+      id:'A',title:'WALK · 도보 근거리',mode:'walk',
+      reason:walkStops.length
+        ?'선택한 여행지 주변을 걸어서 둘러볼 수 있도록 가까운 지점을 연결했습니다.'
+        :'도보권 안에 추가 장소가 부족해 선택한 여행지를 중심으로 보여줍니다.',
+      stops:[d,...walkStops]
+    },
+    {
+      id:'B',title:'DRIVE · 드라이브 코스',mode:'drive',
+      reason:driveStops.length
+        ?'선택 지역 안에서 실제 도로거리 기준 각 지점을 4km 이내로 연결한 드라이브 코스입니다.'
+        :'도로거리 4km 이내 적합한 추가 장소가 부족해 선택한 여행지 중심으로 구성했습니다.',
+      stops:[d,...driveStops]
+    }
   ];
 
   const results=[];
-  for(const c of sets){
-    let km=0,min=0,maxLocalLeg=0,allRoad=true,routeCoords=[];
-    const pts=[body.origin,...c.stops,body.origin];
-    for(let i=1;i<pts.length;i++){
-      const r=await roadRoute(pts[i-1],pts[i]);km+=r.distanceKm;min+=r.timeMin;allRoad=allRoad&&r.source==='osrm';
-      if(routeCoords.length&&r.coords?.length)routeCoords.push(...r.coords.slice(1));else if(r.coords?.length)routeCoords.push(...r.coords);
-    }
-    for(let i=1;i<c.stops.length;i++){
-      const r=c.mode==='drive'?await roadRoute(c.stops[i-1],c.stops[i]):approxRoute(c.stops[i-1],c.stops[i]);
-      maxLocalLeg=Math.max(maxLocalLeg,r.distanceKm);
-    }
-    const fuel=km/11,cost=Math.round(fuel*Number(body.gasPrice||1700));
+  for(const c of configs){
+    const route=await buildLocalCourseRoute(c.stops,c.mode);
+    const fuel=c.mode==='drive'?route.distanceKm/11:0;
+    const fuelCost=c.mode==='drive'?Math.round(fuel*Number(body.gasPrice||1700)):0;
     results.push({...c,
-      weatherFit:rain?(c.id==='C'?'높음':c.id==='A'?'낮음':'보통'):'높음',
-      localRule:c.mode==='walk'?'도보권 약 1.5km 이내':allRoad?'실제 도로거리 4km 이내':'도로거리 4km 이내 · 경로 실패 구간은 근사',
-      maxLocalLegKm:maxLocalLeg,
-      route:{distanceKm:km,timeMin:min,toll:0,source:allRoad?'osrm':'mixed',coords:routeCoords},
-      estimatedCost:{fuelCost:cost,toll:0,total:cost}
+      weatherFit:rain?(c.mode==='walk'?'낮음':'보통'):'높음',
+      localRule:c.mode==='walk'
+        ?'여행지 주변 도보 근거리 · 출발지 제외'
+        :route.source==='osrm'?'여행지 주변 실제 도로거리 4km 이내':'여행지 주변 4km 이내 · 경로 실패 구간은 근사',
+      maxLocalLegKm:route.maxLegKm||0,
+      route,
+      estimatedCost:{fuelCost,toll:0,total:fuelCost}
     });
   }
   return results;
@@ -498,10 +512,35 @@ function clearCourseMap(){
   state.courseMarkers.forEach(m=>m.remove());state.courseMarkers=[];
   if(state.courseRouteLine){state.courseRouteLine.remove();state.courseRouteLine=null}
 }
-function addCourseMarker(point,label,rank,isOrigin=false){
+const COURSE_PLACE_META={
+  '바다':{icon:'≈',desc:'해변 · 해안 풍경'},
+  '공원':{icon:'♧',desc:'산책 · 휴식 공간'},
+  '산':{icon:'△',desc:'산 · 자연 · 전망'},
+  '뮤지엄':{icon:'▣',desc:'전시 · 문화 공간'},
+  '관광지':{icon:'⌖',desc:'관광 · 지역 명소'},
+  '체험마을':{icon:'◇',desc:'체험 · 지역 문화'},
+  '전통시장':{icon:'▤',desc:'시장 · 로컬 먹거리'},
+  '캠핑':{icon:'⌂',desc:'캠핑 · 야외 활동'},
+  '카페':{icon:'☕',desc:'카페 · 음료'},
+  '맛집':{icon:'●',desc:'음식점 · 식사'},
+  '소품샵':{icon:'☆',desc:'소품 · 쇼핑'},
+  '온천':{icon:'♨',desc:'온천 · 휴식'}
+};
+function coursePlaceMeta(point){
+  return COURSE_PLACE_META[point?.category]||{icon:'⌖',desc:'여행 장소'};
+}
+function addCourseMarker(point,rank){
   if(!state.courseMap)return;
-  const icon=L.divIcon({className:'',html:`<div class="course-map-pin ${isOrigin?'origin':''}">${isOrigin?'S':rank}</div>`,iconSize:[32,32],iconAnchor:[16,16]});
-  const m=L.marker([point.lat,point.lng],{icon}).addTo(state.courseMap).bindPopup(esc(label));
+  const meta=coursePlaceMeta(point);
+  const icon=L.divIcon({
+    className:'',
+    html:`<div class="course-map-place-pin"><span class="pin-location">⌖</span><b>${esc(meta.icon)}</b><em>${String(rank).padStart(2,'0')}</em></div>`,
+    iconSize:[42,48],iconAnchor:[21,42]
+  });
+  const tooltip=`<strong>${String(rank).padStart(2,'0')} · ${esc(point.name)}</strong><small>${esc(point.category||'장소')} · ${esc(meta.desc)}</small>`;
+  const m=L.marker([point.lat,point.lng],{icon}).addTo(state.courseMap)
+    .bindPopup(`<b>${esc(point.name)}</b><br>${esc(point.category||'장소')} · ${esc(meta.desc)}`)
+    .bindTooltip(tooltip,{permanent:true,direction:rank%2?'right':'left',offset:[rank%2?10:-10,-5],className:'course-place-tooltip'});
   state.courseMarkers.push(m);
 }
 function naverPlaceSearchUrl(placeName,type){
@@ -545,21 +584,23 @@ function renderCourseActionButtons(course){
   };
 }
 function drawCourseRoute(course){
-  if(!course||!state.origin)return;
+  if(!course)return;
   initCourseMap();if(!state.courseMap)return;clearCourseMap();
-  const pts=[state.origin,...course.stops,state.origin];
-  addCourseMarker(state.origin,'출발지',0,true);
-  course.stops.forEach((s,i)=>addCourseMarker(s,`${i+1}. ${s.name}`,i+1,false));
-  const coords=course.route?.coords?.length>1?course.route.coords:pts.map(p=>[p.lat,p.lng]);
-  state.courseRouteLine=L.polyline(coords,{weight:6,opacity:.96,color:'#c9ff45',lineCap:'round',lineJoin:'round'}).addTo(state.courseMap);
-  state.courseMap.fitBounds(state.courseRouteLine.getBounds(),{padding:[34,34]});
-  setTimeout(()=>state.courseMap.invalidateSize(),120);
-  setText('#courseMapStatus',`${course.id}코스 · ${course.route?.source==='osrm'?'실제 도로 경로':'도로 경로 우선 · 일부 근사'} · 출발지 포함 ${course.stops.length+1}개 지점`);
-  const np=$('#nearbyPlaces');if(np){np.innerHTML='';np.hidden=true}
-  $('#courseDetailPanel').hidden=false;
-  setTimeout(()=>document.querySelector('#courseDetailPanel')?.scrollIntoView({behavior:'smooth',block:'start'}),140);
-}
+  const stops=course.stops||[];
+  if(!stops.length){setText('#courseMapStatus','표시할 지역 코스가 없습니다.');return}
 
+  stops.forEach((p,i)=>addCourseMarker(p,i+1));
+  const coords=course.route?.coords?.length>1?course.route.coords:stops.map(p=>[p.lat,p.lng]);
+  if(coords.length>1){
+    state.courseRouteLine=L.polyline(coords,{weight:6,opacity:.96,color:'#c9ff45',lineCap:'round',lineJoin:'round'}).addTo(state.courseMap);
+    state.courseMap.fitBounds(state.courseRouteLine.getBounds(),{padding:[48,48],maxZoom:15});
+  }else{
+    state.courseMap.setView([stops[0].lat,stops[0].lng],15);
+  }
+  setTimeout(()=>state.courseMap.invalidateSize(),120);
+  const routeType=course.mode==='walk'?'도보 근거리':course.route?.source==='osrm'?'실제 도로 드라이브':'드라이브 · 일부 근사';
+  setText('#courseMapStatus',`${course.id}코스 · ${routeType} · 지역 내 ${stops.length}개 지점`);
+}
 function showMainLanding(){
   const landing=$('#mainLanding');
   if(!landing)return;
@@ -604,7 +645,7 @@ async function startFromMainLocation(){
 }
 async function loadConfig(){
   state.config=await api('/api/config');$('#gasPrice').value=state.config.defaultGasPrice;const p=state.config.providers;
-  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.19 · 도로경로 · 최소최대 거리');
+  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.20 · A/B 지역 코스');
 }
 async function useLocation(goNext=false){
   if(!navigator.geolocation){toast('브라우저 위치 기능을 사용할 수 없습니다. 출발지를 검색해주세요.');return}
