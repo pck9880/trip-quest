@@ -422,16 +422,18 @@ async function coursePack(body,w){
       id:'A',title:'WALK · 도보 근거리',mode:'walk',
       reason:curatedWalk
         ?'같은 상권 안에서 실제로 이어 걷기 좋은 핵심 거리·시설을 순서대로 연결한 도보 코스입니다.'
-        :walkStops.length
-        :'도보권 안에 추가 장소가 부족해 선택한 여행지를 중심으로 보여줍니다.',
+        :walkStops.length>1
+          ?'선택한 여행지 주변의 가까운 지점을 이어 만든 도보 코스입니다.'
+          :'도보권 안에 추가 장소가 부족해 선택한 여행지를 중심으로 보여줍니다.',
       stops:walkStops
     },
     {
       id:'B',title:'DRIVE · 드라이브 코스',mode:'drive',
       reason:curatedDrive
         ?'같은 도시권에서 성격이 이어지는 번화가·문화거리·시장 등을 차량으로 연결한 드라이브 코스입니다.'
-        :driveStops.length
-        :'도로거리 4km 이내 적합한 추가 장소가 부족해 선택한 여행지 중심으로 구성했습니다.',
+        :driveStops.length>1
+          ?'선택 지역 안에서 가까운 지점을 차량으로 이어 만든 드라이브 코스입니다.'
+          :'도로거리 4km 이내 적합한 추가 장소가 부족해 선택한 여행지 중심으로 구성했습니다.',
       stops:driveStops
     }
   ];
