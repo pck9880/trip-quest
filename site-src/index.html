@@ -14,7 +14,7 @@
   <title>TRIP QUEST · 국내여행 AI 플래너</title>
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="./styles.css?v=20261001-2035" />
+  <link rel="stylesheet" href="./styles.css?v=20261001-2048" />
 </head>
 <body>
   <section id="mainLanding" class="main-landing" aria-labelledby="mainLandingTitle">
@@ -31,7 +31,6 @@
         <p id="mainLocationStatus">내 위치를 확인하면 여행 검색 화면으로 바로 이동합니다.</p>
         <button id="mainManualBtn" class="main-manual-btn" type="button">출발지 직접 입력</button>
       </div>
-      <small class="main-cover-version">TRIP QUEST · v0.12</small>
     </div>
   </section>
   <div class="app-shell">
@@ -64,16 +63,10 @@
         </div>
         <div class="ai-composer">
           <label class="sr-only" for="aiInput">AI에게 여행 요청</label>
-          <textarea id="aiInput" rows="2" placeholder="예: 오늘 비 오는데 파도도 보고 따뜻한 라떼 마시고 싶어. 사람이 많지 않은 카페면 좋겠어."></textarea>
+          <textarea id="aiInput" rows="2" placeholder="기분, 상황, 거리를 함께 적어보세요. 예: 오늘 비가 와서 조용히 쉬고 싶어. 80km 안에서 바다 보고 따뜻한 라떼 마실 수 있는 한적한 곳 찾아줘."></textarea>
           <button id="aiSend" class="btn primary ai-send">AI로 찾기</button>
         </div>
         <div id="aiSearchStatus" class="ai-search-status" role="status" aria-live="polite" hidden></div>
-        <div class="quick-prompts" id="quickPrompts">
-          <button data-prompt="오늘 비 오는데 파도 보고 따뜻한 라떼 마시고 싶어. 사람이 많지 않은 카페면 좋겠어">파도 + 라떼 + 한적함</button>
-          <button data-prompt="비 오는 날 가기 좋은 실내 여행지 찾아줘">비 오는 날</button>
-          <button data-prompt="가까운 곳으로 가볍게 당일치기 추천해줘">가까운 당일치기</button>
-          <button data-prompt="TRIP QUEST 사용법 알려줘">사용법</button>
-        </div>
         <div id="aiConversation" class="ai-conversation" hidden>
           <div class="ai-answer-row">
             <span class="ai-avatar">AI</span>
@@ -231,7 +224,7 @@
       </section>
     </main>
   </div>
-  <footer class="app-version-footer">TRIP QUEST · v0.12</footer>
+  <footer class="app-version-footer">TRIP QUEST · v0.13</footer>
 
   <div id="iosInstallTip" class="install-sheet" hidden>
     <div class="install-card">
@@ -242,6 +235,6 @@
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script type="module" src="./app.js?v=20261001-2035"></script>
+  <script type="module" src="./app.js?v=20261001-2048"></script>
 </body>
 </html>

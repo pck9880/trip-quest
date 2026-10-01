@@ -109,3 +109,6 @@ body.landing-open{overflow:hidden}
   .main-cover-copy h1{font-size:48px}
   .main-locate-btn{min-height:60px}
 }
+
+/* v0.13 AI search simplification */
+.ai-composer{margin-bottom:0}

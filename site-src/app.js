@@ -28,42 +28,90 @@ function approxRoute(a,b){const distanceKm=geoKm(a,b)*1.23,avg=distanceKm<20?38:
 function weatherText(code){if(code===0)return '맑음';if([1,2].includes(code))return '대체로 맑음';if(code===3)return '흐림';if([45,48].includes(code))return '안개';if([51,53,55,56,57].includes(code))return '이슬비';if([61,63,65,66,67,80,81,82].includes(code))return '비';if([71,73,75,77,85,86].includes(code))return '눈';if([95,96,99].includes(code))return '뇌우';return '변동'}
 async function clientWeather(lat,lng){try{const u=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&timezone=Asia%2FSeoul&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&hourly=precipitation_probability,weather_code,temperature_2m,wind_speed_10m&forecast_days=3`;const r=await fetch(u);if(!r.ok)throw 0;const j=await r.json();const c=j.current||{};return {current:{temperature_2m:c.temperature_2m,apparent_temperature:c.apparent_temperature,weather_code:c.weather_code,condition:weatherText(c.weather_code),wind_speed_10m:c.wind_speed_10m,precipitation_probability:j.hourly?.precipitation_probability?.[0]||0,source:'open-meteo'},hourly:(j.hourly?.time||[]).map((t,i)=>({time:t,temperature_2m:j.hourly.temperature_2m[i],precipitation_probability:j.hourly.precipitation_probability[i],weather_code:j.hourly.weather_code[i],condition:weatherText(j.hourly.weather_code[i]),wind_speed_10m:j.hourly.wind_speed_10m[i],source:'open-meteo'}))}}catch{return {current:{source:'fallback',condition:'날씨 확인 필요',temperature_2m:null,apparent_temperature:null,wind_speed_10m:null,precipitation_probability:null},hourly:[]}}}
 function scheduleWindow(dep,ret){const a=new Date(dep),b=new Date(ret);return !isNaN(a)&&!isNaN(b)&&b>a?(b-a)/60000:null}
+function recommendationRegion(name=''){
+  const regions=['서울','부산','대구','인천','광주','대전','울산','진주','사천','통영','거제','남해','여수','순천','광양','하동','합천','산청','함양','거창','창원','김해','경주','전주','담양','공주','보령','군산','제천','안동','포항','강릉','속초','춘천','제주'];
+  return regions.find(r=>name.startsWith(r)||name.includes(r))||name.split(/\s+/)[0]||'기타';
+}
+function diversifyRecommendations(items,limit=10){
+  const picked=[],regions=new Map(),cats=new Map();
+  for(const p of items){
+    const region=recommendationRegion(p.name),rc=regions.get(region)||0,cc=cats.get(p.category)||0;
+    if(rc>=2||cc>=4)continue;
+    picked.push(p);regions.set(region,rc+1);cats.set(p.category,cc+1);
+    if(picked.length>=limit)break;
+  }
+  if(picked.length<Math.min(limit,items.length)){
+    for(const p of items){if(!picked.includes(p)){picked.push(p);if(picked.length>=limit)break}}
+  }
+  return picked;
+}
 function localRecommend(body){
   const o=body.origin,target=Number(body.targetKm||100),cats=body.categories||[],dir=body.direction||'전체',
     avail=scheduleWindow(body.departure,body.returnTime),focus=(body.focusQuery||'').trim().toLowerCase(),
     profile=body.semanticProfile||null;
   let arr=RAW_PLACES.map(p=>({...p,distanceKm:geoKm(o,p),bearing:geoBearing(o,p)}));
+
   if(focus){
     const tokens=focus.split(/\s+/).filter(Boolean);
     const direct=arr.filter(p=>tokens.some(t=>p.name.toLowerCase().includes(t)));
     if(direct.length){const centers=direct;arr=arr.filter(p=>centers.some(c=>geoKm(c,p)<=40)||direct.includes(p))}
   } else {
-    arr=arr.filter(p=>p.distanceKm>=Math.max(5,target*.35)&&p.distanceKm<=target*1.65);
+    const distanceRule=profile?.distance||null;
+    if(distanceRule?.mode==='max') arr=arr.filter(p=>p.distanceKm>=3&&p.distanceKm<=distanceRule.km);
+    else if(distanceRule?.mode==='min') arr=arr.filter(p=>p.distanceKm>=distanceRule.km);
+    else arr=arr.filter(p=>p.distanceKm>=Math.max(5,target*.35)&&p.distanceKm<=target*1.65);
+
     if(dir!=='전체'&&DIR_DEG[dir]!=null)arr=arr.filter(p=>degDiff(p.bearing,DIR_DEG[dir])<=55);
-    if(cats.length)arr=arr.filter(p=>cats.includes(p.category)||p.category==='관광지');
+
+    const hardCats=profile?.hardCategories||[];
+    const preferredCats=profile?.preferredCategories||[];
+    if(hardCats.length){
+      arr=arr.filter(p=>hardCats.includes(p.category));
+    }else if(profile&&preferredCats.length){
+      const preferred=arr.filter(p=>preferredCats.includes(p.category));
+      if(preferred.length>=3)arr=preferred;
+      else arr=[...preferred,...arr.filter(p=>!preferredCats.includes(p.category))];
+    }else if(cats.length){
+      // 일반 수동 검색만 사용자가 선택한 카테고리를 그대로 적용한다.
+      arr=arr.filter(p=>cats.includes(p.category));
+    }
   }
+
   const matched=profile?.matches||[];
-  return arr.map(p=>{
+  const hardCats=profile?.hardCategories||[];
+  const preferredCats=profile?.preferredCategories||[];
+
+  const ranked=arr.map(p=>{
     const route=approxRoute(o,p),round=route.timeMin*2;
-    const cat=(!cats.length||cats.includes(p.category))?14:4;
-    const semanticHits=matched.filter(x=>(x.categories||[]).includes(p.category));
-    const semantic=Math.min(32,semanticHits.length*9);
-    const dist=Math.max(0,45-Math.abs(p.distanceKm-target)/Math.max(30,target)*45);
-    const time=avail==null?12:(round<=avail?22:Math.max(0,22-(round-avail)/15));
+    const semanticHits=matched.filter(x=>(x.categories||[]).includes(p.category)&&x.kind!=='amenity'&&x.kind!=='condition');
+    const hardFit=hardCats.includes(p.category)?42:0;
+    const preferredFit=preferredCats.includes(p.category)?18:0;
+    const semantic=Math.min(42,semanticHits.reduce((sum,x)=>sum+(x.weight||8),0));
+    const cat=(!cats.length||cats.includes(p.category))?8:0;
+    const dist=Math.max(0,28-Math.abs(p.distanceKm-target)/Math.max(30,target)*28);
+    const time=avail==null?8:(round<=avail?18:Math.max(0,18-(round-avail)/15));
     const focusBonus=focus?24:0;
+    const quietPenalty=profile?.flags?.quiet&&['관광지','전통시장','체험마을'].includes(p.category)?-14:0;
+    const genericPenalty=profile&&matched.length&&!semanticHits.length&&!hardFit&&!preferredFit?-18:0;
     const feasible=avail==null?true:round<=avail;
     const why=[];
-    if(semanticHits.length)why.push(semanticHits.slice(0,2).map(x=>x.reason||x.label).join(' + ')+' 조건 반영');
-    if(profile?.flags?.wantsCafe)why.push('코스 선택 후 주변 카페를 네이버 플레이스로 이어서 확인 가능');
-    if(profile?.flags?.quiet)why.push('한적함 선호를 반영해 자연·외곽형 장소에 가중치');
-    if(Math.abs(p.distanceKm-target)<target*.25)why.push(`원하는 거리 ${target}km 조건에 가까움`);
+
+    if(hardFit&&semanticHits.length)why.push(semanticHits.slice(0,2).map(x=>x.reason||x.label).join(' + ')+'을 우선 반영');
+    else if(semanticHits.length)why.push(semanticHits.slice(0,2).map(x=>x.reason||x.label).join(' + ')+' 조건과 잘 맞음');
+    if(profile?.flags?.quiet&&['바다','산','공원','캠핑'].includes(p.category))why.push('한적한 분위기 선호를 자연형 장소에 반영');
+    if(profile?.flags?.wantsCafe)why.push('목적지 선택 후 4km 이내 카페 검색으로 연결');
+    if(profile?.distance?.mode==='max')why.push(`${profile.distance.km}km 이내 거리 조건 충족`);
+    else if(Math.abs(p.distanceKm-target)<target*.25)why.push(`원하는 거리 ${target}km에 가까움`);
     if(feasible&&avail!=null)why.push('설정한 귀가시간 안에 이동 가능');
     if(!why.length)why.push(`${p.category||'여행지'} 유형과 이동거리를 함께 고려`);
+
     return {...p,routePreview:route,roundTripDriveMin:round,availableMin:avail,feasible,
       aiReason:why.slice(0,3).join(' · '),
       semanticIntent:(profile?.keywords||[]).join(','),
-      score:Math.min(99,Math.round(25+dist+cat+semantic+time+focusBonus))}
-  }).sort((a,b)=>b.score-a.score).slice(0,10)
+      score:Math.min(99,Math.max(1,Math.round(18+hardFit+preferredFit+semantic+cat+dist+time+focusBonus+quietPenalty+genericPenalty)))}
+  }).sort((a,b)=>b.score-a.score);
+
+  return diversifyRecommendations(ranked,10);
 }
 async function localGeocode(q){const x=q.trim().toLowerCase();const local=RAW_PLACES.filter(p=>p.name.toLowerCase().includes(x)||x.includes(p.name.split(' ')[0].toLowerCase())).slice(0,5).map(p=>({name:p.name,address:'내장 여행지 데이터',lat:p.lat,lng:p.lng}));try{const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=jsonv2&limit=5&countrycodes=kr&accept-language=ko`);if(r.ok){const j=await r.json();const rem=(j||[]).map(d=>({name:String(d.display_name||'').split(',')[0],address:d.display_name||'',lat:Number(d.lat),lng:Number(d.lon)}));if(rem.length)return rem}}catch{}return local}
 function selectWeatherAt(w,iso){if(!w?.hourly?.length)return w.current;const t=new Date(iso).getTime();if(!Number.isFinite(t))return w.current;let best=w.hourly[0],d=Infinity;for(const x of w.hourly){const dd=Math.abs(new Date(x.time).getTime()-t);if(dd<d){best=x;d=dd}}return best}
@@ -144,47 +192,75 @@ function coursePack(body,w){
 }
 function localAI(message,context){
   const m=message.trim(),compact=m.replace(/\s+/g,''),patch={};let focus='';
-  const km=m.match(/(\d{2,3})\s*km/i);if(km)patch.targetKm=Math.max(30,Math.min(250,Number(km[1])));
+
+  const km=m.match(/(\d{1,3})\s*(?:km|키로|킬로)/i);
+  const maxDistance=/이내|안쪽|안에서|안으로|넘지|까지/.test(m);
+  const minDistance=/이상|넘게|보다\s*멀/.test(m);
+  let distance=null;
+  if(km){
+    const value=Math.max(10,Math.min(250,Number(km[1])));
+    patch.targetKm=value;
+    distance={km:value,mode:maxDistance?'max':minDistance?'min':'target'};
+  }else if(/가까운|근처|근교|멀지않/.test(compact)){patch.targetKm=50;distance={km:50,mode:'max'}}
+  else if(/조금멀리|드라이브길게/.test(compact)){patch.targetKm=140;distance={km:140,mode:'target'}}
+
   const dir=['북동','남동','남서','북서','북','동','남','서'].find(d=>m.includes(d));if(dir)patch.direction=dir;
 
   const semanticRules=[
-    {id:'wave',label:'파도·해안',re:/파도|거친바다|바닷소리|해안|바다보고|바다보러|물멍/,categories:['바다'],reason:'파도·해안 풍경'},
-    {id:'cafe',label:'카페·커피',re:/카페|커피|라떼|아메리카노|에스프레소|브런치|디저트|베이커리|빵집/,categories:['카페','관광지'],reason:'카페·커피 취향'},
-    {id:'warmdrink',label:'따뜻한 음료',re:/따뜻한(라떼|커피|차|음료)|뜨거운(커피|차)|핫초코/,categories:['카페','관광지'],reason:'따뜻한 음료를 즐기고 싶은 취향'},
-    {id:'quiet',label:'조용·한적',re:/조용|한적|사람이?(많지않|적|없는)|사람적은|북적이지|붐비지|여유로운|한산|힐링/,categories:['바다','산','공원','캠핑'],reason:'조용하고 한적한 분위기'},
-    {id:'rain',label:'비 오는 날',re:/비오|비오는|비가오|비내|우천|장마|빗소리|비인데/,categories:['뮤지엄','관광지','전통시장','체험마을','바다'],reason:'비 오는 날의 이동·체류 조건'},
-    {id:'stargazing',label:'별·밤하늘',re:/별.*(보|잘)|별보기|별구경|은하수|천체|밤하늘|별사진/,categories:['산','캠핑','바다','공원'],reason:'별·밤하늘 감상'},
-    {id:'sunset',label:'노을·일몰',re:/노을|일몰|석양|해질녘|선셋/,categories:['바다','산','공원'],reason:'노을·일몰 감상'},
-    {id:'sunrise',label:'일출·해돋이',re:/일출|해돋이|해뜨는|선라이즈/,categories:['바다','산'],reason:'일출·해돋이 감상'},
-    {id:'scenic',label:'풍경·전망',re:/전망|풍경|뷰좋|경치|절경|사진|포토|인생샷|전망대/,categories:['바다','산','공원','관광지'],reason:'풍경·전망'},
-    {id:'drive',label:'드라이브',re:/드라이브|차타고|차로가|운전하며|해안도로/,categories:['바다','산','관광지'],reason:'드라이브하기 좋은 동선'},
-    {id:'walk',label:'산책·걷기',re:/산책|걷고|걷기|트레킹|둘레길|데크길/,categories:['공원','바다','산','관광지'],reason:'걷기·산책'},
-    {id:'hiking',label:'등산·트레킹',re:/등산|산타|정상|등반|트레킹/,categories:['산'],reason:'등산·트레킹'},
-    {id:'forest',label:'숲·자연',re:/숲|수목원|나무|자연|계곡|피톤치드/,categories:['산','공원'],reason:'숲·자연 휴식'},
-    {id:'flower',label:'꽃·정원',re:/꽃|정원|수국|벚꽃|매화|단풍|억새|코스모스/,categories:['공원','관광지'],reason:'꽃·정원 풍경'},
-    {id:'indoor',label:'실내',re:/실내|비피할|춥지않|덥지않|에어컨|전시/,categories:['뮤지엄','전통시장','관광지','체험마을'],reason:'실내 중심 일정'},
-    {id:'museum',label:'전시·뮤지엄',re:/박물관|미술관|뮤지엄|전시|갤러리|과학관/,categories:['뮤지엄'],reason:'전시·문화 관람'},
-    {id:'history',label:'역사·문화',re:/역사|문화재|고궁|성곽|사찰|절|한옥|유적/,categories:['관광지','뮤지엄','체험마을'],reason:'역사·문화 체험'},
-    {id:'market',label:'시장·로컬',re:/시장|전통시장|로컬|현지|골목|야시장/,categories:['전통시장','관광지'],reason:'로컬 시장·골목'},
-    {id:'food',label:'맛집·먹거리',re:/맛집|먹거리|밥|식사|국밥|회|해산물|고기|면|분식|맛있는/,categories:['맛집','전통시장','관광지'],reason:'먹거리·맛집'},
-    {id:'family',label:'가족·아이',re:/아이랑|아이와|가족|애기|아기|어린이|부모님/,categories:['체험마을','공원','뮤지엄','관광지'],reason:'가족 동반'},
-    {id:'date',label:'데이트',re:/데이트|커플|연인|둘이서/,categories:['카페','바다','공원','소품샵'],reason:'데이트 분위기'},
-    {id:'solo',label:'혼자 여행',re:/혼자|혼여|혼자서|혼자여행/,categories:['카페','뮤지엄','공원','바다'],reason:'혼자 머물기 좋은 여행'},
-    {id:'pet',label:'반려동물',re:/강아지|반려견|반려동물|애견|댕댕/,categories:['공원','캠핑','바다'],reason:'반려동물 동반'},
-    {id:'experience',label:'체험',re:/체험|만들기|공방|농촌|마을체험|직접해/,categories:['체험마을','관광지'],reason:'직접 하는 체험'},
-    {id:'souvenir',label:'소품·쇼핑',re:/소품|기념품|쇼핑|편집샵|문구|굿즈/,categories:['소품샵','전통시장','관광지'],reason:'소품·기념품 쇼핑'},
-    {id:'hot',label:'온천·따뜻함',re:/온천|스파|찜질|뜨끈|몸녹|따뜻하게쉬/,categories:['온천','관광지'],reason:'따뜻하게 쉬기'},
-    {id:'camp',label:'캠핑·차박',re:/캠핑|차박|텐트|오토캠핑/,categories:['캠핑','바다','산'],reason:'캠핑·차박'},
-    {id:'night',label:'야경·밤',re:/야경|밤에|밤풍경|불빛|조명/,categories:['바다','공원','관광지'],reason:'야경·밤 풍경'},
-    {id:'relax',label:'휴식·힐링',re:/쉬고|쉬고싶|휴식|힐링|멍때리|느긋/,categories:['바다','공원','산','카페'],reason:'휴식·힐링'},
-    {id:'short',label:'가볍게',re:/가볍게|잠깐|짧게|반나절|근교/,categories:['공원','카페','관광지'],reason:'짧고 가벼운 일정'}
+    {id:'wave',label:'파도·해안',kind:'hard',weight:24,re:/파도|거친바다|바닷소리|해안|바다보고|바다보러|물멍/,categories:['바다'],reason:'파도·해안 풍경'},
+    {id:'stargazing',label:'별·밤하늘',kind:'hard',weight:22,re:/별.*(보|잘)|별보기|별구경|은하수|천체|밤하늘|별사진/,categories:['산','캠핑','바다','공원'],reason:'별·밤하늘 감상'},
+    {id:'sunset',label:'노을·일몰',kind:'hard',weight:18,re:/노을|일몰|석양|해질녘|선셋/,categories:['바다','산','공원'],reason:'노을·일몰 감상'},
+    {id:'sunrise',label:'일출·해돋이',kind:'hard',weight:18,re:/일출|해돋이|해뜨는|선라이즈/,categories:['바다','산'],reason:'일출·해돋이 감상'},
+    {id:'hiking',label:'등산·트레킹',kind:'hard',weight:22,re:/등산|산타|정상|등반|트레킹/,categories:['산'],reason:'등산·트레킹'},
+    {id:'museum',label:'전시·뮤지엄',kind:'hard',weight:22,re:/박물관|미술관|뮤지엄|전시|갤러리|과학관/,categories:['뮤지엄'],reason:'전시·문화 관람'},
+    {id:'market',label:'시장·로컬',kind:'hard',weight:18,re:/전통시장|야시장|시장구경/,categories:['전통시장'],reason:'로컬 시장·골목'},
+    {id:'experience',label:'체험',kind:'hard',weight:18,re:/체험|만들기|공방|농촌|마을체험|직접해/,categories:['체험마을'],reason:'직접 하는 체험'},
+    {id:'history',label:'역사·문화',kind:'hard',weight:16,re:/역사|문화재|고궁|성곽|사찰|절|한옥|유적/,categories:['관광지','뮤지엄','체험마을'],reason:'역사·문화 체험'},
+
+    {id:'quiet',label:'조용·한적',kind:'mood',weight:13,re:/조용|한적|사람이?(많지않|적|없는)|사람적은|북적이지|붐비지|여유로운|한산|복잡하지/,categories:['바다','산','공원','캠핑'],reason:'조용하고 한적한 분위기'},
+    {id:'relax',label:'휴식·힐링',kind:'mood',weight:12,re:/쉬고|쉬고싶|휴식|힐링|멍때리|느긋|머리식히|답답|기분전환/,categories:['바다','공원','산'],reason:'휴식·기분전환'},
+    {id:'romantic',label:'감성·분위기',kind:'mood',weight:10,re:/감성|분위기좋|낭만|포근|아늑/,categories:['바다','공원','관광지'],reason:'감성적인 분위기'},
+    {id:'active',label:'활동적',kind:'mood',weight:10,re:/활동적|움직이고|신나게|액티비티/,categories:['산','체험마을','공원'],reason:'활동적인 일정'},
+
+    {id:'scenic',label:'풍경·전망',kind:'soft',weight:12,re:/전망|풍경|뷰좋|경치|절경|사진|포토|인생샷|전망대/,categories:['바다','산','공원','관광지'],reason:'풍경·전망'},
+    {id:'drive',label:'드라이브',kind:'soft',weight:10,re:/드라이브|차타고|차로가|운전하며|해안도로/,categories:['바다','산','관광지'],reason:'드라이브하기 좋은 동선'},
+    {id:'walk',label:'산책·걷기',kind:'soft',weight:10,re:/산책|걷고|걷기|둘레길|데크길/,categories:['공원','바다','산','관광지'],reason:'걷기·산책'},
+    {id:'forest',label:'숲·자연',kind:'soft',weight:14,re:/숲|수목원|나무|자연|계곡|피톤치드/,categories:['산','공원'],reason:'숲·자연 휴식'},
+    {id:'flower',label:'꽃·정원',kind:'soft',weight:12,re:/꽃|정원|수국|벚꽃|매화|단풍|억새|코스모스/,categories:['공원','관광지'],reason:'꽃·정원 풍경'},
+    {id:'night',label:'야경·밤',kind:'soft',weight:11,re:/야경|밤에|밤풍경|불빛|조명/,categories:['바다','공원','관광지'],reason:'야경·밤 풍경'},
+    {id:'date',label:'데이트',kind:'soft',weight:8,re:/데이트|커플|연인|둘이서/,categories:['바다','공원','관광지'],reason:'데이트 분위기'},
+    {id:'family',label:'가족·아이',kind:'soft',weight:8,re:/아이랑|아이와|가족|애기|아기|어린이|부모님/,categories:['체험마을','공원','뮤지엄','관광지'],reason:'가족 동반'},
+    {id:'solo',label:'혼자 여행',kind:'soft',weight:8,re:/혼자|혼여|혼자서|혼자여행/,categories:['뮤지엄','공원','바다'],reason:'혼자 머물기 좋은 여행'},
+    {id:'pet',label:'반려동물',kind:'soft',weight:8,re:/강아지|반려견|반려동물|애견|댕댕/,categories:['공원','캠핑','바다'],reason:'반려동물 동반'},
+
+    {id:'rain',label:'비 오는 날',kind:'condition',weight:0,re:/비오|비오는|비가오|비내|우천|장마|빗소리|비인데/,categories:[],reason:'비 오는 상황'},
+    {id:'cold',label:'추운 날',kind:'condition',weight:0,re:/추워|추운|쌀쌀|한파|기온낮/,categories:[],reason:'추운 날씨'},
+    {id:'hotweather',label:'더운 날',kind:'condition',weight:0,re:/더워|더운|폭염|무더위/,categories:[],reason:'더운 날씨'},
+    {id:'indoor',label:'실내',kind:'hard',weight:18,re:/실내|비피할|춥지않|덥지않|에어컨/,categories:['뮤지엄','전통시장','체험마을','관광지'],reason:'실내 중심 일정'},
+
+    {id:'cafe',label:'카페·커피',kind:'amenity',weight:0,re:/카페|커피|라떼|아메리카노|에스프레소|브런치|디저트|베이커리|빵집/,categories:[],reason:'카페·커피 취향'},
+    {id:'warmdrink',label:'따뜻한 음료',kind:'amenity',weight:0,re:/따뜻한(라떼|커피|차|음료)|뜨거운(커피|차)|핫초코/,categories:[],reason:'따뜻한 음료'},
+    {id:'food',label:'맛집·먹거리',kind:'amenity',weight:0,re:/맛집|먹거리|밥|식사|국밥|회|해산물|고기|면|분식|맛있는/,categories:[],reason:'먹거리·맛집'},
+    {id:'souvenir',label:'소품·쇼핑',kind:'amenity',weight:0,re:/소품|기념품|쇼핑|편집샵|문구|굿즈/,categories:[],reason:'소품·기념품 쇼핑'}
   ];
 
   const matches=semanticRules.filter(r=>r.re.test(compact));
-  const explicitCats=categoryLabels.filter(c=>m.includes(c)||(c==='뮤지엄'&&/(박물관|미술관)/.test(m))||(c==='바다'&&/(해변|해수욕장|바닷가|해안)/.test(m))||(c==='맛집'&&/(맛있는|식사|먹거리)/.test(m)));
-  const semanticCats=[...new Set(matches.flatMap(r=>r.categories).filter(x=>categoryLabels.includes(x)))];
-  const combinedCats=[...new Set([...explicitCats,...semanticCats])];
-  if(combinedCats.length)patch.categories=combinedCats;
+  const hardCategories=[...new Set(matches.filter(x=>x.kind==='hard').flatMap(x=>x.categories))];
+  const preferredCategories=[...new Set(matches.filter(x=>['hard','mood','soft'].includes(x.kind)).flatMap(x=>x.categories))];
+
+  // 직접 명시한 목적지 유형은 가장 강한 조건으로 취급한다. 카페/맛집은 코스 주변 편의시설로 분리한다.
+  const explicitDestination=[];
+  if(/바다|해변|해수욕장|바닷가|해안/.test(m))explicitDestination.push('바다');
+  if(/\b산\b|산으로|산에/.test(m))explicitDestination.push('산');
+  if(/공원/.test(m))explicitDestination.push('공원');
+  if(/관광지/.test(m))explicitDestination.push('관광지');
+  if(/박물관|미술관|뮤지엄/.test(m))explicitDestination.push('뮤지엄');
+  if(/체험마을/.test(m))explicitDestination.push('체험마을');
+  if(/전통시장/.test(m))explicitDestination.push('전통시장');
+  for(const c of explicitDestination)if(!hardCategories.includes(c))hardCategories.push(c);
+
+  const destinationCats=hardCategories.length?hardCategories:preferredCategories;
+  if(destinationCats.length)patch.categories=destinationCats;
   if(/카페.*(빼|제외)|카페는.*(빼|제외)/.test(m))patch.categories=(patch.categories||context.categories||[]).filter(x=>x!=='카페');
 
   const regions=['서울','부산','대구','인천','광주','대전','울산','진주','사천','통영','거제','남해','여수','순천','하동','합천','산청','함양','거창','창원','김해','경주','전주','담양','공주','보령','군산','강릉','속초','춘천','안동','포항','제주','제천'];
@@ -192,18 +268,28 @@ function localAI(message,context){
 
   const profile={
     keywords:matches.map(x=>x.label),
-    matches:matches.map(x=>({id:x.id,label:x.label,categories:x.categories,reason:x.reason})),
-    flags:{wantsCafe:matches.some(x=>x.id==='cafe'||x.id==='warmdrink'),quiet:matches.some(x=>x.id==='quiet'),rain:matches.some(x=>x.id==='rain'),wave:matches.some(x=>x.id==='wave')}
+    matches:matches.map(x=>({id:x.id,label:x.label,kind:x.kind,weight:x.weight,categories:x.categories,reason:x.reason})),
+    hardCategories,preferredCategories,distance,
+    flags:{
+      wantsCafe:matches.some(x=>x.id==='cafe'||x.id==='warmdrink'),
+      wantsFood:matches.some(x=>x.id==='food'),
+      quiet:matches.some(x=>x.id==='quiet'),
+      rain:matches.some(x=>x.id==='rain'),
+      wave:matches.some(x=>x.id==='wave')
+    }
   };
 
-  const travel=/여행|관광|여행지|코스|드라이브|바다|해변|산|카페|커피|라떼|맛집|뮤지엄|미술관|박물관|공원|시장|온천|캠핑|체험|데이트|당일치기|주차|날씨|교통|귀가|출발지|가고\s*싶|어디\s*갈|별|은하수|천체|밤하늘|노을|일몰|일출|해돋이|풍경|전망|경치|힐링|한적|실내|가족|아이|파도|비오|산책|걷기|숲|꽃|야경|쇼핑|소품|혼자|강아지|반려/;
-  const app=/TRIP\s*QUEST|트립\s*퀘스트|설정|사용법|버튼|연비|휘발유|거리\s*바꿔|카테고리/i;
-  if(/사용법|어떻게\s*써|기능\s*설명/.test(m))return {mode:'local',intent:'help',message:'출발지 → 취향 → 시간 → 추천 → 코스 순서로 진행합니다. 자연어로 여러 취향을 한 문장에 함께 말해도 분석합니다.',patch,focusQuery:focus,analysisKeywords:['사용법'],choices:[{label:'AI로 여행지 찾아보기',action:'ai_prompt',message:'가까운 국내 당일치기 여행지 추천해줘'},{label:'조건 직접 설정하기',action:'goto',step:2}]};
-  if(!travel.test(m)&&!app.test(m))return {mode:'local',intent:'off_topic',message:'TRIP QUEST는 국내 여행과 프로그램 설정에 집중합니다. 여행과 연결되는 방향을 선택해 주세요.',patch:{},focusQuery:'',analysisKeywords:[],choices:[{label:'오늘 갈 여행지 찾기',action:'ai_prompt',message:'오늘 갈 국내 여행지 추천해줘'},{label:'기존 여행 조건 보기',action:'goto',step:2}]};
+  const travel=/여행|관광|여행지|코스|드라이브|바다|해변|산|카페|커피|라떼|맛집|뮤지엄|미술관|박물관|공원|시장|온천|캠핑|체험|데이트|당일치기|주차|날씨|교통|귀가|출발지|가고\s*싶|어디\s*갈|별|은하수|천체|밤하늘|노을|일몰|일출|해돋이|풍경|전망|경치|힐링|한적|실내|가족|아이|파도|비오|산책|걷기|숲|꽃|야경|쇼핑|소품|혼자|강아지|반려|기분전환|쉬고싶|답답|감성|낭만/;
+  const appIntent=/TRIP\s*QUEST|트립\s*퀘스트|설정|사용법|버튼|연비|휘발유|거리\s*바꿔|카테고리/i;
+
+  if(/사용법|어떻게\s*써|기능\s*설명/.test(m))return {mode:'local',intent:'help',message:'출발지 → 취향 → 시간 → 추천 → 코스 순서로 진행합니다. 기분, 상황, 원하는 거리를 한 문장에 같이 적어도 분석합니다.',patch,focusQuery:focus,analysisKeywords:['사용법'],choices:[{label:'조건 직접 설정하기',action:'goto',step:2},{label:'다시 입력하기',action:'focus'}]};
+  if(!travel.test(m)&&!appIntent.test(m))return {mode:'local',intent:'off_topic',message:'국내 여행과 연결되는 기분, 상황, 거리 또는 가고 싶은 장소를 적어주세요.',patch:{},focusQuery:'',analysisKeywords:[],choices:[{label:'조건 직접 설정하기',action:'goto',step:2},{label:'다시 입력하기',action:'focus'}]};
 
   const settings=/바꿔|변경|설정|빼|제외/.test(m)&&Object.keys(patch).length;
-  const keywords=profile.keywords.length?profile.keywords:['국내여행'];
-  const msg=settings?'요청한 여행 조건을 반영했습니다.':`요청을 ${keywords.join(' · ')} 키워드로 분석했습니다. 서로 다른 취향이 함께 들어와도 겹치는 조건이 많은 여행지를 우선 추천합니다.`;
+  const keywords=[...profile.keywords];
+  if(distance)keywords.push(distance.mode==='max'?distance.km+'km 이내':distance.km+'km');
+  if(!keywords.length)keywords.push('국내여행');
+  const msg=settings?'요청한 여행 조건을 반영했습니다.':`기분·상황·거리에서 ${keywords.join(' · ')} 조건을 분석했습니다. 장소 유형과 직접 관련 없는 카페·날씨 조건은 추천지를 왜곡하지 않고 코스 조건으로 따로 반영합니다.`;
   return {mode:'local',intent:settings?'settings':'travel_search',message:msg,patch,focusQuery:focus,
     semanticProfile:profile,analysisKeywords:keywords,
     choices:settings?[{label:'이 조건으로 검색',action:'search',patch,focusQuery:focus},{label:'조건 직접 확인',action:'goto',step:2}]:[{label:'조건 직접 수정',action:'goto',step:2},{label:'다른 조건 말하기',action:'focus'}]}
@@ -398,7 +484,7 @@ async function startFromMainLocation(){
 }
 async function loadConfig(){
   state.config=await api('/api/config');$('#gasPrice').value=state.config.defaultGasPrice;const p=state.config.providers;
-  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.12 · 날씨 LIVE · 근거리 코스');
+  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.13 · 날씨 LIVE · AI 추천 개선');
 }
 async function useLocation(goNext=false){
   if(!navigator.geolocation){toast('브라우저 위치 기능을 사용할 수 없습니다. 출발지를 검색해주세요.');return}
@@ -597,8 +683,9 @@ function bindActions(){
   $('#backBtn').onclick=()=>setStep(state.step-1);$('#nextBtn').onclick=async()=>{if(state.step===1){if(state.origin)setStep(2);else await useLocation(true)}else if(state.step===2)setStep(3);else if(state.step===3)await recommend();else if(state.step===4){if(state.selected)setStep(5)}else resetTrip()};
   $$('.progress-step').forEach(b=>b.onclick=()=>{const n=Number(b.dataset.step);if(n<=state.step||n<=3)setStep(n)});$('#editConditionsBtn').onclick=()=>setStep(2);$('#changePlaceBtn').onclick=()=>setStep(4);
   $('#noMatchActions').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.noMatch==='distance'){state.targetKm=Math.min(250,state.targetKm+50);$('#distanceRange').value=state.targetKm;syncDistanceUI()}else{state.categories=[];syncCategoriesUI()}recommend()};
-  $('#aiSend').onclick=()=>askAI($('#aiInput').value);$('#aiInput').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')askAI($('#aiInput').value)});$('#quickPrompts').onclick=e=>{const b=e.target.closest('button');if(!b)return;const m=b.dataset.prompt;$('#aiInput').value=m;askAI(m)};
+  $('#aiSend').onclick=()=>askAI($('#aiInput').value);$('#aiInput').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')askAI($('#aiInput').value)});
 }
 
 async function boot(){initTimes();initMap();bindChoices();bindActions();initPWA();syncDistanceUI();syncDirectionUI();syncCategoriesUI();setStep(1);showMainLanding();try{await loadConfig()}catch{setText('#providerNow','설정 확인 필요')}setInterval(refreshLive,10*60*1000)}
-boot();
+globalThis.__TQ_TEST__={localAI,localRecommend,coursePack,approxRoute};
+if(typeof document!=='undefined')boot();

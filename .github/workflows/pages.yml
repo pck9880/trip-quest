@@ -28,6 +28,7 @@ jobs:
           mkdir -p _site/icons
           cp -a site-src/. _site/
           node --check _site/app.js
+          node tests/ai-smoke.mjs
           python3 - <<'PY'
           import struct, zlib
           from pathlib import Path
