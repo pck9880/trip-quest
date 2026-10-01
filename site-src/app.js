@@ -191,6 +191,9 @@ function localRecommend(body){
     if(hardFit&&semanticHits.length)why.push(semanticHits.slice(0,2).map(x=>x.reason||x.label).join(' + ')+'을 우선 반영');
     else if(semanticHits.length)why.push(semanticHits.slice(0,2).map(x=>x.reason||x.label).join(' + ')+' 조건과 잘 맞음');
     if(profile?.flags?.quiet&&['바다','산','공원','캠핑'].includes(p.category))why.push('한적한 분위기 선호를 자연형 장소에 반영');
+    if(profile?.flags?.trendy&&['뮤지엄','체험마을','관광지','공원'].includes(p.category))why.push('힙·트렌디한 분위기 키워드 반영');
+    if(profile?.flags?.localHidden&&['체험마을','전통시장','공원','관광지'].includes(p.category))why.push('로컬·숨은 장소 취향 반영');
+    if(profile?.flags?.picnic&&['공원','바다'].includes(p.category))why.push('피크닉하기 좋은 장소 유형 우선');
     if(profile?.flags?.wantsCafe)why.push('목적지 선택 후 4km 이내 카페 검색으로 연결');
     why.push(`${Math.round(activeMin)}~${Math.round(activeMax)}km 검색 범위 후보`);
     if(feasible&&avail!=null)why.push('설정한 귀가시간 안에 이동 가능');
@@ -351,15 +354,38 @@ function localAI(message,context){
 
     {id:'quiet',label:'조용·한적',kind:'mood',weight:13,re:/조용|한적|사람이?(많지않|적|없는)|사람적은|북적이지|붐비지|여유로운|한산|복잡하지/,categories:['바다','산','공원','캠핑'],reason:'조용하고 한적한 분위기'},
     {id:'relax',label:'휴식·힐링',kind:'mood',weight:12,re:/쉬고|쉬고싶|휴식|힐링|멍때리|느긋|머리식히|답답|기분전환/,categories:['바다','공원','산'],reason:'휴식·기분전환'},
-    {id:'romantic',label:'감성·분위기',kind:'mood',weight:10,re:/감성|분위기좋|낭만|포근|아늑/,categories:['바다','공원','관광지'],reason:'감성적인 분위기'},
+    {id:'romantic',label:'감성·분위기',kind:'mood',weight:10,re:/감성|감성적인|분위기좋|분위기있는|무드있는|무드좋|낭만|로맨틱|데이트감성|포근|아늑/,categories:['바다','공원','관광지'],reason:'감성적인 분위기'},
     {id:'active',label:'활동적',kind:'mood',weight:10,re:/활동적|움직이고|신나게|액티비티/,categories:['산','체험마을','공원'],reason:'활동적인 일정'},
+    {id:'trendy',label:'힙·트렌디',kind:'mood',weight:16,re:/힙한|힙한곳|힙플|핫플|핫플레이스|트렌디|트렌디한|요즘뜨는|요즘핫한|요즘유행|mz|엠지|감각적|감각적인|세련된|유니크|개성있는|개성적인|스타일리시/,categories:['뮤지엄','체험마을','관광지','공원'],reason:'힙하고 트렌디한 분위기'},
+    {id:'localhidden',label:'로컬·숨은명소',kind:'mood',weight:15,re:/로컬|찐로컬|현지인|동네사람|숨은명소|숨은곳|덜알려진|안유명한|유명하지않|사람들이잘모르는|관광객적은|관광객없는|골목감성|동네감성/,categories:['체험마을','전통시장','공원','관광지'],reason:'로컬·숨은 장소 분위기'},
+    {id:'retro',label:'레트로·빈티지',kind:'mood',weight:14,re:/레트로|뉴트로|빈티지|복고|옛날감성|옛감성|오래된감성|세월감|아날로그|필름감성|필카감성/,categories:['전통시장','체험마을','관광지','뮤지엄'],reason:'레트로·빈티지 분위기'},
+    {id:'artspace',label:'예술·공간',kind:'soft',weight:15,re:/예술|아트|디자인|공예|공방거리|복합문화공간|문화공간|전시공간|창작공간|작업실|아트스페이스|설치미술|미디어아트/,categories:['뮤지엄','체험마을','관광지'],reason:'예술·문화 공간'},
+    {id:'architecture',label:'건축·공간미',kind:'soft',weight:14,re:/건축|건축물|공간미|공간디자인|인테리어|건물구경|근대건축|산업유산|창고개조|공장개조|한옥감성|모던건축/,categories:['관광지','뮤지엄','체험마을'],reason:'건축·공간 디자인'},
+    {id:'alley',label:'골목·마을',kind:'soft',weight:13,re:/골목|골목길|마을길|벽화골목|동네산책|구도심|원도심|옛동네|작은마을|마을구경/,categories:['체험마을','전통시장','관광지'],reason:'골목·마을 산책'},
+    {id:'bookish',label:'책·서점감성',kind:'soft',weight:10,re:/책방|독립서점|서점|북카페|책구경|책읽기|문학|북스테이/,categories:['뮤지엄','체험마을','관광지'],reason:'책·문화 감성'},
+    {id:'oceanview',label:'오션뷰·바다뷰',kind:'hard',weight:22,re:/오션뷰|바다뷰|해안뷰|씨뷰|바다가보이는|바다보이는|바다앞|바닷가뷰/,categories:['바다'],reason:'바다 전망'},
+    {id:'waterside',label:'수변·호수',kind:'soft',weight:14,re:/호수|호숫가|강변|강가|수변|저수지|연못|물가|리버뷰|레이크뷰|수변공원/,categories:['공원','관광지'],reason:'수변·호수 풍경'},
+    {id:'picnic',label:'피크닉·잔디',kind:'soft',weight:14,re:/피크닉|돗자리|잔디|잔디밭|도시락|소풍|피크닉하기|누워있기|누워서쉬기/,categories:['공원','바다'],reason:'피크닉·잔디 휴식'},
+    {id:'photo',label:'사진·스냅',kind:'soft',weight:13,re:/스냅|스냅사진|필름사진|필카|사진맛집|포토스팟|포토존|인생사진|인생샷|사진찍기|사진찍을/,categories:['바다','공원','뮤지엄','관광지','체험마을'],reason:'사진·스냅 촬영'},
+    {id:'cityview',label:'도시뷰·시티감성',kind:'soft',weight:11,re:/도시뷰|시티뷰|스카이라인|도심뷰|도시야경|도심감성|시티감성|도시구경/,categories:['관광지','공원','뮤지엄'],reason:'도시 풍경·시티 감성'},
+    {id:'lively',label:'활기·북적임',kind:'mood',weight:10,re:/활기찬|활기있는|북적이는|사람많은|사람많아도|시장분위기|왁자지껄|생동감/,categories:['전통시장','관광지','체험마을'],reason:'활기찬 분위기'},
+    {id:'minimal',label:'미니멀·차분',kind:'mood',weight:9,re:/미니멀|깔끔한|정갈한|차분한|담백한|모던한|심플한/,categories:['뮤지엄','공원','관광지'],reason:'차분하고 정돈된 분위기'},
+    {id:'unique',label:'이색·특이한곳',kind:'mood',weight:13,re:/이색|이색적인|특이한|특색있는|색다른|독특한|신기한|별난|평범하지않|남들과다른/,categories:['체험마을','뮤지엄','관광지'],reason:'이색적이고 특색 있는 장소'},
+    {id:'cozy',label:'아늑·포근',kind:'mood',weight:10,re:/아늑|포근|편안한|편안하게|따뜻한분위기|아기자기|소박한/,categories:['공원','뮤지엄','체험마을','관광지'],reason:'아늑하고 편안한 분위기'},
+    {id:'openair',label:'탁트인·개방감',kind:'mood',weight:12,re:/탁트인|탁트인곳|뻥뚫린|개방감|시야좋은|시원하게트인|넓게트인/,categories:['바다','산','공원'],reason:'탁 트인 개방감'},
+    {id:'healingview',label:'멍·뷰힐링',kind:'mood',weight:12,re:/물멍|산멍|불멍|뷰멍|멍하니|멍때리기|가만히보기|아무생각없이/,categories:['바다','산','공원','캠핑'],reason:'가만히 쉬며 풍경 보기'},
+    {id:'seasonal',label:'계절감성',kind:'soft',weight:10,re:/봄감성|여름감성|가을감성|겨울감성|계절감|제철풍경|계절풍경/,categories:['공원','산','바다','관광지'],reason:'계절 분위기'},
+    {id:'morning',label:'아침·브런치시간',kind:'condition',weight:0,re:/아침에|오전에|모닝|브런치시간|늦은아침/,categories:[],reason:'아침 시간대'},
+    {id:'evening',label:'저녁·밤시간',kind:'condition',weight:0,re:/저녁에|저녁시간|밤에가|밤늦게|야간|퇴근후/,categories:[],reason:'저녁·야간 시간대'},
+    {id:'shortstop',label:'잠깐·가볍게',kind:'mood',weight:8,re:/잠깐|짧게|가볍게|잠시|한두시간|두시간정도|시간많이안쓰고/,categories:['공원','바다','뮤지엄','관광지'],reason:'짧고 가벼운 일정'},
+    {id:'slowtrip',label:'느린여행',kind:'mood',weight:10,re:/슬로우|느린여행|천천히|느긋하게|여유롭게|서두르지않고/,categories:['공원','바다','체험마을','전통시장'],reason:'느긋한 여행 분위기'},
 
-    {id:'scenic',label:'풍경·전망',kind:'soft',weight:12,re:/전망|풍경|뷰좋|경치|절경|사진|포토|인생샷|전망대/,categories:['바다','산','공원','관광지'],reason:'풍경·전망'},
-    {id:'drive',label:'드라이브',kind:'soft',weight:10,re:/드라이브|차타고|차로가|운전하며|해안도로/,categories:['바다','산','관광지'],reason:'드라이브하기 좋은 동선'},
-    {id:'walk',label:'산책·걷기',kind:'soft',weight:10,re:/산책|걷고|걷기|둘레길|데크길/,categories:['공원','바다','산','관광지'],reason:'걷기·산책'},
-    {id:'forest',label:'숲·자연',kind:'soft',weight:14,re:/숲|수목원|나무|자연|계곡|피톤치드/,categories:['산','공원'],reason:'숲·자연 휴식'},
+    {id:'scenic',label:'풍경·전망',kind:'soft',weight:12,re:/전망|풍경|뷰좋|뷰좋은|경치|절경|파노라마|전망좋은|뷰맛집|전망대/,categories:['바다','산','공원','관광지'],reason:'풍경·전망'},
+    {id:'drive',label:'드라이브',kind:'soft',weight:10,re:/드라이브|드라이브하기|차타고|차로가|차타고가|운전하며|해안도로|도로풍경|차박가기/,categories:['바다','산','관광지'],reason:'드라이브하기 좋은 동선'},
+    {id:'walk',label:'산책·걷기',kind:'soft',weight:10,re:/산책|산책하기|산책로|걷고|걷기|걷기좋은|둘레길|데크길|트레일|가볍게걷|슬슬걷/,categories:['공원','바다','산','관광지'],reason:'걷기·산책'},
+    {id:'forest',label:'숲·자연',kind:'soft',weight:14,re:/숲|숲길|수목원|나무|자연|자연속|계곡|피톤치드|초록초록|녹음|산림욕/,categories:['산','공원'],reason:'숲·자연 휴식'},
     {id:'flower',label:'꽃·정원',kind:'soft',weight:12,re:/꽃|정원|수국|벚꽃|매화|단풍|억새|코스모스/,categories:['공원','관광지'],reason:'꽃·정원 풍경'},
-    {id:'night',label:'야경·밤',kind:'soft',weight:11,re:/야경|밤에|밤풍경|불빛|조명/,categories:['바다','공원','관광지'],reason:'야경·밤 풍경'},
+    {id:'night',label:'야경·밤',kind:'soft',weight:11,re:/야경|야간뷰|밤에|밤풍경|불빛|조명|네온|빛축제|밤산책/,categories:['바다','공원','관광지'],reason:'야경·밤 풍경'},
     {id:'date',label:'데이트',kind:'soft',weight:8,re:/데이트|커플|연인|둘이서/,categories:['바다','공원','관광지'],reason:'데이트 분위기'},
     {id:'family',label:'가족·아이',kind:'soft',weight:8,re:/아이랑|아이와|가족|애기|아기|어린이|부모님/,categories:['체험마을','공원','뮤지엄','관광지'],reason:'가족 동반'},
     {id:'solo',label:'혼자 여행',kind:'soft',weight:8,re:/혼자|혼여|혼자서|혼자여행/,categories:['뮤지엄','공원','바다'],reason:'혼자 머물기 좋은 여행'},
@@ -370,10 +396,10 @@ function localAI(message,context){
     {id:'hotweather',label:'더운 날',kind:'condition',weight:0,re:/더워|더운|폭염|무더위/,categories:[],reason:'더운 날씨'},
     {id:'indoor',label:'실내',kind:'hard',weight:18,re:/실내|비피할|춥지않|덥지않|에어컨/,categories:['뮤지엄','전통시장','체험마을','관광지'],reason:'실내 중심 일정'},
 
-    {id:'cafe',label:'카페·커피',kind:'amenity',weight:0,re:/카페|커피|라떼|아메리카노|에스프레소|브런치|디저트|베이커리|빵집/,categories:[],reason:'카페·커피 취향'},
+    {id:'cafe',label:'카페·커피',kind:'amenity',weight:0,re:/카페|카페투어|카페거리|커피|라떼|아메리카노|에스프레소|브런치|디저트|베이커리|빵집|로스터리|커피맛집|디저트맛집|뷰카페|대형카페|감성카페|한옥카페|테라스카페|루프탑카페/,categories:[],reason:'카페·커피 취향'},
     {id:'warmdrink',label:'따뜻한 음료',kind:'amenity',weight:0,re:/따뜻한(라떼|커피|차|음료)|뜨거운(커피|차)|핫초코/,categories:[],reason:'따뜻한 음료'},
-    {id:'food',label:'맛집·먹거리',kind:'amenity',weight:0,re:/맛집|먹거리|밥|식사|국밥|회|해산물|고기|면|분식|맛있는/,categories:[],reason:'먹거리·맛집'},
-    {id:'souvenir',label:'소품·쇼핑',kind:'amenity',weight:0,re:/소품|기념품|쇼핑|편집샵|문구|굿즈/,categories:[],reason:'소품·기념품 쇼핑'}
+    {id:'food',label:'맛집·먹거리',kind:'amenity',weight:0,re:/맛집|찐맛집|로컬맛집|현지인맛집|먹거리|밥|식사|혼밥|브런치|국밥|회|해산물|고기|면|분식|맛있는|노포|노포맛집|시장먹거리|간식|야식/,categories:[],reason:'먹거리·맛집'},
+    {id:'souvenir',label:'소품·쇼핑',kind:'amenity',weight:0,re:/소품|소품샵|기념품|쇼핑|편집샵|셀렉트샵|라이프스타일샵|문구|문구점|굿즈|빈티지샵|플리마켓|마켓구경/,categories:[],reason:'소품·기념품 쇼핑'}
   ];
 
   const matches=semanticRules.filter(r=>r.re.test(compact));
@@ -407,11 +433,15 @@ function localAI(message,context){
       wantsFood:matches.some(x=>x.id==='food'),
       quiet:matches.some(x=>x.id==='quiet'),
       rain:matches.some(x=>x.id==='rain'),
-      wave:matches.some(x=>x.id==='wave')
+      wave:matches.some(x=>x.id==='wave'),
+      trendy:matches.some(x=>x.id==='trendy'),
+      localHidden:matches.some(x=>x.id==='localhidden'),
+      retro:matches.some(x=>x.id==='retro'),
+      picnic:matches.some(x=>x.id==='picnic')
     }
   };
 
-  const travel=/여행|관광|여행지|코스|드라이브|바다|해변|산|카페|커피|라떼|맛집|뮤지엄|미술관|박물관|공원|시장|온천|캠핑|체험|데이트|당일치기|주차|날씨|교통|귀가|출발지|가고\s*싶|어디\s*갈|별|은하수|천체|밤하늘|노을|일몰|일출|해돋이|풍경|전망|경치|힐링|한적|실내|가족|아이|파도|비오|산책|걷기|숲|꽃|야경|쇼핑|소품|혼자|강아지|반려|기분전환|쉬고싶|답답|감성|낭만|역사|문화재|고궁|성곽|사찰|한옥|유적|추천|찾아줘|갈만|나들이|바람쐬|바람쐬고|바람쐬러|떠나고|가고\s*싶|보고\s*싶|걷고\s*싶|먹고\s*싶|마시고\s*싶/;
+  const travel=/여행|관광|여행지|코스|드라이브|바다|해변|산|카페|커피|라떼|맛집|뮤지엄|미술관|박물관|공원|시장|온천|캠핑|체험|데이트|당일치기|주차|날씨|교통|귀가|출발지|가고\s*싶|어디\s*갈|별|은하수|천체|밤하늘|노을|일몰|일출|해돋이|풍경|전망|경치|힐링|한적|실내|가족|아이|파도|비오|산책|걷기|숲|꽃|야경|쇼핑|소품|혼자|강아지|반려|기분전환|쉬고싶|답답|감성|낭만|역사|문화재|고궁|성곽|사찰|한옥|유적|추천|찾아줘|갈만|나들이|바람쐬|바람쐬고|바람쐬러|떠나고|가고\s*싶|보고\s*싶|걷고\s*싶|먹고\s*싶|마시고\s*싶|힙한|힙플|핫플|핫플레이스|트렌디|엠지|mz|로컬|숨은명소|빈티지|레트로|뉴트로|복합문화공간|문화공간|독립서점|책방|골목|구도심|원도심|오션뷰|바다뷰|시티뷰|스카이라인|피크닉|돗자리|잔디|수변|호수|강변|사진맛집|포토스팟|스냅|필카|이색|특이한|색다른|유니크|감각적|세련된|아기자기|미니멀|탁트인|뷰맛집|공간미|아트|공예|노포|로스터리|플리마켓|셀렉트샵|편집샵|스팟|플레이스/;
   const appIntent=/TRIP\s*QUEST|트립\s*퀘스트|설정|사용법|버튼|연비|휘발유|거리\s*바꿔|카테고리/i;
 
   if(/사용법|어떻게\s*써|기능\s*설명/.test(m))return {mode:'local',intent:'help',message:'출발지 → 취향 → 시간 → 추천 → 코스 순서로 진행합니다. 기분, 상황, 원하는 거리를 한 문장에 같이 적어도 분석합니다.',patch,focusQuery:focus,analysisKeywords:['사용법'],choices:[{label:'조건 직접 설정하기',action:'goto',step:2},{label:'다시 입력하기',action:'focus'}]};
@@ -645,7 +675,7 @@ async function startFromMainLocation(){
 }
 async function loadConfig(){
   state.config=await api('/api/config');$('#gasPrice').value=state.config.defaultGasPrice;const p=state.config.providers;
-  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.20 · A/B 지역 코스');
+  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.21 · 확장 키워드 AI');
 }
 async function useLocation(goNext=false){
   if(!navigator.geolocation){toast('브라우저 위치 기능을 사용할 수 없습니다. 출발지를 검색해주세요.');return}
