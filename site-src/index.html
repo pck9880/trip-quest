@@ -14,7 +14,7 @@
   <title>TRIP QUEST · 국내여행 AI 플래너</title>
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="./styles.css?v=20261001-2312" />
+  <link rel="stylesheet" href="./styles.css?v=20261001-2348" />
 </head>
 <body>
   <section id="mainLanding" class="main-landing" aria-labelledby="mainLandingTitle">
@@ -68,13 +68,17 @@
         </div>
         <div class="ai-distance-control">
           <div class="ai-distance-head">
-            <div><span>내 위치 기준 검색 거리</span><strong><b id="distanceValue">100</b> km</strong></div>
-            <small id="distanceHint">내 위치 기준 최대 100km</small>
+            <div><span>내 위치 기준 검색 거리</span><strong><b id="distanceMinValue">0</b> ~ <b id="distanceMaxValue">100</b> km</strong></div>
+            <small id="distanceHint">내 위치 기준 0~100km</small>
           </div>
-          <input id="distanceRange" class="ai-distance-range" type="range" min="0" max="400" step="10" value="100" aria-label="검색 거리 0에서 400킬로미터" />
+          <div class="dual-distance-range">
+            <div class="dual-distance-track"><i id="distanceRangeFill"></i></div>
+            <input id="distanceMinRange" class="ai-distance-range min" type="range" min="0" max="400" step="10" value="0" aria-label="최소 검색 거리" />
+            <input id="distanceMaxRange" class="ai-distance-range max" type="range" min="0" max="400" step="10" value="100" aria-label="최대 검색 거리" />
+          </div>
           <div class="distance-ruler" aria-hidden="true"><i class="major"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="major"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="major"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="major"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="major"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="major"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="major"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="major"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="major"></i></div>
           <div class="distance-labels"><span>0</span><span>100</span><span>200</span><span>300</span><span>400km</span></div>
-          <p>10km 단위로 맞춰집니다. 진동 기능을 지원하는 기기에서는 단계마다 짧게 진동합니다.</p>
+          <p>최소·최대 거리를 각각 10km 단위로 맞춥니다. 지원 기기에서는 단계가 바뀔 때 짧게 진동합니다.</p>
         </div>
         <div id="aiSearchStatus" class="ai-search-status" role="status" aria-live="polite" hidden></div>
         <div id="aiProgress" class="ai-progress" hidden>
@@ -185,7 +189,7 @@
             <div><strong>추천 여행지</strong><span id="resultCaption">조건을 기준으로 후보를 정렬합니다.</span></div>
             <div class="result-toolbar-actions">
               <div id="resultSort" class="result-sort" aria-label="추천 결과 정렬">
-                <button type="button" data-sort="popular" class="active">인기순</button>
+                <button type="button" data-sort="recommend" class="active">추천순</button>
                 <button type="button" data-sort="near">가까운순</button>
                 <button type="button" data-sort="far">먼거리순</button>
               </div>
@@ -241,7 +245,7 @@
       </section>
     </main>
   </div>
-  <footer class="app-version-footer">TRIP QUEST · v0.18</footer>
+  <footer class="app-version-footer">TRIP QUEST · v0.19</footer>
 
   <div id="iosInstallTip" class="install-sheet" hidden>
     <div class="install-card">
@@ -252,6 +256,6 @@
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script type="module" src="./app.js?v=20261001-2312"></script>
+  <script type="module" src="./app.js?v=20261001-2348"></script>
 </body>
 </html>

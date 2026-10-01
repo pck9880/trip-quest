@@ -1,5 +1,5 @@
-const CACHE='trip-quest-v0.18-20261001-2312';
-const SHELL=['./','./index.html','./styles.css?v=20261001-2312','./app.js?v=20261001-2312','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/apple-touch-icon.png'];
+const CACHE='trip-quest-v0.19-20261001-2348';
+const SHELL=['./','./index.html','./styles.css?v=20261001-2348','./app.js?v=20261001-2348','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/apple-touch-icon.png'];
 
 self.addEventListener('install',e=>e.waitUntil(
   caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())

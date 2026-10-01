@@ -136,20 +136,27 @@ body.landing-open{overflow:hidden}
 }
 
 
-/* v0.16 distance slider + result sorting */
+/* v0.19 dual distance slider + result sorting */
 .ai-distance-control{margin-top:12px;padding:14px 15px;border:1px solid var(--line);border-radius:16px;background:#0d141b}
 .ai-distance-head{display:flex;align-items:end;justify-content:space-between;gap:12px}
 .ai-distance-head span,.ai-distance-head strong{display:block}.ai-distance-head span{font-size:9px;color:var(--muted);font-weight:750}.ai-distance-head strong{margin-top:4px;font-size:18px}.ai-distance-head strong b{font-size:24px;color:var(--accent)}.ai-distance-head small{font-size:9px;color:#9ba7b2}
-.ai-distance-range{--distance-fill:25%;width:100%;height:30px;margin:9px 0 0;appearance:none;background:transparent;cursor:pointer}
-.ai-distance-range::-webkit-slider-runnable-track{height:6px;border-radius:999px;background:linear-gradient(90deg,var(--accent) 0 var(--distance-fill),#27323c var(--distance-fill) 100%)}
-.ai-distance-range::-webkit-slider-thumb{appearance:none;width:22px;height:22px;border-radius:50%;margin-top:-8px;background:var(--accent);border:3px solid #0b1016;box-shadow:0 0 0 2px #607a31,0 4px 14px #0008}
-.ai-distance-range::-moz-range-track{height:6px;border-radius:999px;background:#27323c}.ai-distance-range::-moz-range-progress{height:6px;border-radius:999px;background:var(--accent)}.ai-distance-range::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--accent);border:3px solid #0b1016}
+.dual-distance-range{position:relative;height:34px;margin-top:8px}
+.dual-distance-track{position:absolute;left:10px;right:10px;top:14px;height:6px;border-radius:999px;background:#27323c;overflow:hidden}
+.dual-distance-track i{position:absolute;top:0;bottom:0;left:0;right:75%;background:var(--accent);border-radius:999px;box-shadow:0 0 16px rgba(201,255,69,.24)}
+.ai-distance-range{position:absolute;inset:0;width:100%;height:34px;margin:0;appearance:none;background:transparent;pointer-events:none}
+.ai-distance-range::-webkit-slider-runnable-track{height:6px;background:transparent}
+.ai-distance-range::-webkit-slider-thumb{appearance:none;width:22px;height:22px;border-radius:50%;margin-top:-8px;background:var(--accent);border:3px solid #0b1016;box-shadow:0 0 0 2px #607a31,0 4px 14px #0008;pointer-events:auto;cursor:grab}
+.ai-distance-range::-moz-range-track{height:6px;background:transparent}.ai-distance-range::-moz-range-progress{background:transparent}
+.ai-distance-range::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--accent);border:3px solid #0b1016;pointer-events:auto;cursor:grab}
+.ai-distance-range.min{z-index:3}.ai-distance-range.max{z-index:4}
 .distance-ruler{height:11px;display:grid;grid-template-columns:repeat(41,1fr);align-items:start;padding:0 9px}.distance-ruler i{justify-self:center;width:1px;height:4px;background:#46515c}.distance-ruler i.major{height:8px;background:#7c8994}
 .distance-labels{display:flex;justify-content:space-between;color:#78848f;font:700 8px ui-monospace,monospace;margin-top:-1px}.ai-distance-control>p{margin:8px 0 0;color:#687581;font-size:9px;line-height:1.5}
 .result-toolbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}.result-sort{display:flex;gap:5px;padding:4px;border:1px solid var(--line);border-radius:12px;background:#0c131a}.result-sort button{min-height:31px;border:0;border-radius:8px;background:transparent;color:#87939e;padding:0 10px;font-size:9px;font-weight:800;cursor:pointer}.result-sort button.active{background:var(--accent);color:var(--accent-ink)}
 @media(max-width:680px){.ai-distance-control{padding:12px}.ai-distance-head{align-items:center}.ai-distance-head strong b{font-size:22px}.result-toolbar-actions{display:grid;grid-template-columns:1fr}.result-sort{width:100%;display:grid;grid-template-columns:repeat(3,1fr)}.result-sort button{min-height:38px}.result-toolbar-actions #editConditionsBtn{width:100%}}
-
 /* v0.17 similar-distance fallback */
 .no-match-actions{align-items:center}
 .no-match-actions .btn[data-no-match="similar"]{min-width:230px}
 @media(max-width:680px){.no-match-actions .btn[data-no-match="similar"]{width:100%;min-width:0}}
+
+/* v0.19 route accuracy note */
+.course-rule{line-height:1.45}
