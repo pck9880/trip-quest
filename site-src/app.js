@@ -144,7 +144,7 @@ async function useSharedTrip(){
   await recommend({focusQuery:d.destination.name});
 }
 function initPWA(){
-  if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   hydrateSharedTrip();
   const btn=$('#installBtn');
   if(isStandalone()){btn.hidden=true}else if(isIOS()){btn.hidden=false;btn.textContent='홈 화면 추가'}
@@ -252,7 +252,7 @@ function drawCourseRoute(course){
 
 async function loadConfig(){
   state.config=await api('/api/config');$('#gasPrice').value=state.config.defaultGasPrice;const p=state.config.providers;
-  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','날씨 LIVE · 경로 근사');
+  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.8 · 날씨 LIVE · 경로 근사');
 }
 async function useLocation(goNext=false){
   if(!navigator.geolocation){toast('브라우저 위치 기능을 사용할 수 없습니다. 출발지를 검색해주세요.');return}
