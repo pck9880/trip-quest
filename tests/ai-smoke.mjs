@@ -46,3 +46,13 @@ const relaxedItems=localRecommend({...relaxedContext,...relaxedQuery.patch,seman
 assert.ok(relaxedItems.length>0,'AI valid travel query should not silently return zero results');
 assert.ok(relaxedItems.some(x=>['공원','산','바다','캠핑'].includes(x.category)),'quiet query should return nature-oriented results');
 console.log('less-famous / fallback recommendation test passed');
+
+const ambiguous=localAI('오늘 그냥 바람 쐬고 싶어. 60km 안에서 편하게 갈 곳 찾아줘',context);
+assert.equal(ambiguous.intent,'travel_search','ambiguous travel request should still be treated as travel');
+const ambiguousItems=localRecommend({...context,...ambiguous.patch,semanticProfile:ambiguous.semanticProfile});
+assert.ok(ambiguousItems.length>0,'ambiguous travel request should return recommendations');
+assert.ok(ambiguousItems.some(x=>x.category!=='관광지'),'AI generic search must not be locked to default tourist category');
+
+const unknown=localAI('새 노트북 사양 비교해줘',context);
+assert.equal(unknown.intent,'clarify','non-travel unknown request should end in clarify state');
+console.log('ambiguous travel request / clarify state test passed');

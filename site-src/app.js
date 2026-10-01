@@ -84,7 +84,7 @@ function localRecommend(body){
     }else if(profile&&preferredCats.length){
       const preferred=arr.filter(p=>preferredCats.includes(p.category));
       arr=preferred.length>=3?preferred:[...preferred,...arr.filter(p=>!preferredCats.includes(p.category))];
-    }else if(cats.length){
+    }else if(!profile&&cats.length){
       arr=arr.filter(p=>cats.includes(p.category));
     }
   }
@@ -312,11 +312,11 @@ function localAI(message,context){
     }
   };
 
-  const travel=/여행|관광|여행지|코스|드라이브|바다|해변|산|카페|커피|라떼|맛집|뮤지엄|미술관|박물관|공원|시장|온천|캠핑|체험|데이트|당일치기|주차|날씨|교통|귀가|출발지|가고\s*싶|어디\s*갈|별|은하수|천체|밤하늘|노을|일몰|일출|해돋이|풍경|전망|경치|힐링|한적|실내|가족|아이|파도|비오|산책|걷기|숲|꽃|야경|쇼핑|소품|혼자|강아지|반려|기분전환|쉬고싶|답답|감성|낭만|역사|문화재|고궁|성곽|사찰|한옥|유적/;
+  const travel=/여행|관광|여행지|코스|드라이브|바다|해변|산|카페|커피|라떼|맛집|뮤지엄|미술관|박물관|공원|시장|온천|캠핑|체험|데이트|당일치기|주차|날씨|교통|귀가|출발지|가고\s*싶|어디\s*갈|별|은하수|천체|밤하늘|노을|일몰|일출|해돋이|풍경|전망|경치|힐링|한적|실내|가족|아이|파도|비오|산책|걷기|숲|꽃|야경|쇼핑|소품|혼자|강아지|반려|기분전환|쉬고싶|답답|감성|낭만|역사|문화재|고궁|성곽|사찰|한옥|유적|추천|찾아줘|갈만|나들이|바람쐬|바람쐬고|바람쐬러|떠나고|가고\s*싶|보고\s*싶|걷고\s*싶|먹고\s*싶|마시고\s*싶/;
   const appIntent=/TRIP\s*QUEST|트립\s*퀘스트|설정|사용법|버튼|연비|휘발유|거리\s*바꿔|카테고리/i;
 
   if(/사용법|어떻게\s*써|기능\s*설명/.test(m))return {mode:'local',intent:'help',message:'출발지 → 취향 → 시간 → 추천 → 코스 순서로 진행합니다. 기분, 상황, 원하는 거리를 한 문장에 같이 적어도 분석합니다.',patch,focusQuery:focus,analysisKeywords:['사용법'],choices:[{label:'조건 직접 설정하기',action:'goto',step:2},{label:'다시 입력하기',action:'focus'}]};
-  if(!travel.test(m)&&!appIntent.test(m))return {mode:'local',intent:'off_topic',message:'국내 여행과 연결되는 기분, 상황, 거리 또는 가고 싶은 장소를 적어주세요.',patch:{},focusQuery:'',analysisKeywords:[],choices:[{label:'조건 직접 설정하기',action:'goto',step:2},{label:'다시 입력하기',action:'focus'}]};
+  if(!travel.test(m)&&!appIntent.test(m))return {mode:'local',intent:'clarify',message:'여행 조건으로 이해할 정보가 조금 부족합니다. 기분, 현재 상황, 원하는 거리 중 한 가지만 더 적어주세요.',patch:{},focusQuery:'',analysisKeywords:[],choices:[{label:'AI 입력으로 돌아가기',action:'focus'},{label:'직접 조건 선택하기',action:'goto',step:2}]};
 
   const settings=/바꿔|변경|설정|빼|제외/.test(m)&&Object.keys(patch).length;
   const keywords=[...profile.keywords];
@@ -519,7 +519,7 @@ async function startFromMainLocation(){
 }
 async function loadConfig(){
   state.config=await api('/api/config');$('#gasPrice').value=state.config.defaultGasPrice;const p=state.config.providers;
-  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.14 · 날씨 LIVE · AI 우선 검색');
+  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.15 · 날씨 LIVE · AI 상태 안정화');
 }
 async function useLocation(goNext=false){
   if(!navigator.geolocation){toast('브라우저 위치 기능을 사용할 수 없습니다. 출발지를 검색해주세요.');return}
@@ -707,15 +707,24 @@ async function askAI(message){
       setText('#mapStatus',`AI 분석 기반 후보 ${count}곳`);
       setStep(4);
       setTimeout(()=>document.querySelector('#step4')?.scrollIntoView({behavior:'smooth',block:'start'}),100);
-    } else if(result.intent==='travel_search'){
+    } else {
       $('#ranking').className='ranking empty-state';
-      $('#ranking').innerHTML='조건에 맞는 추천지를 찾지 못했습니다. 거리나 취향을 조금 넓혀보세요.';
+      const needsMore=result.intent==='clarify'||result.intent==='off_topic';
+      $('#ranking').innerHTML=needsMore
+        ? '<div><strong>AI 분석 완료</strong><br><br>여행 조건을 조금 더 알려주면 추천 정확도가 올라갑니다.<br><small>예: “오늘 답답해서 60km 안에서 조용히 바람 쐬고 싶어”</small><br><br><button id="aiRefineBtn" class="btn primary" type="button">AI 검색 다시 입력</button></div>'
+        : '<div><strong>AI 분석 완료</strong><br><br>현재 조건으로 추천 가능한 장소가 부족합니다.<br>거리나 상황을 조금 넓혀 다시 검색해보세요.<br><br><button id="aiRefineBtn" class="btn primary" type="button">검색 조건 다시 입력</button></div>';
+      setText('#resultCaption',needsMore?'AI 분석 완료 · 조건 보완 필요':'AI 분석 완료 · 추천 조건 조정 필요');
+      setText('#mapStatus','AI 분석 완료');
       setStep(4);
+      setTimeout(()=>{
+        const refine=$('#aiRefineBtn');
+        if(refine)refine.onclick=()=>{document.querySelector('.ai-hero')?.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>$('#aiInput')?.focus(),180)};
+      },0);
     }
 
     btn.classList.add('ai-done');
     btn.textContent=count?`추천 완료 ✓ · ${count}곳`:'분석 완료 ✓';
-    if(status){status.className='ai-search-status done';status.textContent=count?`완료 · AI 분석을 반영한 추천지 ${count}곳입니다.`:'완료 · 조건과 가까운 대안을 다시 계산했습니다.'}
+    if(status){status.className='ai-search-status done';status.textContent=count?`완료 · AI 분석을 반영한 추천지 ${count}곳입니다.`:'완료 · 입력 내용을 분석했습니다.'}
     finishGauge(true);
     setTimeout(()=>{if(!state.aiBusy){btn.classList.remove('ai-done');btn.textContent='AI로 찾기'}},1800);
   }catch(e){
