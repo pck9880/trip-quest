@@ -1,5 +1,5 @@
 const $=s=>document.querySelector(s); const $$=s=>[...document.querySelectorAll(s)];
-const state={step:1,origin:null,targetKm:100,direction:'전체',categories:['관광지'],recommendations:[],selected:null,selectedCourse:null,config:null,map:null,markers:[],routeLine:null,aiBusy:false,installPrompt:null,sharedTrip:null,sharedPending:false};
+const state={step:1,origin:null,targetKm:100,direction:'전체',categories:['관광지'],recommendations:[],selected:null,selectedCourse:null,courses:[],config:null,map:null,markers:[],routeLine:null,aiBusy:false,installPrompt:null,sharedTrip:null,sharedPending:false};
 const stepMeta={
   1:['STEP 1 / 5','어디에서 출발하나요?','현재 위치를 사용하거나 출발지를 직접 검색하세요.'],
   2:['STEP 2 / 5','어떤 여행을 원하나요?','거리, 방향, 취향을 선택하세요. 여러 취향을 함께 선택할 수 있습니다.'],
@@ -104,12 +104,54 @@ function updateSchedulePreview(){
 function initMap(){
   if(typeof L==='undefined'){$('#map').innerHTML='<div class="empty-state">지도를 불러오지 못했습니다.<br>인터넷 연결을 확인하세요.</div>';return}
   state.map=L.map('map',{zoomControl:true}).setView([35.6,128.0],7);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(state.map);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:20,subdomains:'abcd',attribution:'© OpenStreetMap contributors © CARTO'}).addTo(state.map);
 }
 function clearMarkers(){if(!state.map)return;state.markers.forEach(m=>m.remove());state.markers=[];if(state.routeLine){state.routeLine.remove();state.routeLine=null}}
 function addMarker(lat,lng,label,rank){if(!state.map)return;const isOrigin=rank===0;const icon=L.divIcon({className:'',html:`<div style="background:${isOrigin?'#c9ff45':'#f4f7fa'};color:#10150b;border:2px solid #0b1016;width:${isOrigin?19:28}px;height:${isOrigin?19:28}px;border-radius:50%;display:grid;place-items:center;font:bold 11px system-ui;box-shadow:0 3px 12px #0008">${isOrigin?'':rank}</div>`,iconSize:[28,28],iconAnchor:[14,14]});const m=L.marker([lat,lng],{icon}).addTo(state.map).bindPopup(esc(label));state.markers.push(m)}
 function drawMap(){if(!state.map)return;clearMarkers();const pts=[];if(state.origin){addMarker(state.origin.lat,state.origin.lng,'출발지',0);pts.push([state.origin.lat,state.origin.lng])}state.recommendations.forEach((p,i)=>{addMarker(p.lat,p.lng,`${i+1}. ${p.name}`,i+1);pts.push([p.lat,p.lng])});if(pts.length>1)state.map.fitBounds(pts,{padding:[28,28]});else if(pts.length===1)state.map.setView(pts[0],10);setTimeout(()=>state.map.invalidateSize(),80)}
 function drawRoute(coords){if(!state.map)return;if(state.routeLine)state.routeLine.remove();if(coords?.length>1){state.routeLine=L.polyline(coords,{weight:5,opacity:.78,color:'#c9ff45'}).addTo(state.map);state.map.fitBounds(state.routeLine.getBounds(),{padding:[28,28]})}}
+function drawCourseRoute(course){
+  if(!state.map||!course)return;
+  clearMarkers();
+  const pts=[];
+  if(state.origin){addMarker(state.origin.lat,state.origin.lng,'출발지',0);pts.push([state.origin.lat,state.origin.lng])}
+  (course.stops||[]).forEach((s,i)=>{addMarker(s.lat,s.lng,`${i+1}. ${s.name}`,i+1);pts.push([s.lat,s.lng])});
+  if(state.origin)pts.push([state.origin.lat,state.origin.lng]);
+  if(pts.length>1){
+    state.routeLine=L.polyline(pts,{weight:6,opacity:.96,color:'#c9ff45',lineJoin:'round'}).addTo(state.map);
+    state.map.fitBounds(state.routeLine.getBounds(),{padding:[34,34]});
+  }
+  setText('#mapStatus',`${course.id}코스 동선 · 경유지 ${(course.stops||[]).length}곳 · 형광 경로`);
+  setTimeout(()=>state.map.invalidateSize(),80);
+}
+function nearbyDiningForCourse(course){
+  if(!course)return [];
+  const anchors=course.stops||[];
+  const wanted=['카페','맛집'];
+  const rows=RAW_PLACES.filter(p=>wanted.includes(p.category)).map(p=>{
+    const ds=anchors.map(a=>geoKm(a,p));
+    return {...p,near:ds.length?Math.min(...ds):999};
+  }).filter(p=>p.near<=30).sort((a,b)=>a.near-b.near);
+  const out=[],seen=new Set();
+  for(const p of rows){if(seen.has(p.name))continue;seen.add(p.name);out.push(p);if(out.length>=8)break}
+  return out;
+}
+function renderNearbyDining(course){
+  let box=document.querySelector('#nearbyDining');
+  if(!box){
+    box=document.createElement('section');
+    box.id='nearbyDining';
+    box.className='nearby-dining';
+    document.querySelector('#courseList')?.insertAdjacentElement('afterend',box);
+  }
+  const items=nearbyDiningForCourse(course);
+  const qBase=state.selected?.name||course?.stops?.[0]?.name||'';
+  const searchCafe='https://map.naver.com/p/search/'+encodeURIComponent(qBase+' 카페');
+  const searchFood='https://map.naver.com/p/search/'+encodeURIComponent(qBase+' 맛집');
+  box.innerHTML=`<div class="nearby-head"><div><span>NEARBY · NAVER PLACE</span><h3>코스 주변 카페 · 음식점</h3><p>가까운 후보를 먼저 보여주고, 네이버 플레이스에서 최신 리뷰와 평점을 확인할 수 있습니다.</p></div><div class="nearby-search"><a target="_blank" rel="noopener" href="${searchCafe}">네이버 카페 검색 ↗</a><a target="_blank" rel="noopener" href="${searchFood}">네이버 맛집 검색 ↗</a></div></div>`+
+  (items.length?`<div class="nearby-grid">${items.map(p=>{const url='https://map.naver.com/p/search/'+encodeURIComponent(p.name);return `<article class="nearby-card"><div><span class="nearby-type">${esc(p.category)}</span><h4>${esc(p.name)}</h4><small>코스에서 약 ${p.near.toFixed(1)}km</small></div><a target="_blank" rel="noopener" href="${url}">네이버 플레이스 ↗</a></article>`}).join('')}</div>`:`<div class="nearby-empty">내장 장소 데이터에서 가까운 카페·맛집 후보가 없습니다. 위 네이버 검색 버튼으로 바로 확인하세요.</div>`);
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
 
 async function loadConfig(){
   state.config=await api('/api/config');$('#gasPrice').value=state.config.defaultGasPrice;const p=state.config.providers;
@@ -135,7 +177,7 @@ function setStep(n){
   if(n===5){label='새 여행 시작';hint=state.selectedCourse?`${state.selectedCourse}코스를 선택했습니다.`:'A/B/C 중 원하는 코스를 선택할 수 있습니다.'}
   $('#nextBtn').textContent=label;$('#nextBtn').disabled=disabled;setText('#actionHint',hint);window.scrollTo({top:Math.max(0,$('.wizard').offsetTop-18),behavior:'smooth'});if(n===4&&state.map)setTimeout(()=>state.map.invalidateSize(),120)
 }
-function resetTrip(){state.targetKm=100;state.direction='전체';state.categories=['관광지'];state.recommendations=[];state.selected=null;state.selectedCourse=null;state.sharedPending=false;$('#distanceRange').value=100;syncDistanceUI();$$('#directionChoices button').forEach(b=>b.classList.toggle('selected',b.dataset.value==='전체'));syncCategoriesUI();$('#ranking').innerHTML='조건을 설정한 뒤 추천지를 찾아보세요.';$('#ranking').className='ranking empty-state';initTimes();setStep(1);toast('새 여행을 시작합니다.')}
+function resetTrip(){state.targetKm=100;state.direction='전체';state.categories=['관광지'];state.recommendations=[];state.selected=null;state.selectedCourse=null;state.courses=[];state.sharedPending=false;$('#distanceRange').value=100;syncDistanceUI();$$('#directionChoices button').forEach(b=>b.classList.toggle('selected',b.dataset.value==='전체'));syncCategoriesUI();$('#ranking').innerHTML='조건을 설정한 뒤 추천지를 찾아보세요.';$('#ranking').className='ranking empty-state';initTimes();setStep(1);toast('새 여행을 시작합니다.')}
 
 function syncDistanceUI(){setText('#distanceValue',state.targetKm);$$('#distanceChoices button').forEach(b=>b.classList.toggle('selected',Number(b.dataset.value)===state.targetKm))}
 function syncCategoriesUI(){$$('#categoryChoices button').forEach(b=>b.classList.toggle('selected',state.categories.includes(b.dataset.value)));setText('#categoryCount',`${state.categories.length}개 선택`)}
@@ -162,7 +204,7 @@ async function selectPlace(i,goCourse=false){
   try{const [sum,c]=await Promise.all([api('/api/trip-summary',{method:'POST',body:JSON.stringify(base)}),api('/api/courses',{method:'POST',body:JSON.stringify({...base,categories:state.categories,departure:$('#departTime').value,returnTime:$('#returnTime').value})})]);renderSummary(sum);renderCourses(c);drawRoute(sum.outbound.coords);setText('#mapStatus',`${state.selected.name} · 왕복 ${sum.total.distanceKm.toFixed(1)}km`)}catch(e){$('#tripSummary').innerHTML=`<span class="error">${esc(e.message)}</span>`;$('#courseList').innerHTML=`<span class="error">${esc(e.message)}</span>`}finally{loading(false);if(goCourse)setStep(5)}
 }
 function renderSummary(s){const src=s.outbound.source==='tmap'?'실시간 경로 데이터':'근사 경로';$('#tripSummary').className='summary-box';$('#tripSummary').innerHTML=`<div class="metric-grid"><div class="metric"><span>왕복 거리</span><strong>${fmtKm(s.total.distanceKm)}</strong></div><div class="metric"><span>운전 시간</span><strong>${fmtMin(s.total.drivingMin)}</strong></div><div class="metric"><span>통행료</span><strong>${fmtWon(s.total.toll)}</strong></div><div class="metric"><span>예상 연료</span><strong>${s.total.fuelLiters.toFixed(1)}L</strong></div><div class="metric"><span>기름값</span><strong>${fmtWon(s.total.fuelCost)}</strong></div><div class="metric"><span>교통비 합계</span><strong>${fmtWon(s.total.tripCost)}</strong></div></div><div class="source-note">${src} · 캐스퍼 연비 11km/L 기준 · 식비/주차비/입장료 제외</div>`}
-function renderCourses(j){const w=j.weather;if(w.source==='fallback')setText('#courseWeather','날씨 API 연결이 되면 방문 예정시간 기준으로 코스를 다시 판단합니다.');else setText('#courseWeather',`예상 ${w.condition} · ${Math.round(w.temperature_2m)}°C · 강수 ${w.precipitation_probability||0}% · 바람 ${Math.round(w.wind_speed_10m)}km/h`);$('#courseList').className='course-list';$('#courseList').innerHTML=j.courses.map(c=>`<article class="course-card" data-course="${c.id}"><div class="course-top"><span class="course-id">${c.id}</span><span class="badge">날씨 적합 ${esc(c.weatherFit)}</span></div><h4>${esc(c.title)}</h4><p>${esc(c.reason)}</p><ol class="stops">${c.stops.map((s,i)=>`<li>${i+1}. ${esc(s.name)}</li>`).join('')}</ol><div class="course-stats"><span>${fmtKm(c.route.distanceKm)}</span><span>${fmtMin(c.route.timeMin)}</span><span>약 ${fmtWon(c.estimatedCost.total)}</span></div><button class="btn secondary choose-course">${c.id}코스 선택</button></article>`).join('');$('#courseList').onclick=e=>{const card=e.target.closest('.course-card');if(!card||!e.target.closest('.choose-course'))return;state.selectedCourse=card.dataset.course;$$('.course-card').forEach(x=>x.classList.toggle('selected',x===card));$$('.choose-course').forEach(x=>x.textContent=`${x.closest('.course-card').dataset.course}코스 선택`);e.target.textContent='선택 완료 ✓';setStep(5);toast(`${state.selectedCourse}코스를 선택했습니다.`)}}
+function renderCourses(j){const w=j.weather;state.courses=j.courses||[];if(w.source==='fallback')setText('#courseWeather','날씨 API 연결이 되면 방문 예정시간 기준으로 코스를 다시 판단합니다.');else setText('#courseWeather',`예상 ${w.condition} · ${Math.round(w.temperature_2m)}°C · 강수 ${w.precipitation_probability||0}% · 바람 ${Math.round(w.wind_speed_10m)}km/h`);$('#courseList').className='course-list';$('#courseList').innerHTML=state.courses.map(c=>`<article class="course-card" data-course="${c.id}"><div class="course-top"><span class="course-id">${c.id}</span><span class="badge">날씨 적합 ${esc(c.weatherFit)}</span></div><h4>${esc(c.title)}</h4><p>${esc(c.reason)}</p><ol class="stops">${c.stops.map((s,i)=>`<li>${i+1}. ${esc(s.name)}</li>`).join('')}</ol><div class="course-stats"><span>${fmtKm(c.route.distanceKm)}</span><span>${fmtMin(c.route.timeMin)}</span><span>약 ${fmtWon(c.estimatedCost.total)}</span></div><button class="btn secondary choose-course">${c.id}코스 선택</button></article>`).join('');$('#courseList').onclick=e=>{const card=e.target.closest('.course-card');if(!card||!e.target.closest('.choose-course'))return;state.selectedCourse=card.dataset.course;const course=state.courses.find(c=>c.id===state.selectedCourse);$('.course-card').forEach(x=>x.classList.toggle('selected',x===card));$('.choose-course').forEach(x=>x.textContent=`${x.closest('.course-card').dataset.course}코스 선택`);e.target.textContent='선택 완료 ✓';drawCourseRoute(course);renderNearbyDining(course);setStep(5);toast(`${state.selectedCourse}코스 동선을 지도에 표시했습니다.`)}}
 
 function applyPatch(patch={}){
   if(Number.isFinite(Number(patch.targetKm))){state.targetKm=Math.max(30,Math.min(250,Math.round(Number(patch.targetKm)/10)*10));$('#distanceRange').value=state.targetKm;syncDistanceUI()}
