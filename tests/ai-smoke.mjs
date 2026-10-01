@@ -39,3 +39,10 @@ for(const c of pack){
   if(c.stops.length>1)assert.ok(c.maxLocalLegKm<=4.001,'local course legs must stay within 4km');
 }
 console.log('TRIP QUEST smoke tests passed');
+
+const relaxedContext={...context,origin:{lat:36.48,lng:127.29,name:'세종 테스트'},targetKm:20};
+const relaxedQuery=localAI('20km 안에서 조용히 쉬고 싶어 공원이나 자연이면 좋겠어',relaxedContext);
+const relaxedItems=localRecommend({...relaxedContext,...relaxedQuery.patch,semanticProfile:relaxedQuery.semanticProfile});
+assert.ok(relaxedItems.length>0,'AI valid travel query should not silently return zero results');
+assert.ok(relaxedItems.some(x=>['공원','산','바다','캠핑'].includes(x.category)),'quiet query should return nature-oriented results');
+console.log('less-famous / fallback recommendation test passed');

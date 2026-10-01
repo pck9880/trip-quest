@@ -14,7 +14,7 @@
   <title>TRIP QUEST · 국내여행 AI 플래너</title>
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="./styles.css?v=20261001-2048" />
+  <link rel="stylesheet" href="./styles.css?v=20261001-2131" />
 </head>
 <body>
   <section id="mainLanding" class="main-landing" aria-labelledby="mainLandingTitle">
@@ -63,10 +63,15 @@
         </div>
         <div class="ai-composer">
           <label class="sr-only" for="aiInput">AI에게 여행 요청</label>
-          <textarea id="aiInput" rows="2" placeholder="기분, 상황, 거리를 함께 적어보세요. 예: 오늘 비가 와서 조용히 쉬고 싶어. 80km 안에서 바다 보고 따뜻한 라떼 마실 수 있는 한적한 곳 찾아줘."></textarea>
+          <textarea id="aiInput" rows="2" placeholder="기분·상황·거리를 함께 적어보세요. 예: 오늘 좀 답답해서 조용히 쉬고 싶어. 80km 안에서 바다 보고 따뜻한 라떼 마실 수 있는 한적한 곳 찾아줘."></textarea>
           <button id="aiSend" class="btn primary ai-send">AI로 찾기</button>
         </div>
         <div id="aiSearchStatus" class="ai-search-status" role="status" aria-live="polite" hidden></div>
+        <div id="aiProgress" class="ai-progress" hidden>
+          <div class="ai-progress-top"><span>AI 추천 검색</span><b id="aiProgressText">0%</b></div>
+          <div class="ai-progress-track"><i id="aiProgressFill"></i></div>
+          <small id="aiEta">예상 1~3초</small>
+        </div>
         <div id="aiConversation" class="ai-conversation" hidden>
           <div class="ai-answer-row">
             <span class="ai-avatar">AI</span>
@@ -121,6 +126,11 @@
         </div>
 
         <div class="step-view" data-step-view="2">
+          <div class="manual-search-intro">
+            <div><span>AI 검색이 기본입니다</span><strong>직접 고르고 싶을 때만 펼쳐보세요.</strong></div>
+            <button id="manualToggle" class="btn secondary manual-toggle" type="button" aria-expanded="false">직접 선택으로 찾기 ↓</button>
+          </div>
+          <div id="manualOptions" class="manual-options" hidden>
           <div class="section-block">
             <div class="section-title"><div><span>이동 거리</span><strong><em id="distanceValue">100</em> km</strong></div><small>직선 목표 거리이며 실제 도로 거리는 다시 계산합니다.</small></div>
             <input id="distanceRange" class="range" type="range" min="30" max="250" step="10" value="100" />
@@ -158,7 +168,8 @@
               <button data-value="캠핑"><b>⌂</b><span>캠핑</span></button>
             </div>
           </div>
-        </div>
+
+          </div>        </div>
 
         <div class="step-view" data-step-view="3">
           <div class="time-cards">
@@ -224,7 +235,7 @@
       </section>
     </main>
   </div>
-  <footer class="app-version-footer">TRIP QUEST · v0.13</footer>
+  <footer class="app-version-footer">TRIP QUEST · v0.14</footer>
 
   <div id="iosInstallTip" class="install-sheet" hidden>
     <div class="install-card">
@@ -235,6 +246,6 @@
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script type="module" src="./app.js?v=20261001-2048"></script>
+  <script type="module" src="./app.js?v=20261001-2131"></script>
 </body>
 </html>
