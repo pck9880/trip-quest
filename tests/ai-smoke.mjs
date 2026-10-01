@@ -68,3 +68,8 @@ assert.ok(radius400Items.every(x=>x.distanceKm<=400.001),'maximum slider radius 
 const nearZero=localAI('가까운 곳에서 잠깐 쉬고 싶어', {...context,targetKm:0});
 assert.equal(nearZero.semanticProfile.distance.km,10,'0km slider should mean immediate 10km neighborhood');
 console.log('distance slider radius test passed');
+
+const bandQuery=localAI('조용한 바다를 보고 싶어', {...context,targetKm:100});
+const bandItems=localRecommend({...context,targetKm:100,distanceBand:{min:80,max:120},...bandQuery.patch,semanticProfile:bandQuery.semanticProfile});
+assert.ok(bandItems.every(x=>x.distanceKm>=79.999&&x.distanceKm<=120.001),'similar-distance results must stay inside ±20km band');
+console.log('similar-distance band fallback test passed');

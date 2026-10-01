@@ -14,7 +14,7 @@
   <title>TRIP QUEST · 국내여행 AI 플래너</title>
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="./styles.css?v=20261001-2248" />
+  <link rel="stylesheet" href="./styles.css?v=20261001-2302" />
 </head>
 <body>
   <section id="mainLanding" class="main-landing" aria-labelledby="mainLandingTitle">
@@ -200,8 +200,8 @@
             </div>
           </div>
           <div class="no-match-actions" id="noMatchActions" hidden>
-            <button class="btn secondary" data-no-match="distance">거리 50km 늘려 다시 찾기</button>
-            <button class="btn secondary" data-no-match="category">카테고리 넓혀 다시 찾기</button>
+            <button class="btn primary" data-no-match="similar">±20km 비슷한 거리에서 추천</button>
+            <button class="btn secondary" data-no-match="refine">검색 내용 다시 입력</button>
           </div>
         </div>
 
@@ -241,7 +241,7 @@
       </section>
     </main>
   </div>
-  <footer class="app-version-footer">TRIP QUEST · v0.16</footer>
+  <footer class="app-version-footer">TRIP QUEST · v0.17</footer>
 
   <div id="iosInstallTip" class="install-sheet" hidden>
     <div class="install-card">
@@ -252,6 +252,6 @@
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script type="module" src="./app.js?v=20261001-2248"></script>
+  <script type="module" src="./app.js?v=20261001-2302"></script>
 </body>
 </html>

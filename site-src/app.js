@@ -1,5 +1,5 @@
 const $=s=>document.querySelector(s); const $$=s=>[...document.querySelectorAll(s)];
-const state={step:1,origin:null,targetKm:100,direction:'전체',categories:['관광지'],recommendations:[],selected:null,selectedCourse:null,selectedCourseData:null,config:null,map:null,markers:[],routeLine:null,courseMap:null,courseMarkers:[],courseRouteLine:null,aiBusy:false,installPrompt:null,sharedTrip:null,sharedPending:false,resultSort:'popular'};
+const state={step:1,origin:null,targetKm:100,direction:'전체',categories:['관광지'],recommendations:[],selected:null,selectedCourse:null,selectedCourseData:null,config:null,map:null,markers:[],routeLine:null,courseMap:null,courseMarkers:[],courseRouteLine:null,aiBusy:false,installPrompt:null,sharedTrip:null,sharedPending:false,resultSort:'popular',lastSearchMode:'ai',lastAIMessage:'',activeDistanceBand:null};
 const stepMeta={
   1:['STEP 1 / 5','어디에서 출발하나요?','현재 위치를 사용하거나 출발지를 직접 검색하세요.'],
   2:['STEP 2 / 5','어떤 여행을 원하나요?','거리, 방향, 취향을 선택하세요. 여러 취향을 함께 선택할 수 있습니다.'],
@@ -91,6 +91,9 @@ function localRecommend(body){
 
   const hardCats=profile?.hardCategories||[];
   const preferredCats=profile?.preferredCategories||[];
+  const band=body.distanceBand&&Number.isFinite(Number(body.distanceBand.min))&&Number.isFinite(Number(body.distanceBand.max))
+    ?{min:Math.max(0,Number(body.distanceBand.min)),max:Math.min(400,Number(body.distanceBand.max))}
+    :null;
   const distanceRule={km:radiusKm,mode:'max',fromSlider:true};
 
   if(focus){
@@ -98,7 +101,7 @@ function localRecommend(body){
     const direct=arr.filter(p=>tokens.some(t=>p.name.toLowerCase().includes(t)));
     if(direct.length){const centers=direct;arr=arr.filter(p=>centers.some(c=>geoKm(c,p)<=40)||direct.includes(p))}
   } else {
-    arr=arr.filter(p=>p.distanceKm<=radiusKm);
+    arr=band?arr.filter(p=>p.distanceKm>=band.min&&p.distanceKm<=band.max):arr.filter(p=>p.distanceKm<=radiusKm);
 
     if(dir!=='전체'&&DIR_DEG[dir]!=null)arr=arr.filter(p=>degDiff(p.bearing,DIR_DEG[dir])<=55);
 
@@ -115,7 +118,7 @@ function localRecommend(body){
   // AI 검색은 조건이 너무 좁아 0건이 되면, 의도는 유지한 채 가장 가까운 대안을 보충한다.
   let relaxed=false;
   if(profile&&arr.length<4&&!focus){
-    let fallback=all.filter(p=>p.distanceKm<=radiusKm);
+    let fallback=band?all.filter(p=>p.distanceKm>=band.min&&p.distanceKm<=band.max):all.filter(p=>p.distanceKm<=radiusKm);
     if(hardCats.length)fallback=fallback.filter(p=>hardCats.includes(p.category));
     else if(preferredCats.length)fallback=fallback.filter(p=>preferredCats.includes(p.category));
     if(dir!=='전체'&&DIR_DEG[dir]!=null){
@@ -155,7 +158,7 @@ function localRecommend(body){
     else if(semanticHits.length)why.push(semanticHits.slice(0,2).map(x=>x.reason||x.label).join(' + ')+' 조건과 잘 맞음');
     if(profile?.flags?.quiet&&['바다','산','공원','캠핑'].includes(p.category))why.push('한적한 분위기 선호를 자연형 장소에 반영');
     if(profile?.flags?.wantsCafe)why.push('목적지 선택 후 4km 이내 카페 검색으로 연결');
-    why.push(target===0?'현재 위치 주변 10km 범위':'내 위치 기준 '+radiusKm+'km 이내');
+    why.push(band?`선택 거리 ${target}km 기준 ${Math.round(band.min)}~${Math.round(band.max)}km 범위`:target===0?'현재 위치 주변 10km 범위':'내 위치 기준 '+radiusKm+'km 이내');
     if(feasible&&avail!=null)why.push('설정한 귀가시간 안에 이동 가능');
     if(!why.length)why.push(`${p.category||'여행지'} 유형과 이동거리를 함께 고려`);
 
@@ -531,7 +534,7 @@ async function startFromMainLocation(){
 }
 async function loadConfig(){
   state.config=await api('/api/config');$('#gasPrice').value=state.config.defaultGasPrice;const p=state.config.providers;
-  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.16 · 날씨 LIVE · 거리 슬라이더');
+  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.17 · 날씨 LIVE · 유사거리 재검색');
 }
 async function useLocation(goNext=false){
   if(!navigator.geolocation){toast('브라우저 위치 기능을 사용할 수 없습니다. 출발지를 검색해주세요.');return}
@@ -553,7 +556,7 @@ function setStep(n){
   if(n===5){label='새 여행 시작';hint=state.selectedCourse?`${state.selectedCourse}코스를 선택했습니다.`:'A/B/C 중 원하는 코스를 선택할 수 있습니다.'}
   $('#nextBtn').textContent=label;$('#nextBtn').disabled=disabled;setText('#actionHint',hint);window.scrollTo({top:Math.max(0,$('.wizard').offsetTop-18),behavior:'smooth'});if(n===4&&state.map)setTimeout(()=>state.map.invalidateSize(),120)
 }
-function resetTrip(){state.targetKm=100;state.resultSort='popular';state.direction='전체';state.categories=['관광지'];state.recommendations=[];state.selected=null;state.selectedCourse=null;state.selectedCourseData=null;state.sharedPending=false;syncDistanceUI();$$('#directionChoices button').forEach(b=>b.classList.toggle('selected',b.dataset.value==='전체'));syncCategoriesUI();$('#ranking').innerHTML='조건을 설정한 뒤 추천지를 찾아보세요.';$('#ranking').className='ranking empty-state';initTimes();setStep(1);showMainLanding();toast('새 여행을 시작합니다.')}
+function resetTrip(){state.targetKm=100;state.resultSort='popular';state.activeDistanceBand=null;state.lastSearchMode='ai';state.lastAIMessage='';state.direction='전체';state.categories=['관광지'];state.recommendations=[];state.selected=null;state.selectedCourse=null;state.selectedCourseData=null;state.sharedPending=false;syncDistanceUI();$$('#directionChoices button').forEach(b=>b.classList.toggle('selected',b.dataset.value==='전체'));syncCategoriesUI();$('#ranking').innerHTML='조건을 설정한 뒤 추천지를 찾아보세요.';$('#ranking').className='ranking empty-state';initTimes();setStep(1);showMainLanding();toast('새 여행을 시작합니다.')}
 
 let lastDistanceHaptic=state.targetKm;
 function syncDistanceUI(){
@@ -565,7 +568,7 @@ function syncDistanceUI(){
 }
 function setDistanceFromSlider(value,haptic=true){
   const v=Math.max(0,Math.min(400,Math.round(Number(value)/10)*10));
-  state.targetKm=v;syncDistanceUI();
+  state.targetKm=v;state.activeDistanceBand=null;syncDistanceUI();
   if(haptic&&v!==lastDistanceHaptic){
     lastDistanceHaptic=v;
     try{if(navigator.vibrate)navigator.vibrate(8)}catch{}
@@ -581,9 +584,9 @@ function bindChoices(){
 async function searchOrigin(){const q=$('#originSearch').value.trim();if(!q)return;$('#originResults').innerHTML='<div class="empty-state">출발지를 찾고 있습니다…</div>';try{const j=await api(`/api/geocode?q=${encodeURIComponent(q)}`);if(!j.items.length){$('#originResults').innerHTML='<div class="error">검색 결과가 없습니다.</div>';return}$('#originResults').innerHTML=j.items.map((x,i)=>`<button data-i="${i}"><span><b>${esc(x.name)}</b><br><small>${esc(x.address||'')}</small></span><span>선택 →</span></button>`).join('');$('#originResults').onclick=async e=>{const b=e.target.closest('button');if(!b)return;const x=j.items[Number(b.dataset.i)];await setOrigin({...x,name:x.name});$('#originResults').innerHTML='';$('#originSearch').value='';toast('출발지를 설정했습니다.');setStep(2);const manual=$('#manualOptions');if(manual)manual.hidden=true;setTimeout(()=>{document.querySelector('.ai-hero')?.scrollIntoView({behavior:'smooth',block:'start'});$('#aiInput')?.focus()},160)};}catch(e){$('#originResults').innerHTML=`<span class="error">${esc(e.message)}</span>`}}
 
 function currentPayload(){return {origin:state.origin,targetKm:state.targetKm,direction:state.direction,categories:state.categories,departure:$('#departTime').value,returnTime:$('#returnTime').value,gasPrice:Number($('#gasPrice').value||1700)}}
-async function recommend(extra={}){if(!state.origin){toast('출발지를 먼저 설정하세요.');setStep(1);return}loading(true);setStep(4);$('#ranking').className='ranking empty-state';$('#ranking').innerHTML='여행 후보를 계산하고 있습니다…';$('#noMatchActions').hidden=true;try{const j=await api('/api/recommend',{method:'POST',body:JSON.stringify({...currentPayload(),...extra})});state.recommendations=j.items||[];state.selected=null;sortRecommendations('popular',false);renderRanking();drawMap();setText('#resultCaption',`${state.targetKm===0?'내 주변':state.targetKm+'km 이내'} · ${state.direction==='전체'?'전체 방향':state.direction} · ${state.categories.join(' · ')||'전체 취향'}`);setText('#mapStatus',`후보 ${state.recommendations.length}곳 · ${j.source||'데이터 검색'}`)}catch(e){$('#ranking').innerHTML=`<span class="error">${esc(e.message)}</span>`}finally{loading(false);setStep(4)}}
+async function recommend(extra={}){state.lastSearchMode='manual';state.activeDistanceBand=extra.distanceBand||null;if(!state.origin){toast('출발지를 먼저 설정하세요.');setStep(1);return}loading(true);setStep(4);$('#ranking').className='ranking empty-state';$('#ranking').innerHTML='여행 후보를 계산하고 있습니다…';$('#noMatchActions').hidden=true;try{const j=await api('/api/recommend',{method:'POST',body:JSON.stringify({...currentPayload(),...extra,distanceBand:state.activeDistanceBand})});state.recommendations=j.items||[];state.selected=null;sortRecommendations('popular',false);renderRanking();drawMap();setText('#resultCaption',state.activeDistanceBand?`비슷한 거리 ${Math.round(state.activeDistanceBand.min)}~${Math.round(state.activeDistanceBand.max)}km · ${state.direction==='전체'?'전체 방향':state.direction}`:`${state.targetKm===0?'내 주변':state.targetKm+'km 이내'} · ${state.direction==='전체'?'전체 방향':state.direction} · ${state.categories.join(' · ')||'전체 취향'}`);setText('#mapStatus',`후보 ${state.recommendations.length}곳 · ${j.source||'데이터 검색'}`)}catch(e){$('#ranking').innerHTML=`<span class="error">${esc(e.message)}</span>`}finally{loading(false);setStep(4)}}
 function renderRanking(){
-  if(!state.recommendations.length){$('#ranking').className='ranking empty-state';$('#ranking').innerHTML='조건에 맞는 후보를 찾지 못했습니다.<br>아래 버튼으로 조건을 조금 넓혀보세요.';$('#noMatchActions').hidden=false;return}
+  if(!state.recommendations.length){$('#ranking').className='ranking empty-state';$('#ranking').innerHTML='선택한 거리와 조건에 맞는 장소를 찾지 못했습니다.<br>비슷한 거리 범위에서 다시 찾아볼 수 있습니다.';$('#noMatchActions').hidden=false;return}
   $('#ranking').className='ranking';$('#noMatchActions').hidden=true;
   $('#ranking').innerHTML=state.recommendations.map((p,i)=>{const free=p.availableMin!=null?Math.round(p.availableMin-p.roundTripDriveMin):null;const reason=p.aiReason||[Math.abs(p.distanceKm-state.targetKm)<state.targetKm*.25?'원하는 거리와 가까움':'거리 조건 범위',p.feasible===false?'귀가시간이 빠듯함':free!=null?`귀가 전 여유 약 ${fmtMin(Math.max(0,free))}`:'이동시간 확인',p.category||'여행지'].join(' · ');return `<article class="rank-card" data-i="${i}"><div class="rank-number">${String(i+1).padStart(2,'0')}</div><div><h3>${esc(p.name)}</h3><div class="rank-tags"><span class="tag good">적합도 ${Math.round(p.score)}</span><span class="tag">${esc(p.category||'장소')}</span>${p.feasible===false?'<span class="tag warn">시간 빠듯</span>':''}</div><div class="rank-meta"><span>직선 ${p.distanceKm.toFixed(1)}km</span>${p.routePreview?`<span>편도 ${fmtMin(p.routePreview.timeMin)}</span><span>도로 ${p.routePreview.distanceKm.toFixed(1)}km</span>`:''}</div><div class="rank-reason">${esc(reason)}</div></div><div class="rank-actions"><button class="btn primary select-place">이 여행지 선택</button>${p.url?`<button class="btn secondary open-place">장소 정보</button>`:'<button class="btn secondary map-focus">지도에서 보기</button>'}</div></article>`}).join('');
   $('#ranking').onclick=e=>{const card=e.target.closest('.rank-card');if(!card)return;const i=Number(card.dataset.i);if(e.target.closest('.select-place'))selectPlace(i,true);else if(e.target.closest('.open-place'))window.open(state.recommendations[i].url,'_blank','noopener');else{const p=state.recommendations[i];if(state.map)state.map.setView([p.lat,p.lng],13)}};
@@ -698,8 +701,9 @@ function ensureAIOrigin(){
   });
 }
 
-async function askAI(message){
+async function askAI(message,options={}){
   if(!message.trim()||state.aiBusy)return;
+  state.lastSearchMode='ai';state.lastAIMessage=message.trim();state.activeDistanceBand=options.distanceBand||null;
   state.aiBusy=true;
   const btn=$('#aiSend'),status=$('#aiSearchStatus'),finishGauge=startAIProgressGauge();
   $('#aiConversation').hidden=false;$('#aiChoices').innerHTML='';
@@ -722,14 +726,14 @@ async function askAI(message){
     btn.textContent='추천지 찾는 중…';
     if(status)status.textContent='2/2 · 분석한 취향과 조건으로 추천지 계산 중…';
 
-    const result=await api('/api/ai-search',{method:'POST',body:JSON.stringify({message:message.trim(),context:currentPayload()})});
+    const result=await api('/api/ai-search',{method:'POST',body:JSON.stringify({message:message.trim(),context:{...currentPayload(),distanceBand:state.activeDistanceBand}})});
     await new Promise(r=>setTimeout(r,520));
 
     showAI(result);
     const count=Array.isArray(result.items)?result.items.length:0;
     const keys=(result.analysisKeywords||[]).join(' · ');
     if(Array.isArray(result.items)){
-      setText('#resultCaption',keys?`AI 분석: ${keys} · ${state.targetKm===0?'내 주변':state.targetKm+'km 이내'} · 추천지 ${count}곳`:`AI 추천지 ${count}곳`);
+      setText('#resultCaption',state.activeDistanceBand?`AI 분석 · 비슷한 거리 ${Math.round(state.activeDistanceBand.min)}~${Math.round(state.activeDistanceBand.max)}km · 추천지 ${count}곳`:keys?`AI 분석: ${keys} · ${state.targetKm===0?'내 주변':state.targetKm+'km 이내'} · 추천지 ${count}곳`:`AI 추천지 ${count}곳`);
       setText('#mapStatus',`AI 분석 기반 후보 ${count}곳`);
       setStep(4);
       setTimeout(()=>document.querySelector('#step4')?.scrollIntoView({behavior:'smooth',block:'start'}),100);
@@ -764,6 +768,21 @@ async function askAI(message){
     state.aiBusy=false;btn.disabled=false;
   }
 }
+function similarDistanceBand(){
+  const base=Math.max(0,Math.min(400,Number(state.targetKm)||0));
+  const min=Math.max(0,base-20),max=Math.min(400,base+20);
+  return {min,max};
+}
+async function searchSimilarDistance(){
+  const band=similarDistanceBand();
+  state.activeDistanceBand=band;
+  $('#noMatchActions').hidden=true;
+  if(state.lastSearchMode==='ai'&&state.lastAIMessage){
+    await askAI(state.lastAIMessage,{distanceBand:band});
+  }else{
+    await recommend({distanceBand:band});
+  }
+}
 function handleAIChoice(c){if(!c)return;if(c.action==='search'){if(c.patch)applyPatch(c.patch);recommend(c.focusQuery?{focusQuery:c.focusQuery}:{})}else if(c.action==='goto'){setStep(c.step||2)}else if(c.action==='ai_prompt'){const m=c.message||'';$('#aiInput').value=m;askAI(m)}else if(c.action==='focus'){$('#aiInput').focus()}else if(c.action==='reset'){resetTrip()}}
 
 function bindActions(){
@@ -775,7 +794,7 @@ function bindActions(){
   $('#departTime').addEventListener('change',updateSchedulePreview);$('#returnTime').addEventListener('change',updateSchedulePreview);$('#resetBtn').onclick=resetTrip;$('.brand').onclick=e=>{e.preventDefault();resetTrip()};
   $('#backBtn').onclick=()=>setStep(state.step-1);$('#nextBtn').onclick=async()=>{if(state.step===1){if(state.origin)setStep(2);else await useLocation(true)}else if(state.step===2)setStep(3);else if(state.step===3)await recommend();else if(state.step===4){if(state.selected)setStep(5)}else resetTrip()};
   $$('.progress-step').forEach(b=>b.onclick=()=>{const n=Number(b.dataset.step);if(n<=state.step||n<=3)setStep(n)});$('#editConditionsBtn').onclick=()=>setStep(2);$('#changePlaceBtn').onclick=()=>setStep(4);
-  $('#noMatchActions').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.noMatch==='distance'){state.targetKm=Math.min(400,state.targetKm+50);syncDistanceUI()}else{state.categories=[];syncCategoriesUI()}recommend()};
+  $('#noMatchActions').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.noMatch==='similar')searchSimilarDistance();else if(b.dataset.noMatch==='refine'){document.querySelector('.ai-hero')?.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>$('#aiInput')?.focus(),180)}};
   $('#aiSend').onclick=()=>askAI($('#aiInput').value);$('#aiInput').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')askAI($('#aiInput').value)});
 }
 
