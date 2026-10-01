@@ -56,6 +56,16 @@ jobs:
           PY
           rm -rf _site/.github
           touch _site/.nojekyll
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("_site/index.html")
+          html = p.read_text(encoding="utf-8")
+          tag = '<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">'
+          if 'name="robots"' not in html:
+              html = html.replace("<head>", "<head>\n  " + tag, 1)
+              p.write_text(html, encoding="utf-8")
+          Path("_site/robots.txt").write_text("User-agent: *\nDisallow: /\n", encoding="utf-8")
+          PY
 
       - uses: actions/configure-pages@v5
         with:
