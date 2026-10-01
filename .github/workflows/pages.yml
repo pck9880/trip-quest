@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -32,6 +32,12 @@ jobs:
           test -f /tmp/tripquest/unpacked/TRIP-QUEST-Mobile-v0.7-Pages/app.js
           test -f /tmp/tripquest/unpacked/TRIP-QUEST-Mobile-v0.7-Pages/styles.css
           cp -a /tmp/tripquest/unpacked/TRIP-QUEST-Mobile-v0.7-Pages/. _site/
+          mkdir -p site-src
+          cp /tmp/tripquest/unpacked/TRIP-QUEST-Mobile-v0.7-Pages/index.html site-src/index.html
+          cp /tmp/tripquest/unpacked/TRIP-QUEST-Mobile-v0.7-Pages/app.js site-src/app.js
+          cp /tmp/tripquest/unpacked/TRIP-QUEST-Mobile-v0.7-Pages/styles.css site-src/styles.css
+          cp /tmp/tripquest/unpacked/TRIP-QUEST-Mobile-v0.7-Pages/manifest.webmanifest site-src/manifest.webmanifest 2>/dev/null || true
+          cp /tmp/tripquest/unpacked/TRIP-QUEST-Mobile-v0.7-Pages/sw.js site-src/sw.js 2>/dev/null || true
           mkdir -p _site/icons
           python3 - <<'PY'
           import os, struct, zlib
@@ -66,6 +72,16 @@ jobs:
               p.write_text(html, encoding="utf-8")
           Path("_site/robots.txt").write_text("User-agent: *\nDisallow: /\n", encoding="utf-8")
           PY
+
+      - name: Save editable source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site-src
+          if ! git diff --cached --quiet; then
+            git commit -m "Extract editable site source [skip ci]"
+            git push
+          fi
 
       - uses: actions/configure-pages@v5
         with:
