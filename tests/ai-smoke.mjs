@@ -78,5 +78,5 @@ console.log('similar-distance band fallback test passed');
 const appSource=fs.readFileSync(new URL('../site-src/app.js',import.meta.url),'utf8');
 assert.ok(appSource.includes("$$('.result-sort button').forEach"),'result sort must use the multi-element selector helper');
 assert.ok(!appSource.includes("$(' .result-sort button').forEach"),'single-element selector must not be used for result sort');
-assert.ok(!appSource.includes("$('.result-sort button').forEach"),'result sort single-selector forEach regression detected');
+assert.ok(!/(^|[^$])\$\('\.result-sort button'\)\.forEach/m.test(appSource),'result sort single-selector forEach regression detected');
 console.log('result-sort selector regression test passed');
