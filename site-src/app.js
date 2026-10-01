@@ -534,7 +534,7 @@ async function startFromMainLocation(){
 }
 async function loadConfig(){
   state.config=await api('/api/config');$('#gasPrice').value=state.config.defaultGasPrice;const p=state.config.providers;
-  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.17 · 날씨 LIVE · 유사거리 재검색');
+  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.18 · 날씨 LIVE · 정렬 오류 수정');
 }
 async function useLocation(goNext=false){
   if(!navigator.geolocation){toast('브라우저 위치 기능을 사용할 수 없습니다. 출발지를 검색해주세요.');return}

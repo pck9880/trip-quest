@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import assert from 'node:assert/strict';
 await import('../site-src/app.js');
 const {localAI,localRecommend,coursePack}=globalThis.__TQ_TEST__;
@@ -73,3 +74,9 @@ const bandQuery=localAI('조용한 바다를 보고 싶어', {...context,targetK
 const bandItems=localRecommend({...context,targetKm:100,distanceBand:{min:80,max:120},...bandQuery.patch,semanticProfile:bandQuery.semanticProfile});
 assert.ok(bandItems.every(x=>x.distanceKm>=79.999&&x.distanceKm<=120.001),'similar-distance results must stay inside ±20km band');
 console.log('similar-distance band fallback test passed');
+
+const appSource=fs.readFileSync(new URL('../site-src/app.js',import.meta.url),'utf8');
+assert.ok(appSource.includes("$$('.result-sort button').forEach"),'result sort must use the multi-element selector helper');
+assert.ok(!appSource.includes("$(' .result-sort button').forEach"),'single-element selector must not be used for result sort');
+assert.ok(!appSource.includes("$('.result-sort button').forEach"),'result sort single-selector forEach regression detected');
+console.log('result-sort selector regression test passed');
