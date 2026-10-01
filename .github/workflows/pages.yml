@@ -3,13 +3,16 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+
 permissions:
   contents: read
   pages: write
   id-token: write
+
 concurrency:
   group: pages
   cancel-in-progress: true
+
 jobs:
   deploy:
     environment:
@@ -18,10 +21,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Build static site from packaged release
+        run: |
+          mkdir -p _site /tmp/tripquest
+          cat deploy/part-*.b64 | base64 -d > /tmp/tripquest/site.zip
+          unzip -q /tmp/tripquest/site.zip -d /tmp/tripquest/unpacked
+          cp -a /tmp/tripquest/unpacked/TRIP-QUEST-Mobile-v0.7-Pages/. _site/
+
       - uses: actions/configure-pages@v5
+
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
+
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
