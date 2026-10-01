@@ -48,3 +48,9 @@ const destination={id:'test-d',name:'테스트',category:'바다',lat:34.7441,ln
 const pack=await coursePack({...context,destination,categories:['바다']},{condition:'맑음',precipitation_probability:0});
 assert.deepEqual(pack.map(x=>x.id),['A','B'],'A/B course regression');
 console.log('TRIP QUEST v0.21 expanded keyword tests passed');
+
+const runtimeSource=fs.readFileSync(new URL('../site-src/app.js',import.meta.url),'utf8');
+assert.ok(/function\s+syncCategoriesUI\s*\(/.test(runtimeSource),'syncCategoriesUI regression: helper must exist');
+assert.ok(/function\s+syncDirectionUI\s*\(/.test(runtimeSource),'syncDirectionUI regression: helper must exist');
+assert.ok(!runtimeSource.includes('A/B/C 중 원하는 코스를 선택할 수 있습니다.'),'stale A/B/C copy must not remain');
+console.log('UI sync helper regression tests passed');
