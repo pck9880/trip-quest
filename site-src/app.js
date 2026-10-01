@@ -969,14 +969,16 @@ function showSafeRuntimeError(){
     const b=$('#runtimeReloadBtn');if(b)b.onclick=()=>location.reload();
   }
 }
-window.addEventListener('error',e=>{
-  console.error('TRIP QUEST runtime error',e.error||e.message);
-  if(state.step===4)showSafeRuntimeError();
-});
-window.addEventListener('unhandledrejection',e=>{
-  console.error('TRIP QUEST async error',e.reason);
-  if(state.step===4)showSafeRuntimeError();
-});
+if(typeof window!=='undefined'){
+  window.addEventListener('error',e=>{
+    console.error('TRIP QUEST runtime error',e.error||e.message);
+    if(state.step===4)showSafeRuntimeError();
+  });
+  window.addEventListener('unhandledrejection',e=>{
+    console.error('TRIP QUEST async error',e.reason);
+    if(state.step===4)showSafeRuntimeError();
+  });
+}
 async function boot(){initTimes();initMap();validateUIRuntime();bindChoices();bindActions();initPWA();syncDistanceUI();syncDirectionUI();syncCategoriesUI();setStep(1);showMainLanding();try{await loadConfig()}catch{setText('#providerNow','설정 확인 필요')}setInterval(refreshLive,10*60*1000)}
 globalThis.__TQ_TEST__={localAI,localRecommend,coursePack,approxRoute,normalizedDistanceRange,refineRoadDistanceResults,roadRoute};
 if(typeof document!=='undefined')boot();
