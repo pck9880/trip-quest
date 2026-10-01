@@ -54,3 +54,20 @@ assert.ok(/function\s+syncCategoriesUI\s*\(/.test(runtimeSource),'syncCategories
 assert.ok(/function\s+syncDirectionUI\s*\(/.test(runtimeSource),'syncDirectionUI regression: helper must exist');
 assert.ok(!runtimeSource.includes('A/B/C 중 원하는 코스를 선택할 수 있습니다.'),'stale A/B/C copy must not remain');
 console.log('UI sync helper regression tests passed');
+
+const stableSource=fs.readFileSync(new URL('../site-src/app.js',import.meta.url),'utf8');
+assert.ok(stableSource.includes("const all=s=>Array.from(document.querySelectorAll(s))"),'plural selector helper must exist');
+const forbidden=[
+  "$('#categoryChoices button').forEach",
+  "$('#directionChoices button').forEach",
+  "$('.result-sort button').forEach",
+  "$('.step-view').forEach",
+  "$('.progress-step').forEach",
+  "$('.course-card').forEach",
+  "$('.choose-course').forEach"
+];
+for(const pattern of forbidden)assert.ok(!stableSource.includes(pattern),'single-selector array misuse blocked: '+pattern);
+assert.ok(stableSource.includes("all('#categoryChoices button').forEach"),'category UI must use plural selector helper');
+assert.ok(stableSource.includes("all('#directionChoices button').forEach"),'direction UI must use plural selector helper');
+assert.ok(stableSource.includes("function validateUIRuntime()"),'runtime UI validation required');
+console.log('plural selector safety regression passed');
