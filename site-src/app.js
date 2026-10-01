@@ -29,7 +29,7 @@ function sortRecommendations(mode=state.resultSort,rerender=true){
       ?(a,b)=>a.distanceKm-b.distanceKm
       :(a,b)=>((placePopularity(b)*.55)+(b.score||0)*.45)-((placePopularity(a)*.55)+(a.score||0)*.45);
   state.recommendations.sort(cmp);
-  $('.result-sort button').forEach(b=>b.classList.toggle('active',b.dataset.sort===state.resultSort));
+  $$('.result-sort button').forEach(b=>b.classList.toggle('active',b.dataset.sort===state.resultSort));
   if(rerender){renderRanking();drawMap()}
 }
 
