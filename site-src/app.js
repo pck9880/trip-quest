@@ -7,18 +7,20 @@ const stepMeta={
   4:['STEP 4 / 5','추천지를 비교해보세요.','추천 이유와 이동시간을 보고 원하는 여행지를 선택하세요.'],
   5:['STEP 5 / 5','여행지 주변 코스를 골라보세요.','A 도보 근거리 또는 B 드라이브 코스를 선택하세요.']
 };
-const categoryLabels=['카페','관광지','바다','산','뮤지엄','체험마을','소품샵','공원','맛집','전통시장','온천','캠핑'];
+const categoryLabels=['카페','관광지','바다','산','뮤지엄','체험마을','소품샵','공원','맛집','전통시장','온천','캠핑','번화가','카페거리','문화거리','쇼핑거리'];
 const POPULARITY_HINTS={
   '부산 해운대해수욕장':100,'경주 불국사':98,'전주 한옥마을':96,'순천만국가정원':95,'여수 오동도':94,
   '통영 동피랑벽화마을':92,'남해 독일마을':91,'포항 호미곶':90,'강릉 경포해변':90,'보령 대천해수욕장':88,
   '울산 대왕암공원':87,'담양 죽녹원':86,'안동 하회마을':85,'거제 바람의언덕':84,'부산 감천문화마을':83,
   '부산 다대포해수욕장':80,'울산 슬도':77,'사천 비토섬':72,'통영 달아공원':73,'순천 와온해변':74,
-  '광양 배알도수변공원':70,'하동 평사리공원':71,'부산 회동수원지':72,'인천 소래습지생태공원':76
+  '광양 배알도수변공원':70,'하동 평사리공원':71,'부산 회동수원지':72,'인천 소래습지생태공원':76,
+  '서울 홍대 걷고싶은거리':100,'서울 성수 연무장길':99,'경주 황리단길':99,'부산 서면 젊음의거리':99,'부산 전포카페거리':98,'대구 동성로':98,'수원 행리단길':97,'광주 동명동 카페거리':96,'대전 으능정이문화의거리':95,'전주 객리단길':94,'인천 개항로':92,'제주 누웨마루거리':90
 };
 function placePopularity(p){
   const base=POPULARITY_HINTS[p.name];
   if(base!=null)return base;
-  const byCategory={바다:72,공원:68,산:67,뮤지엄:66,관광지:65,체험마을:62,전통시장:61,캠핑:58,온천:58,카페:56,맛집:56,소품샵:54};
+  if(Number.isFinite(Number(p.urbanScore)))return Math.max(base||0,Number(p.urbanScore));
+  const byCategory={번화가:90,카페거리:87,문화거리:84,쇼핑거리:84,바다:72,공원:68,산:67,뮤지엄:66,관광지:65,체험마을:62,전통시장:61,캠핑:58,온천:58,카페:56,맛집:56,소품샵:54};
   return byCategory[p.category]||55;
 }
 function sortRecommendations(mode=state.resultSort,rerender=true){
@@ -62,8 +64,117 @@ const RAW_PLACES=[
 ['단양 이끼터널','관광지',36.9792,128.3523],['영주 무섬마을','체험마을',36.7397,128.6221],['문경 진남교반','공원',36.6528,128.1348],
 ['태안 신두리해안사구','바다',36.8384,126.1969],['서산 웅도','바다',36.8245,126.3595],['예산 예당호','공원',36.6329,126.7942],
 ['평창 육백마지기','산',37.5128,128.4697],['정선 병방치스카이워크','산',37.3797,128.6690],['양양 죽도해변','바다',37.9755,128.7614],
-['가평 자라섬','공원',37.8177,127.5209],['포천 산정호수','공원',38.0684,127.3225],['파주 임진각평화누리공원','공원',37.8905,126.7400]
+['가평 자라섬','공원',37.8177,127.5209],['포천 산정호수','공원',38.0684,127.3225],['파주 임진각평화누리공원','공원',37.8905,126.7400],
+['부산 서면 젊음의거리','번화가',35.1578,129.0595],['부산 전포카페거리','카페거리',35.1555,129.0644],['부산 삼정타워','쇼핑거리',35.1528,129.0592],['부산 남포동 BIFF광장','번화가',35.0987,129.0285],['부산 자갈치시장','전통시장',35.0967,129.0306],['부산 해리단길','카페거리',35.1637,129.1590],
+['서울 홍대 걷고싶은거리','번화가',37.5563,126.9236],['서울 연남동 경의선숲길','문화거리',37.5621,126.9253],['서울 망리단길','카페거리',37.5560,126.9103],['서울 성수 연무장길','번화가',37.5446,127.0559],['서울 서울숲','공원',37.5444,127.0374],['서울 건대입구 맛의거리','번화가',37.5404,127.0695],['서울 송리단길','카페거리',37.5107,127.1107],['서울 익선동 한옥거리','문화거리',37.5730,126.9894],['서울 을지로 골목','문화거리',37.5660,126.9910],
+['경주 황리단길','번화가',35.8387,129.2093],['경주 대릉원','문화거리',35.8399,129.2115],['경주 첨성대','문화거리',35.8347,129.2190],['경주 동궁과월지','문화거리',35.8347,129.2265],['경주 보문호수','공원',35.8425,129.2870],
+['대구 동성로','번화가',35.8691,128.5948],['대구 교동','문화거리',35.8722,128.5940],['대구 김광석다시그리기길','문화거리',35.8606,128.6062],['대구 앞산카페거리','카페거리',35.8330,128.5872],
+['광주 동명동 카페거리','카페거리',35.1507,126.9233],['광주 충장로','번화가',35.1489,126.9147],['광주 양림동 펭귄마을','문화거리',35.1418,126.9155],['광주 1913송정역시장','전통시장',35.1372,126.7915],
+['대전 으능정이문화의거리','번화가',36.3295,127.4278],['대전 성심당 본점거리','번화가',36.3275,127.4276],['대전 대흥동 문화예술거리','문화거리',36.3268,127.4239],['대전 엑스포과학공원','공원',36.3763,127.3880],
+['전주 객리단길','카페거리',35.8194,127.1412],['전주 팔복예술공장','문화거리',35.8509,127.1072],
+['수원 행리단길','카페거리',37.2840,127.0118],['수원 화성행궁','문화거리',37.2819,127.0143],['수원 장안문','문화거리',37.2877,127.0142],['수원 광교호수공원','공원',37.2834,127.0652],
+['인천 개항로','문화거리',37.4727,126.6213],['인천 신포국제시장','전통시장',37.4714,126.6283],['인천 차이나타운','문화거리',37.4753,126.6178],['인천 월미도','번화가',37.4737,126.5967],['인천 송도 센트럴파크','공원',37.3931,126.6386],
+['제주 누웨마루거리','번화가',33.4896,126.4888],['제주 동문시장','전통시장',33.5129,126.5289],['제주 탑동광장','문화거리',33.5177,126.5235],['제주 애월카페거리','카페거리',33.4633,126.3102],['제주 한담해안산책로','문화거리',33.4596,126.3109],['제주 협재해수욕장','바다',33.3940,126.2395],
+['강릉 안목커피거리','카페거리',37.7713,128.9470],['강릉 강릉항','문화거리',37.7700,128.9511],['강릉 월화거리','문화거리',37.7540,128.8961],['강릉 명주동 골목','문화거리',37.7514,128.8927],
+['울산 삼산디자인거리','번화가',35.5393,129.3388],['울산 성남동 젊음의거리','번화가',35.5539,129.3202],['울산 태화강국가정원','공원',35.5516,129.2958],
+['창원 상남분수광장','번화가',35.2248,128.6816],['창원 창동예술촌','문화거리',35.2066,128.5770],['창원 용호동 가로수길','카페거리',35.2311,128.6817],
+['춘천 명동거리','번화가',37.8796,127.7270],['춘천 육림고개','문화거리',37.8762,127.7264],['춘천 공지천','공원',37.8682,127.7140]
 ].map((p,i)=>({id:'local-'+i,name:p[0],category:p[1],lat:p[2],lng:p[3],address:'',url:'',source:'local'}));
+const URBAN_CATEGORIES=['번화가','카페거리','문화거리','쇼핑거리'];
+const HOTSPOT_META={
+  '부산 서면 젊음의거리':{routeGroup:'busan-seomyeon',urbanScore:99,youth:true},
+  '부산 전포카페거리':{routeGroup:'busan-seomyeon',urbanScore:98,youth:true},
+  '부산 삼정타워':{routeGroup:'busan-seomyeon',urbanScore:91,youth:true},
+  '부산 남포동 BIFF광장':{routeGroup:'busan-seomyeon',urbanScore:94,youth:true},
+  '부산 자갈치시장':{routeGroup:'busan-seomyeon',urbanScore:84},
+  '서울 홍대 걷고싶은거리':{routeGroup:'seoul-hongdae',urbanScore:100,youth:true},
+  '서울 연남동 경의선숲길':{routeGroup:'seoul-hongdae',urbanScore:96,youth:true},
+  '서울 망리단길':{routeGroup:'seoul-hongdae',urbanScore:92,youth:true},
+  '서울 성수 연무장길':{routeGroup:'seoul-seongsu',urbanScore:99,youth:true},
+  '서울 서울숲':{routeGroup:'seoul-seongsu',urbanScore:90,youth:true},
+  '서울 건대입구 맛의거리':{routeGroup:'seoul-seongsu',urbanScore:96,youth:true},
+  '서울 송리단길':{routeGroup:'seoul-seongsu',urbanScore:95,youth:true},
+  '경주 황리단길':{routeGroup:'gyeongju-hwangridan',urbanScore:99,youth:true},
+  '경주 대릉원':{routeGroup:'gyeongju-hwangridan',urbanScore:91},
+  '경주 첨성대':{routeGroup:'gyeongju-hwangridan',urbanScore:90},
+  '경주 동궁과월지':{routeGroup:'gyeongju-hwangridan',urbanScore:90},
+  '경주 보문호수':{routeGroup:'gyeongju-hwangridan',urbanScore:84},
+  '대구 동성로':{routeGroup:'daegu-dongseong',urbanScore:98,youth:true},
+  '대구 교동':{routeGroup:'daegu-dongseong',urbanScore:95,youth:true},
+  '대구 김광석다시그리기길':{routeGroup:'daegu-dongseong',urbanScore:90},
+  '대구 앞산카페거리':{routeGroup:'daegu-dongseong',urbanScore:91,youth:true},
+  '광주 동명동 카페거리':{routeGroup:'gwangju-dongmyeong',urbanScore:96,youth:true},
+  '광주 충장로':{routeGroup:'gwangju-dongmyeong',urbanScore:94,youth:true},
+  '광주 양림동 펭귄마을':{routeGroup:'gwangju-dongmyeong',urbanScore:88},
+  '광주 1913송정역시장':{routeGroup:'gwangju-dongmyeong',urbanScore:87},
+  '대전 으능정이문화의거리':{routeGroup:'daejeon-eunhaeng',urbanScore:95,youth:true},
+  '대전 성심당 본점거리':{routeGroup:'daejeon-eunhaeng',urbanScore:94,youth:true},
+  '대전 대흥동 문화예술거리':{routeGroup:'daejeon-eunhaeng',urbanScore:89},
+  '대전 한밭수목원':{routeGroup:'daejeon-eunhaeng',urbanScore:82},
+  '대전 엑스포과학공원':{routeGroup:'daejeon-eunhaeng',urbanScore:83},
+  '전주 객리단길':{routeGroup:'jeonju-gaekridan',urbanScore:94,youth:true},
+  '전주 한옥마을':{routeGroup:'jeonju-gaekridan',urbanScore:93},
+  '전주 남부시장':{routeGroup:'jeonju-gaekridan',urbanScore:86},
+  '전주 덕진공원':{routeGroup:'jeonju-gaekridan',urbanScore:80},
+  '전주 팔복예술공장':{routeGroup:'jeonju-gaekridan',urbanScore:84},
+  '수원 행리단길':{routeGroup:'suwon-haengni',urbanScore:97,youth:true},
+  '수원 화성행궁':{routeGroup:'suwon-haengni',urbanScore:91},
+  '수원 장안문':{routeGroup:'suwon-haengni',urbanScore:87},
+  '수원 광교호수공원':{routeGroup:'suwon-haengni',urbanScore:88},
+  '인천 개항로':{routeGroup:'incheon-gaehang',urbanScore:92,youth:true},
+  '인천 신포국제시장':{routeGroup:'incheon-gaehang',urbanScore:87},
+  '인천 차이나타운':{routeGroup:'incheon-gaehang',urbanScore:90},
+  '인천 월미도':{routeGroup:'incheon-gaehang',urbanScore:86},
+  '인천 송도 센트럴파크':{routeGroup:'incheon-gaehang',urbanScore:88},
+  '제주 누웨마루거리':{routeGroup:'jeju-city',urbanScore:90,youth:true},
+  '제주 동문시장':{routeGroup:'jeju-city',urbanScore:87},
+  '제주 탑동광장':{routeGroup:'jeju-city',urbanScore:84},
+  '제주 애월카페거리':{routeGroup:'jeju-aewol',urbanScore:94,youth:true},
+  '제주 한담해안산책로':{routeGroup:'jeju-aewol',urbanScore:88},
+  '제주 협재해수욕장':{routeGroup:'jeju-aewol',urbanScore:87},
+  '강릉 안목커피거리':{routeGroup:'gangneung-anmok',urbanScore:93,youth:true},
+  '강릉 안목해변':{routeGroup:'gangneung-anmok',urbanScore:88},
+  '강릉 강릉항':{routeGroup:'gangneung-anmok',urbanScore:82},
+  '강릉 경포해변':{routeGroup:'gangneung-anmok',urbanScore:89},
+  '울산 삼산디자인거리':{routeGroup:'ulsan-urban',urbanScore:92,youth:true},
+  '울산 성남동 젊음의거리':{routeGroup:'ulsan-urban',urbanScore:91,youth:true},
+  '울산 태화강국가정원':{routeGroup:'ulsan-urban',urbanScore:84},
+  '창원 상남분수광장':{routeGroup:'changwon-urban',urbanScore:90,youth:true},
+  '창원 용호동 가로수길':{routeGroup:'changwon-urban',urbanScore:88,youth:true},
+  '창원 창동예술촌':{routeGroup:'changwon-urban',urbanScore:84},
+  '춘천 명동거리':{routeGroup:'chuncheon-urban',urbanScore:89,youth:true},
+  '춘천 육림고개':{routeGroup:'chuncheon-urban',urbanScore:86,youth:true},
+  '춘천 공지천':{routeGroup:'chuncheon-urban',urbanScore:80}
+};
+for(const p of RAW_PLACES)Object.assign(p,HOTSPOT_META[p.name]||{});
+const CURATED_COURSES={
+  'busan-seomyeon':{walk:['부산 서면 젊음의거리','부산 전포카페거리','부산 삼정타워'],drive:['부산 서면 젊음의거리','부산 남포동 BIFF광장','부산 자갈치시장']},
+  'seoul-hongdae':{walk:['서울 홍대 걷고싶은거리','서울 연남동 경의선숲길','서울 망리단길'],drive:['서울 홍대 걷고싶은거리','서울 성수 연무장길','서울 송리단길']},
+  'seoul-seongsu':{walk:['서울 성수 연무장길','서울 서울숲','서울 건대입구 맛의거리'],drive:['서울 성수 연무장길','서울 건대입구 맛의거리','서울 송리단길']},
+  'gyeongju-hwangridan':{walk:['경주 황리단길','경주 대릉원','경주 첨성대'],drive:['경주 황리단길','경주 동궁과월지','경주 보문호수']},
+  'daegu-dongseong':{walk:['대구 동성로','대구 교동','대구 김광석다시그리기길'],drive:['대구 동성로','대구 수성못','대구 앞산카페거리']},
+  'gwangju-dongmyeong':{walk:['광주 동명동 카페거리','광주 국립아시아문화전당','광주 충장로'],drive:['광주 동명동 카페거리','광주 양림동 펭귄마을','광주 1913송정역시장']},
+  'daejeon-eunhaeng':{walk:['대전 으능정이문화의거리','대전 성심당 본점거리','대전 대흥동 문화예술거리'],drive:['대전 으능정이문화의거리','대전 한밭수목원','대전 엑스포과학공원']},
+  'jeonju-gaekridan':{walk:['전주 객리단길','전주 한옥마을','전주 남부시장'],drive:['전주 객리단길','전주 덕진공원','전주 팔복예술공장']},
+  'suwon-haengni':{walk:['수원 행리단길','수원 화성행궁','수원 장안문'],drive:['수원 행리단길','수원 광교호수공원','수원 장안문']},
+  'incheon-gaehang':{walk:['인천 개항로','인천 신포국제시장','인천 차이나타운'],drive:['인천 개항로','인천 월미도','인천 송도 센트럴파크']},
+  'jeju-city':{walk:['제주 누웨마루거리','제주 동문시장','제주 탑동광장'],drive:['제주 누웨마루거리','제주 탑동광장','제주 애월카페거리']},
+  'jeju-aewol':{walk:['제주 애월카페거리','제주 한담해안산책로','제주 협재해수욕장'],drive:['제주 애월카페거리','제주 협재해수욕장','제주 누웨마루거리']},
+  'gangneung-anmok':{walk:['강릉 안목커피거리','강릉 안목해변','강릉 강릉항'],drive:['강릉 안목커피거리','강릉 경포해변','강릉 월화거리']},
+  'ulsan-urban':{walk:['울산 성남동 젊음의거리','울산 태화강국가정원','울산 삼산디자인거리'],drive:['울산 삼산디자인거리','울산 성남동 젊음의거리','울산 태화강국가정원']},
+  'changwon-urban':{walk:['창원 상남분수광장','창원 용호동 가로수길','창원 창동예술촌'],drive:['창원 상남분수광장','창원 용호동 가로수길','창원 창동예술촌']},
+  'chuncheon-urban':{walk:['춘천 명동거리','춘천 육림고개','춘천 공지천'],drive:['춘천 명동거리','춘천 공지천','춘천 육림고개']}
+};
+function placeByName(name){return RAW_PLACES.find(p=>p.name===name)}
+function curatedStops(destination,mode){
+  const group=destination?.routeGroup||HOTSPOT_META[destination?.name]?.routeGroup;
+  const preset=group&&CURATED_COURSES[group];
+  if(!preset)return null;
+  const names=mode==='walk'?preset.walk:preset.drive;
+  const stops=names.map(placeByName).filter(Boolean);
+  if(!stops.some(p=>p.name===destination.name))stops.unshift(destination);
+  return stops.slice(0,3);
+}
 const DIR_DEG={북:0,'북동':45,동:90,'남동':135,남:180,'남서':225,서:270,'북서':315};
 const rad=d=>d*Math.PI/180;
 function geoKm(a,b){const R=6371,dLat=rad(b.lat-a.lat),dLng=rad(b.lng-a.lng),x=Math.sin(dLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLng/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
@@ -148,7 +259,11 @@ function localRecommend(body){
     arr=arr.filter(p=>p.geoDistanceKm<=activeMax&&p.geoDistanceKm>=Math.max(0,activeMin*.55));
     if(dir!=='전체'&&DIR_DEG[dir]!=null)arr=arr.filter(p=>degDiff(p.bearing,DIR_DEG[dir])<=55);
 
-    if(hardCats.length)arr=arr.filter(p=>hardCats.includes(p.category));
+    const naturalHard=hardCats.some(c=>['바다','산','공원','캠핑'].includes(c));
+    if(profile?.flags?.trendy&&!naturalHard){
+      const urban=arr.filter(p=>URBAN_CATEGORIES.includes(p.category));
+      if(urban.length)arr=urban;
+    }else if(hardCats.length)arr=arr.filter(p=>hardCats.includes(p.category));
     else if(profile&&preferredCats.length){
       const preferred=arr.filter(p=>preferredCats.includes(p.category));
       arr=preferred.length>=3?preferred:[...preferred,...arr.filter(p=>!preferredCats.includes(p.category))];
@@ -178,7 +293,8 @@ function localRecommend(body){
     const semanticHits=matched.filter(x=>(x.categories||[]).includes(p.category)&&x.kind!=='amenity'&&x.kind!=='condition');
     const hardFit=hardCats.includes(p.category)?42:0;
     const preferredFit=preferredCats.includes(p.category)?18:0;
-    const semantic=Math.min(42,semanticHits.reduce((sum,x)=>sum+(x.weight||8),0));
+    const semantic=Math.min(48,semanticHits.reduce((sum,x)=>sum+(x.weight||8),0));
+    const urbanBoost=profile?.flags?.trendy&&URBAN_CATEGORIES.includes(p.category)?Math.min(30,Math.round((p.urbanScore||placePopularity(p))/4)):0;
     const cat=(!cats.length||cats.includes(p.category))?8:0;
     const dist=Math.max(0,24-Math.abs(p.geoDistanceKm-center)/span*18);
     const time=avail==null?8:(round<=avail?18:Math.max(0,18-(round-avail)/15));
@@ -191,7 +307,7 @@ function localRecommend(body){
     if(hardFit&&semanticHits.length)why.push(semanticHits.slice(0,2).map(x=>x.reason||x.label).join(' + ')+'을 우선 반영');
     else if(semanticHits.length)why.push(semanticHits.slice(0,2).map(x=>x.reason||x.label).join(' + ')+' 조건과 잘 맞음');
     if(profile?.flags?.quiet&&['바다','산','공원','캠핑'].includes(p.category))why.push('한적한 분위기 선호를 자연형 장소에 반영');
-    if(profile?.flags?.trendy&&['뮤지엄','체험마을','관광지','공원'].includes(p.category))why.push('힙·트렌디한 분위기 키워드 반영');
+    if(profile?.flags?.trendy&&URBAN_CATEGORIES.includes(p.category))why.push('힙·트렌디한 젊은 상권 데이터를 우선 반영');
     if(profile?.flags?.localHidden&&['체험마을','전통시장','공원','관광지'].includes(p.category))why.push('로컬·숨은 장소 취향 반영');
     if(profile?.flags?.picnic&&['공원','바다'].includes(p.category))why.push('피크닉하기 좋은 장소 유형 우선');
     if(profile?.flags?.wantsCafe)why.push('목적지 선택 후 4km 이내 카페 검색으로 연결');
@@ -201,7 +317,7 @@ function localRecommend(body){
     return {...p,routePreview:route,roundTripDriveMin:round,availableMin:avail,feasible,
       aiReason:why.slice(0,3).join(' · '),relaxedResult:!!p.relaxed,
       semanticIntent:(profile?.keywords||[]).join(','),
-      score:Math.min(99,Math.max(1,Math.round(18+hardFit+preferredFit+semantic+cat+dist+time+focusBonus+quietPenalty+genericPenalty+relaxedPenalty)))}
+      score:Math.min(99,Math.max(1,Math.round(18+hardFit+preferredFit+semantic+urbanBoost+cat+dist+time+focusBonus+quietPenalty+genericPenalty+relaxedPenalty)))}
   }).sort((a,b)=>b.score-a.score);
   return diversifyRecommendations(ranked,14);
 }
@@ -294,26 +410,29 @@ async function coursePack(body,w){
   const d=body.destination,cats=body.categories||[];
   const rain=Number(w.precipitation_probability)>=55||['비','눈','뇌우','이슬비'].includes(w.condition);
 
-  const walkPool=localCandidates(d,cats,1.5);
-  const drivePool=await roadCandidatePool(d,cats,4);
-
-  const walkStops=buildLocalChain(d,walkPool,1.5,2);
-  const driveStops=await buildRoadChain(d,drivePool,4,2);
+  const curatedWalk=curatedStops(d,'walk');
+  const curatedDrive=curatedStops(d,'drive');
+  const walkPool=curatedWalk?[]:localCandidates(d,cats,1.8);
+  const drivePool=curatedDrive?[]:await roadCandidatePool(d,cats,4);
+  const walkStops=curatedWalk||[d,...buildLocalChain(d,walkPool,1.8,2)];
+  const driveStops=curatedDrive||[d,...await buildRoadChain(d,drivePool,4,2)];
 
   const configs=[
     {
       id:'A',title:'WALK · 도보 근거리',mode:'walk',
-      reason:walkStops.length
-        ?'선택한 여행지 주변을 걸어서 둘러볼 수 있도록 가까운 지점을 연결했습니다.'
+      reason:curatedWalk
+        ?'같은 상권 안에서 실제로 이어 걷기 좋은 핵심 거리·시설을 순서대로 연결한 도보 코스입니다.'
+        :walkStops.length
         :'도보권 안에 추가 장소가 부족해 선택한 여행지를 중심으로 보여줍니다.',
-      stops:[d,...walkStops]
+      stops:walkStops
     },
     {
       id:'B',title:'DRIVE · 드라이브 코스',mode:'drive',
-      reason:driveStops.length
-        ?'선택 지역 안에서 실제 도로거리 기준 각 지점을 4km 이내로 연결한 드라이브 코스입니다.'
+      reason:curatedDrive
+        ?'같은 도시권에서 성격이 이어지는 번화가·문화거리·시장 등을 차량으로 연결한 드라이브 코스입니다.'
+        :driveStops.length
         :'도로거리 4km 이내 적합한 추가 장소가 부족해 선택한 여행지 중심으로 구성했습니다.',
-      stops:[d,...driveStops]
+      stops:driveStops
     }
   ];
 
@@ -325,8 +444,8 @@ async function coursePack(body,w){
     results.push({...c,
       weatherFit:rain?(c.mode==='walk'?'낮음':'보통'):'높음',
       localRule:c.mode==='walk'
-        ?'여행지 주변 도보 근거리 · 출발지 제외'
-        :route.source==='osrm'?'여행지 주변 실제 도로거리 4km 이내':'여행지 주변 4km 이내 · 경로 실패 구간은 근사',
+        ?(curatedWalk?'큐레이션 도보 연계 · 출발지 제외':'여행지 주변 도보 근거리 · 출발지 제외')
+        :(curatedDrive?'큐레이션 도시권 드라이브 · 출발지 제외':route.source==='osrm'?'여행지 주변 실제 도로거리 4km 이내':'여행지 주변 4km 이내 · 경로 실패 구간은 근사'),
       maxLocalLegKm:route.maxLegKm||0,
       route,
       estimatedCost:{fuelCost,toll:0,total:fuelCost}
@@ -356,7 +475,8 @@ function localAI(message,context){
     {id:'relax',label:'휴식·힐링',kind:'mood',weight:12,re:/쉬고|쉬고싶|휴식|힐링|멍때리|느긋|머리식히|답답|기분전환/,categories:['바다','공원','산'],reason:'휴식·기분전환'},
     {id:'romantic',label:'감성·분위기',kind:'mood',weight:10,re:/감성|감성적인|분위기좋|분위기있는|무드있는|무드좋|낭만|로맨틱|데이트감성|포근|아늑/,categories:['바다','공원','관광지'],reason:'감성적인 분위기'},
     {id:'active',label:'활동적',kind:'mood',weight:10,re:/활동적|움직이고|신나게|액티비티/,categories:['산','체험마을','공원'],reason:'활동적인 일정'},
-    {id:'trendy',label:'힙·트렌디',kind:'mood',weight:16,re:/힙한|힙한곳|힙플|핫플|핫플레이스|트렌디|트렌디한|요즘뜨는|요즘핫한|요즘유행|mz|엠지|감각적|감각적인|세련된|유니크|개성있는|개성적인|스타일리시/,categories:['뮤지엄','체험마을','관광지','공원'],reason:'힙하고 트렌디한 분위기'},
+    {id:'trendy',label:'힙·트렌디',kind:'mood',weight:26,re:/힙한|힙한곳|힙플|핫플|핫플레이스|트렌디|트렌디한|요즘뜨는|요즘핫한|요즘유행|mz|엠지|감각적|감각적인|세련된|유니크|개성있는|개성적인|스타일리시/,categories:['번화가','카페거리','문화거리','쇼핑거리'],reason:'힙하고 트렌디한 상권·거리'},
+    {id:'urbanhotspot',label:'번화가·젊은상권',kind:'hard',weight:30,re:/번화가|젊은사람|젊은층|유동인구|사람많은곳|사람많은데|사람붐비는|대학가|핫한상권|상권|쇼핑거리|놀거리많은|술집많은|밤놀기|도심핫플|젊음의거리/,categories:['번화가','카페거리','문화거리','쇼핑거리'],reason:'젊은 층이 많이 찾는 도심 상권'},
     {id:'localhidden',label:'로컬·숨은명소',kind:'mood',weight:15,re:/로컬|찐로컬|현지인|동네사람|숨은명소|숨은곳|덜알려진|안유명한|유명하지않|사람들이잘모르는|관광객적은|관광객없는|골목감성|동네감성/,categories:['체험마을','전통시장','공원','관광지'],reason:'로컬·숨은 장소 분위기'},
     {id:'retro',label:'레트로·빈티지',kind:'mood',weight:14,re:/레트로|뉴트로|빈티지|복고|옛날감성|옛감성|오래된감성|세월감|아날로그|필름감성|필카감성/,categories:['전통시장','체험마을','관광지','뮤지엄'],reason:'레트로·빈티지 분위기'},
     {id:'artspace',label:'예술·공간',kind:'soft',weight:15,re:/예술|아트|디자인|공예|공방거리|복합문화공간|문화공간|전시공간|창작공간|작업실|아트스페이스|설치미술|미디어아트/,categories:['뮤지엄','체험마을','관광지'],reason:'예술·문화 공간'},
@@ -434,7 +554,8 @@ function localAI(message,context){
       quiet:matches.some(x=>x.id==='quiet'),
       rain:matches.some(x=>x.id==='rain'),
       wave:matches.some(x=>x.id==='wave'),
-      trendy:matches.some(x=>x.id==='trendy'),
+      trendy:matches.some(x=>x.id==='trendy'||x.id==='urbanhotspot'),
+      urbanHotspot:matches.some(x=>x.id==='urbanhotspot'),
       localHidden:matches.some(x=>x.id==='localhidden'),
       retro:matches.some(x=>x.id==='retro'),
       picnic:matches.some(x=>x.id==='picnic')
@@ -554,7 +675,11 @@ const COURSE_PLACE_META={
   '카페':{icon:'☕',desc:'카페 · 음료'},
   '맛집':{icon:'●',desc:'음식점 · 식사'},
   '소품샵':{icon:'☆',desc:'소품 · 쇼핑'},
-  '온천':{icon:'♨',desc:'온천 · 휴식'}
+  '온천':{icon:'♨',desc:'온천 · 휴식'},
+  '번화가':{icon:'✦',desc:'쇼핑 · 음식 · 젊은 상권'},
+  '카페거리':{icon:'☕',desc:'카페 · 디저트 · 골목 산책'},
+  '문화거리':{icon:'◆',desc:'문화 · 전시 · 골목 탐방'},
+  '쇼핑거리':{icon:'▦',desc:'쇼핑 · 복합문화 · 먹거리'}
 };
 function coursePlaceMeta(point){
   return COURSE_PLACE_META[point?.category]||{icon:'⌖',desc:'여행 장소'};
@@ -675,7 +800,7 @@ async function startFromMainLocation(){
 }
 async function loadConfig(){
   state.config=await api('/api/config');$('#gasPrice').value=state.config.defaultGasPrice;const p=state.config.providers;
-  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.23 · UI 안정성 강화');
+  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.24 · 도시핫플 · 연계코스');
 }
 async function useLocation(goNext=false){
   if(!navigator.geolocation){toast('브라우저 위치 기능을 사용할 수 없습니다. 출발지를 검색해주세요.');return}
