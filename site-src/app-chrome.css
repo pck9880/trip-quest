@@ -489,3 +489,75 @@ body.tq-modal-open{overflow:hidden}.tq-setup-overlay[hidden]{display:none!import
   .tq-moving-car{opacity:.92;transform:translate3d(-50%,-50%,0) scale(.92);left:50%;top:47%}
   .tq-road-speed{display:none}
 }
+
+
+/* v0.36 — approved image as the actual app cover */
+.main-landing{background:#04080d!important;overflow:hidden!important}
+.main-landing-bg{
+  inset:auto!important;
+  left:50%!important;top:50%!important;
+  transform:translate(-50%,-50%)!important;
+  background-color:#04080d!important;
+  background-image:url("./assets/tq-cover-main-v036.webp")!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  background-size:100% 100%!important;
+  z-index:0!important;
+}
+.main-landing-bg:after{display:none!important}
+.tq-drive-scene,.tq-cinematic-scene{display:none!important}
+
+.main-landing-inner{
+  position:absolute!important;left:50%!important;top:50%!important;
+  transform:translate(-50%,-50%)!important;
+  min-height:0!important;margin:0!important;padding:0!important;
+  display:block!important;z-index:20!important;pointer-events:none!important;
+}
+.main-cover-brand,.main-cover-copy,.tq-cover-points,.tq-cover-trust,#mainLocationStatus{display:none!important}
+.main-cover-action{position:absolute!important;inset:0!important;display:block!important;pointer-events:none!important;margin:0!important}
+#mainLocateBtn,#mainManualBtn{
+  position:absolute!important;left:50%!important;transform:translateX(-50%)!important;
+  width:60%!important;height:7.4%!important;min-height:0!important;
+  padding:0!important;margin:0!important;border:0!important;border-radius:999px!important;
+  background:transparent!important;box-shadow:none!important;
+  color:transparent!important;font-size:0!important;text-shadow:none!important;
+  opacity:.001!important;pointer-events:auto!important;cursor:pointer!important;
+}
+#mainLocateBtn{top:76.4%!important}
+#mainManualBtn{top:84.7%!important}
+#mainLocateBtn:before,#mainLocateBtn:after,#mainManualBtn:before,#mainManualBtn:after,
+#mainLocateBtn svg,#mainManualBtn svg{display:none!important}
+#mainLocateBtn:focus-visible,#mainManualBtn:focus-visible{
+  opacity:1!important;outline:3px solid rgba(201,255,69,.85)!important;outline-offset:2px!important;
+  background:rgba(201,255,69,.08)!important;
+}
+
+/* Fit the 2:3 artwork without distortion; tall phones crop only the left/right edges. */
+@media (max-aspect-ratio:2/3){
+  .main-landing-bg,.main-landing-inner{width:66.6667dvh!important;height:100dvh!important}
+}
+@media (min-aspect-ratio:2/3){
+  .main-landing-bg,.main-landing-inner{width:100vw!important;height:150vw!important}
+}
+
+/* Extremely small browser heights: keep the action zones reachable. */
+@media (max-height:620px){
+  #mainLocateBtn{top:76.1%!important}
+  #mainManualBtn{top:84.4%!important}
+}
+
+/* Minimal ambient light only; no synthetic car or mountain layers. */
+.tq-photo-cover-fx{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.tq-cover-light{
+  position:absolute;left:-30%;top:63%;width:38%;height:2px;border-radius:999px;
+  background:linear-gradient(90deg,transparent,rgba(201,255,69,.38),transparent);
+  filter:blur(.4px);opacity:.35;animation:tqPhotoRoadLight 4.8s linear infinite;
+}
+.tq-cover-light.l2{top:69%;animation-delay:-2.4s;background:linear-gradient(90deg,transparent,rgba(121,207,255,.28),transparent)}
+@keyframes tqPhotoRoadLight{
+  0%{transform:translateX(0) rotate(-4deg);opacity:0}
+  18%{opacity:.32}
+  82%{opacity:.22}
+  100%{transform:translateX(430%) rotate(-4deg);opacity:0}
+}
+@media(prefers-reduced-motion:reduce){.tq-cover-light{animation:none!important;display:none!important}}
