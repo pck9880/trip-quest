@@ -749,7 +749,6 @@ body.tq-modal-open{overflow:hidden}.tq-setup-overlay[hidden]{display:none!import
 .main-landing.tq-photo-ready #mainLocateBtn:disabled{
   cursor:wait!important;
   opacity:.88!important;
-  transform:none!important;
   box-shadow:
     0 5px 0 rgba(83,112,5,.42),
     0 12px 25px rgba(0,0,0,.24)!important;
