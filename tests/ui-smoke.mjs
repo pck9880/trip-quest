@@ -15,7 +15,7 @@ assert.equal((html.match(/\\n/g)||[]).length,0,'index.html must not contain lite
 
 const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);
 assert.equal(new Set(ids).size,ids.length,'HTML ids must be unique');
-for(const id of ['mainLanding','mainLocateBtn','mainManualBtn','aiInput','aiSend','originSearch','ranking','map','courseList','courseMap','toast']){
+for(const id of ['mainLanding','mainLocateBtn','mainManualBtn','aiInput','aiSend','quickDistanceChoices','quickThemeChoices','distanceAdvancedToggle','advancedDistanceControl','openAdvancedSearch','originSearch','ranking','map','courseList','courseMap','toast']){
   assert.ok(ids.includes(id),'required UI id missing: '+id);
 }
 
@@ -35,7 +35,8 @@ for(const m of html.matchAll(/(?:src|href)="\.\/assets\/([^"?]+)(?:\?[^"]*)?"/g)
   assert.ok(fs.existsSync(p),'missing referenced asset: assets/'+m[1]);
 }
 
-assert.ok(chromeCss.includes('v0.45 — natural touch lifecycle for landing buttons'),'v0.45 landing touch lifecycle CSS missing');
+assert.ok(chromeCss.includes('v0.45 — natural touch lifecycle for landing buttons'),'landing touch lifecycle CSS missing');
+assert.ok(chromeCss.includes('v0.46 — simplified second-page search hierarchy'),'v0.46 simplified search CSS missing');
 assert.ok(chromeCss.includes('background-image:url("./assets/tq-cover-main-v044.webp")'),'clean cover asset must be used');
 assert.ok(!chromeCss.includes('opacity:.001!important'),'transparent image-button hit areas must be removed');
 assert.ok(!chromeJs.includes('function bindLandingFallback'),'legacy landing coordinate fallback must be removed');
@@ -61,4 +62,11 @@ assert.ok(app.includes("costLabel:vehicle.fuel==='electric'?'충전비':'연료�
 const boot=(chromeJs.match(/function bootChrome\(\)\{([^}]*)\}/)||[])[1]||'';
 assert.ok(!boot.includes('observeTripSummary()'),'legacy DOM toll patch must not run');
 
-console.log('TRIP QUEST v0.45 UI/runtime smoke tests passed');
+assert.ok(html.includes('오늘 어디로 떠날까요?'),'simplified search title missing');
+assert.ok(html.includes('현재 위치에서 취향에 맞는 여행지를 빠르게 찾아드려요.'),'simplified search subtitle missing');
+assert.ok(app.includes('document.body.dataset.tripStep=String(n)'),'step-aware simple search visibility missing');
+assert.ok(app.includes("const quickDistance=$('#quickDistanceChoices')"),'quick distance binding missing');
+assert.ok(app.includes("const quickThemes=$('#quickThemeChoices')"),'quick theme binding missing');
+assert.ok(app.includes("document.body.classList.add('tq-advanced-open')"),'advanced planner reveal binding missing');
+assert.ok(chromeCss.includes('body[data-trip-step="2"]:not(.tq-advanced-open) .wizard'),'simple search must hide advanced wizard at step two');
+console.log('TRIP QUEST v0.46 UI/runtime smoke tests passed');

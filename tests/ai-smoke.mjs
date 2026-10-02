@@ -48,4 +48,4 @@ assert.ok(source.includes("'daegu-dongseong'"),'Daegu route preset required');
 assert.ok(source.includes("'gwangju-dongmyeong'"),'Gwangju route preset required');
 assert.ok(source.includes("'suwon-haengni'"),'Suwon route preset required');
 assert.ok(source.includes("const all=s=>Array.from(document.querySelectorAll(s))"),'plural selector stability helper required');
-console.log('TRIP QUEST v0.45 urban hotspot, route, and vehicle tests passed');
+console.log('TRIP QUEST v0.46 urban hotspot, route, and vehicle tests passed');

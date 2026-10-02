@@ -841,3 +841,248 @@ body.tq-modal-open{overflow:hidden}.tq-setup-overlay[hidden]{display:none!import
     animation:none!important;
   }
 }
+
+
+/* v0.46 — simplified second-page search hierarchy */
+.tq-search-page.ai-hero{
+  padding:22px 22px 20px;
+  overflow:visible;
+  border-color:rgba(86,104,121,.42);
+  background:
+    radial-gradient(circle at 92% -12%,rgba(201,255,69,.055),transparent 30%),
+    linear-gradient(180deg,rgba(16,24,33,.98),rgba(12,18,25,.98));
+}
+.tq-search-page.ai-hero:after{display:none!important}
+.tq-search-head{max-width:720px}
+.tq-search-head .eyebrow{
+  margin-bottom:8px;
+  font-size:9px;
+  letter-spacing:.18em;
+}
+.tq-search-head h1{
+  margin:0!important;
+  font-size:clamp(28px,4vw,42px)!important;
+  line-height:1.06!important;
+  letter-spacing:-.045em!important;
+}
+.tq-search-head p{
+  margin-top:8px!important;
+  max-width:none!important;
+  font-size:12px!important;
+  line-height:1.5!important;
+  color:#9aa6b2!important;
+}
+
+.tq-search-composer.ai-composer{
+  margin-top:18px;
+  padding:6px;
+  border-radius:18px;
+  border-color:#34414e;
+  background:#090f15;
+  box-shadow:0 12px 32px rgba(0,0,0,.2);
+}
+.tq-search-composer.ai-composer:focus-within{
+  border-color:rgba(201,255,69,.58);
+  box-shadow:0 0 0 3px rgba(201,255,69,.075),0 16px 38px rgba(0,0,0,.23);
+}
+.tq-search-composer textarea{
+  min-height:58px!important;
+  padding:12px 14px!important;
+  font-size:15px;
+}
+.tq-search-composer .ai-send{
+  min-width:118px;
+  border-radius:14px;
+  font-size:12px;
+}
+
+.tq-search-shortcuts{
+  display:grid;
+  grid-template-columns:.82fr 1.18fr;
+  gap:10px;
+  margin-top:12px;
+}
+.tq-shortcut-block{
+  min-width:0;
+  padding:13px;
+  border:1px solid rgba(70,85,100,.52);
+  border-radius:16px;
+  background:rgba(10,16,22,.72);
+}
+.tq-shortcut-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+.tq-shortcut-head>div>span,
+.tq-shortcut-head>div>strong{display:block}
+.tq-shortcut-head>div>span{
+  color:#788691;
+  font:800 7px/1 ui-monospace,monospace;
+  letter-spacing:.15em;
+}
+.tq-shortcut-head>div>strong{
+  margin-top:4px;
+  color:#eef3f6;
+  font-size:12px;
+}
+.tq-inline-toggle{
+  min-height:30px;
+  padding:0 9px;
+  border:0;
+  border-radius:9px;
+  background:#141e28;
+  color:#98a5b1;
+  cursor:pointer;
+  font-size:9px;
+  font-weight:800;
+}
+.tq-inline-toggle:hover{color:#e9f0f4;background:#1a2733}
+
+.tq-quick-chips{
+  display:grid;
+  gap:7px;
+}
+.tq-distance-chips{grid-template-columns:repeat(4,1fr)}
+.tq-theme-chips{grid-template-columns:repeat(5,1fr)}
+.tq-quick-chips button{
+  min-width:0;
+  min-height:39px;
+  padding:0 8px;
+  border:1px solid #2f3b47;
+  border-radius:11px;
+  background:#111922;
+  color:#aab5bf;
+  cursor:pointer;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  font-size:10px;
+  font-weight:800;
+  transition:transform .1s ease,border-color .12s ease,background .12s ease,color .12s ease;
+}
+.tq-quick-chips button:hover{
+  border-color:#52616e;
+  color:#eef3f6;
+}
+.tq-quick-chips button:active{transform:scale(.97)}
+.tq-quick-chips button.selected{
+  border-color:rgba(201,255,69,.62);
+  background:rgba(201,255,69,.1);
+  color:#ddff8d;
+  box-shadow:inset 0 0 0 1px rgba(201,255,69,.08);
+}
+
+.tq-advanced-distance.ai-distance-control{
+  margin-top:10px;
+  padding:13px;
+  border-color:#33404c;
+  background:#0a1118;
+}
+.tq-advanced-distance[hidden]{display:none!important}
+.tq-advanced-distance .ai-distance-control>p{display:none}
+.tq-advanced-distance .ai-distance-head strong{font-size:15px}
+.tq-advanced-distance .ai-distance-head strong b{font-size:20px}
+
+.tq-advanced-search-btn{
+  width:100%;
+  min-height:42px;
+  margin-top:10px;
+  padding:0 4px;
+  border:0;
+  border-radius:12px;
+  background:transparent;
+  color:#8f9ca7;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-size:10px;
+  font-weight:800;
+}
+.tq-advanced-search-btn:hover{color:#dce4ea}
+.tq-advanced-search-btn span{font-size:15px;color:#71808d}
+
+body[data-trip-step="2"]:not(.tq-advanced-open) .progress,
+body[data-trip-step="2"]:not(.tq-advanced-open) .wizard{
+  display:none!important;
+}
+body[data-trip-step="2"].tq-advanced-open .progress,
+body[data-trip-step="2"].tq-advanced-open .wizard{
+  display:grid;
+}
+body[data-trip-step="2"].tq-advanced-open .wizard{
+  display:block;
+}
+
+@media(max-width:680px){
+  .tq-search-page.ai-hero{
+    padding:18px 14px 14px!important;
+    border-radius:20px!important;
+  }
+  .tq-search-head .eyebrow{font-size:8px}
+  .tq-search-head h1{
+    font-size:27px!important;
+    line-height:1.08!important;
+  }
+  .tq-search-head p{
+    margin-top:6px!important;
+    font-size:11px!important;
+  }
+  .tq-search-composer.ai-composer{
+    margin-top:14px;
+    padding:5px;
+    gap:6px;
+  }
+  .tq-search-composer textarea{
+    min-height:70px!important;
+    font-size:16px!important;
+    padding:11px!important;
+  }
+  .tq-search-composer .ai-send{
+    min-height:48px!important;
+    width:100%;
+  }
+  .tq-search-shortcuts{
+    grid-template-columns:1fr;
+    gap:8px;
+    margin-top:9px;
+  }
+  .tq-shortcut-block{
+    padding:11px;
+    border-radius:14px;
+  }
+  .tq-shortcut-head{margin-bottom:8px}
+  .tq-distance-chips{grid-template-columns:repeat(4,1fr)}
+  .tq-theme-chips{
+    display:flex;
+    overflow-x:auto;
+    gap:7px;
+    padding-bottom:1px;
+    scrollbar-width:none;
+  }
+  .tq-theme-chips::-webkit-scrollbar{display:none}
+  .tq-theme-chips button{
+    flex:0 0 auto;
+    min-width:66px;
+    padding:0 12px;
+  }
+  .tq-quick-chips button{min-height:40px}
+  .tq-advanced-search-btn{
+    min-height:38px;
+    margin-top:6px;
+    padding:0 2px;
+  }
+  .tq-advanced-distance.ai-distance-control{
+    margin-top:8px;
+    padding:11px;
+  }
+  body[data-trip-step="2"]:not(.tq-advanced-open) .tq-bottom-nav{
+    opacity:1;
+  }
+}
+@media(max-width:390px){
+  .tq-distance-chips{grid-template-columns:repeat(2,1fr)}
+  .tq-search-head h1{font-size:25px!important}
+}
