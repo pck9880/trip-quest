@@ -140,7 +140,7 @@ function applyPatch(patch={}){
 
 function showAI(result){
   $('#aiConversation').hidden=false;
-  setText('#aiMode','여행 전용 AI 가이드');
+  setText('#aiMode','TRIP SEARCH ANALYSIS');
   setText('#aiReply',result.message||'요청을 처리했습니다.');
   const tags=$('#aiAnalysisTags');
   if(tags){
@@ -181,24 +181,24 @@ async function askAI(message,options={}){
   state.aiBusy=true;
   const btn=$('#aiSend'),status=$('#aiSearchStatus'),finishGauge=startAIProgressGauge();
   $('#aiConversation').hidden=false;$('#aiChoices').innerHTML='';
-  setText('#aiMode','요청 분석 중');setText('#aiReply','문장에서 여행 취향과 조건을 찾고 있습니다…');
-  if(status){status.hidden=false;status.className='ai-search-status working';status.textContent='1/2 · 키워드와 여행 의도 분석 중…'}
+  setText('#aiMode','SEARCH ANALYSIS');setText('#aiReply','지역·목적지 유형·연계 조건을 분리하고 있습니다…');
+  if(status){status.hidden=false;status.className='ai-search-status working';status.textContent='1/2 · 지역과 검색 의도 분석 중…'}
   btn.disabled=true;btn.classList.remove('ai-done','ai-error');btn.textContent='분석 중…';
 
   // AI 검색은 즉시 추천지 페이지로 전환한다.
   state.selected=null;
   setStep(4);
   $('#ranking').className='ranking empty-state';
-  $('#ranking').innerHTML='AI가 요청을 분석하고 추천지를 찾고 있습니다…';
-  setText('#resultCaption','AI 분석 중 · 잠시만 기다려주세요');
-  setText('#mapStatus','AI 추천 준비 중');
+  $('#ranking').innerHTML='검색 조건을 구조화하고 추천지를 찾고 있습니다…';
+  setText('#resultCaption','검색 조건 분석 중 · 잠시만 기다려주세요');
+  setText('#mapStatus','추천 준비 중');
   setTimeout(()=>document.querySelector('#step4')?.scrollIntoView({behavior:'smooth',block:'start'}),80);
 
   try{
     await ensureAIOrigin();
     await new Promise(r=>setTimeout(r,520));
     btn.textContent='추천지 찾는 중…';
-    if(status)status.textContent='2/2 · 분석한 취향과 조건으로 추천지 계산 중…';
+    if(status)status.textContent='2/2 · 지역·목적지·거리 조건으로 추천지 계산 중…';
 
     const result=await travelService.aiSearch(message.trim(),{...currentPayload(),distanceBand:state.activeDistanceBand});
     await new Promise(r=>setTimeout(r,520));
@@ -207,18 +207,18 @@ async function askAI(message,options={}){
     const count=Array.isArray(result.items)?result.items.length:0;
     const keys=(result.analysisKeywords||[]).join(' · ');
     if(Array.isArray(result.items)){
-      setText('#resultCaption',state.activeDistanceBand?`AI 분석 · 비슷한 거리 ${Math.round(state.activeDistanceBand.min)}~${Math.round(state.activeDistanceBand.max)}km · 추천지 ${count}곳`:keys?`AI 분석: ${keys} · ${state.minKm}~${state.targetKm}km · 추천지 ${count}곳`:`AI 추천지 ${count}곳`);
-      setText('#mapStatus',`AI 분석 기반 후보 ${count}곳`);
+      setText('#resultCaption',state.activeDistanceBand?`검색 분석 · 비슷한 거리 ${Math.round(state.activeDistanceBand.min)}~${Math.round(state.activeDistanceBand.max)}km · 추천지 ${count}곳`:keys?`검색 분석: ${keys} · ${state.minKm}~${state.targetKm}km · 추천지 ${count}곳`:`추천지 ${count}곳`);
+      setText('#mapStatus',`검색 분석 기반 후보 ${count}곳`);
       setStep(4);
       setTimeout(()=>document.querySelector('#step4')?.scrollIntoView({behavior:'smooth',block:'start'}),100);
     } else {
       $('#ranking').className='ranking empty-state';
       const needsMore=result.intent==='clarify'||result.intent==='off_topic';
       $('#ranking').innerHTML=needsMore
-        ? '<div><strong>AI 분석 완료</strong><br><br>여행 조건을 조금 더 알려주면 추천 정확도가 올라갑니다.<br><small>예: “오늘 답답해서 60km 안에서 조용히 바람 쐬고 싶어”</small><br><br><button id="aiRefineBtn" class="btn primary" type="button">AI 검색 다시 입력</button></div>'
+        ? '<div><strong>검색 분석 완료</strong><br><br>여행 조건을 조금 더 알려주면 추천 정확도가 올라갑니다.<br><small>예: “오늘 답답해서 60km 안에서 조용히 바람 쐬고 싶어”</small><br><br><button id="aiRefineBtn" class="btn primary" type="button">AI 검색 다시 입력</button></div>'
         : '<div><strong>AI 분석 완료</strong><br><br>현재 조건으로 추천 가능한 장소가 부족합니다.<br>거리나 상황을 조금 넓혀 다시 검색해보세요.<br><br><button id="aiRefineBtn" class="btn primary" type="button">검색 조건 다시 입력</button></div>';
-      setText('#resultCaption',needsMore?'AI 분석 완료 · 조건 보완 필요':'AI 분석 완료 · 추천 조건 조정 필요');
-      setText('#mapStatus','AI 분석 완료');
+      setText('#resultCaption',needsMore?'검색 분석 완료 · 조건 보완 필요':'검색 분석 완료 · 추천 조건 조정 필요');
+      setText('#mapStatus','검색 분석 완료');
       setStep(4);
       setTimeout(()=>{
         const refine=$('#aiRefineBtn');
@@ -228,7 +228,7 @@ async function askAI(message,options={}){
 
     btn.classList.add('ai-done');
     btn.textContent=count?`추천 완료 ✓ · ${count}곳`:'분석 완료 ✓';
-    if(status){status.className='ai-search-status done';status.textContent=count?`완료 · AI 분석을 반영한 추천지 ${count}곳입니다.`:'완료 · 입력 내용을 분석했습니다.'}
+    if(status){status.className='ai-search-status done';status.textContent=count?`완료 · 검색 조건을 반영한 추천지 ${count}곳입니다.`:'완료 · 입력 내용을 분석했습니다.'}
     finishGauge(true);
     setTimeout(()=>{if(!state.aiBusy){btn.classList.remove('ai-done');btn.textContent='여행지 찾기'}},1800);
   }catch(e){
@@ -236,7 +236,7 @@ async function askAI(message,options={}){
     if(status){status.className='ai-search-status error';status.textContent=e.message||'검색 중 문제가 생겼습니다.'}
     $('#ranking').className='ranking empty-state';
     $('#ranking').innerHTML=`<span class="error">${esc(e.message||'AI 추천을 진행하지 못했습니다.')}</span>`;
-    setText('#resultCaption','AI 추천을 진행하려면 출발지 또는 위치 권한이 필요합니다.');
+    setText('#resultCaption','추천을 진행하려면 출발지 또는 위치 권한이 필요합니다.');
     finishGauge(false);showAI({mode:'local',message:e.message||'AI 요청을 처리하지 못했습니다.',analysisKeywords:[],choices:[{label:'출발지 설정하기',action:'goto',step:1},{label:'다시 입력하기',action:'focus'}]});
   }finally{
     state.aiBusy=false;btn.disabled=false;
