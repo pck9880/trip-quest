@@ -9,7 +9,11 @@ const html=read('index.html');
 const sw=read('sw.js');
 const app=read('app.js');
 const chromeJs=read('app-chrome.js');
-const chromeCss=read('app-chrome.css');
+const baseCss=read('css/base.css');
+const productCss=read('css/product.css');
+const landingCss=read('css/landing.css');
+const searchCss=read('css/search.css');
+const chromeCss=productCss+landingCss+searchCss;
 const moduleFiles=['js/core/dom.js','js/core/format.js','js/data/places.js','js/data/recommendation-data.js','js/data/course-data.js','js/data/ui-options.js','js/domain/geo.js','js/domain/schedule.js','js/domain/trip-cost.js','js/services/vehicle-settings.js','js/services/routing.js','js/services/weather.js','js/services/geocoding.js','js/data/intent-rules.js','js/domain/recommendation.js','js/domain/intent-parser.js','js/usecases/search-destinations.js','js/domain/course-planner.js','js/ui/main-map.js','js/ui/course-map.js','js/ui/time-controls.js','js/ui/course-actions.js','js/ui/landing.js','js/ui/wizard.js','js/ui/results.js','js/controllers/search-controller.js','js/controllers/origin-controller.js','js/controllers/app-controller.js','js/store/trip-store.js','js/services/travel-service.js'];
 for(const file of moduleFiles)assert.ok(fs.existsSync(new URL(file,root)),'missing extracted module: '+file);
 assert.ok(app.includes("from './js/core/dom.js'"),'app.js must use core DOM module');
@@ -47,7 +51,7 @@ function q(file,name){
   const m=file.match(new RegExp(safe+"\\?v=([^\"']+)"));
   return m?.[1]||'';
 }
-for(const asset of ['styles.css','app.js','app-chrome.css','app-chrome.js','landing-touch-fix.css']){
+for(const asset of ['css/base.css','css/product.css','css/landing.css','css/search.css','app.js','app-chrome.js']){
   const hv=q(html,asset),sv=q(sw,asset);
   assert.ok(hv,'missing versioned HTML ref: '+asset);
   assert.equal(sv,hv,'service worker version mismatch: '+asset);
@@ -58,10 +62,10 @@ for(const m of html.matchAll(/(?:src|href)="\.\/assets\/([^"?]+)(?:\?[^"]*)?"/g)
   assert.ok(fs.existsSync(p),'missing referenced asset: assets/'+m[1]);
 }
 
-assert.ok(chromeCss.includes('v0.45 — natural touch lifecycle for landing buttons'),'landing touch lifecycle CSS missing');
-assert.ok(chromeCss.includes('v0.46 — simplified second-page search hierarchy'),'simplified search CSS missing');
-assert.ok(chromeCss.includes('v0.47 — restore drag distance UX + bottom manual-input drawer'),'v0.47 distance/drawer CSS missing');
-assert.ok(chromeCss.includes('background-image:url("./assets/tq-cover-main-v044.webp")'),'clean cover asset must be used');
+assert.ok(landingCss.includes('Landing press lifecycle'),'landing touch lifecycle CSS missing');
+assert.ok(searchCss.includes('Search page hierarchy'),'simplified search CSS missing');
+assert.ok(searchCss.includes('Distance range and manual-input drawer'),'distance/drawer CSS missing');
+assert.ok(landingCss.includes('background-image:url("./assets/tq-cover-main-v044.webp")'),'clean cover asset must be used');
 assert.ok(!chromeCss.includes('opacity:.001!important'),'transparent image-button hit areas must be removed');
 assert.ok(!chromeJs.includes('function bindLandingFallback'),'legacy landing coordinate fallback must be removed');
 assert.ok(chromeJs.includes("probe.src='./assets/tq-cover-main-v044.webp'"),'landing preload must use v0.43 cover');
@@ -123,4 +127,4 @@ assert.ok(!app.includes("const openAdvanced=$('#openAdvancedSearch')"),'event im
 assert.ok(resultsSource.includes('function renderCourses('),'course result rendering module missing');
 assert.ok(searchControllerSource.includes('function sortRecommendations('),'search controller sorting missing');
 assert.ok(chromeCss.includes('body[data-trip-step="2"]:not(.tq-advanced-open) .wizard'),'simple search must hide advanced wizard at step two');
-console.log('TRIP QUEST v0.53 store/service modular smoke tests passed');
+console.log('TRIP QUEST v0.54 style-system UI/runtime smoke tests passed');

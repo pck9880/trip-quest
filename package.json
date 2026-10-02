@@ -1,9 +1,9 @@
 {
   "name": "trip-quest",
-  "version": "0.53.0",
+  "version": "0.54.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/ai-smoke.mjs && node tests/ui-smoke.mjs"
+    "test": "node tests/ai-smoke.mjs && node tests/ui-smoke.mjs && node tests/style-smoke.mjs"
   }
 }

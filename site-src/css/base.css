@@ -79,7 +79,7 @@ button,input,textarea{font:inherit}button{color:inherit}.app-shell{width:min(132
 @media(max-width:680px){.ai-search-status{font-size:10px;min-height:38px}.app-version-footer{margin-bottom:120px}}
 
 
-/* v0.12 main app cover + compact local courses */
+/* Main app shell and compact local courses */
 body.landing-open{overflow:hidden}
 .main-landing{position:fixed;inset:0;z-index:500;display:grid;place-items:center;background:#070b10;overflow:hidden;transition:opacity .25s ease,transform .25s ease}
 .main-landing[hidden]{display:none}
@@ -110,11 +110,11 @@ body.landing-open{overflow:hidden}
   .main-locate-btn{min-height:60px}
 }
 
-/* v0.13 AI search simplification */
+/* AI search composition */
 .ai-composer{margin-bottom:0}
 
 
-/* v0.14 AI-first search, progress gauge, collapsed manual selection */
+/* AI-first search flow */
 .ai-progress{margin-top:10px;padding:12px;border:1px solid #40542c;border-radius:13px;background:#0e1710}
 .ai-progress[hidden]{display:none}
 .ai-progress-top{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#dfffb0;font-size:10px;font-weight:800}
@@ -136,7 +136,7 @@ body.landing-open{overflow:hidden}
 }
 
 
-/* v0.19 dual distance slider + result sorting */
+/* Dual distance slider and result sorting */
 .ai-distance-control{margin-top:12px;padding:14px 15px;border:1px solid var(--line);border-radius:16px;background:#0d141b}
 .ai-distance-head{display:flex;align-items:end;justify-content:space-between;gap:12px}
 .ai-distance-head span,.ai-distance-head strong{display:block}.ai-distance-head span{font-size:9px;color:var(--muted);font-weight:750}.ai-distance-head strong{margin-top:4px;font-size:18px}.ai-distance-head strong b{font-size:24px;color:var(--accent)}.ai-distance-head small{font-size:9px;color:#9ba7b2}
@@ -153,16 +153,16 @@ body.landing-open{overflow:hidden}
 .distance-labels{display:flex;justify-content:space-between;color:#78848f;font:700 8px ui-monospace,monospace;margin-top:-1px}.ai-distance-control>p{margin:8px 0 0;color:#687581;font-size:9px;line-height:1.5}
 .result-toolbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}.result-sort{display:flex;gap:5px;padding:4px;border:1px solid var(--line);border-radius:12px;background:#0c131a}.result-sort button{min-height:31px;border:0;border-radius:8px;background:transparent;color:#87939e;padding:0 10px;font-size:9px;font-weight:800;cursor:pointer}.result-sort button.active{background:var(--accent);color:var(--accent-ink)}
 @media(max-width:680px){.ai-distance-control{padding:12px}.ai-distance-head{align-items:center}.ai-distance-head strong b{font-size:22px}.result-toolbar-actions{display:grid;grid-template-columns:1fr}.result-sort{width:100%;display:grid;grid-template-columns:repeat(3,1fr)}.result-sort button{min-height:38px}.result-toolbar-actions #editConditionsBtn{width:100%}}
-/* v0.17 similar-distance fallback */
+/* Similar-distance fallback */
 .no-match-actions{align-items:center}
 .no-match-actions .btn[data-no-match="similar"]{min-width:230px}
 @media(max-width:680px){.no-match-actions .btn[data-no-match="similar"]{width:100%;min-width:0}}
 
-/* v0.19 route accuracy note */
+/* Route accuracy messaging */
 .course-rule{line-height:1.45}
 
 
-/* v0.20 local A/B course map */
+/* Local A/B course map */
 .course-map-place-pin{position:relative;width:42px;height:42px;border-radius:15px 15px 18px 18px;display:grid;place-items:center;background:#f7f9fb;color:#0a0d10;border:2px solid #05070a;box-shadow:0 0 0 2px rgba(255,255,255,.16),0 6px 18px #000b;font-style:normal}
 .course-map-place-pin:after{content:"";position:absolute;left:50%;bottom:-6px;width:12px;height:12px;background:#f7f9fb;border-right:2px solid #05070a;border-bottom:2px solid #05070a;transform:translateX(-50%) rotate(45deg);z-index:-1}
 .course-map-place-pin .pin-location{position:absolute;top:3px;left:5px;font-size:9px;color:#5b6570}
