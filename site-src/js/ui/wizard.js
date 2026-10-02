@@ -21,11 +21,12 @@ export function createWizardUI(state){
   function syncDistanceUI(){
     const r=normalizedDistanceRange({minKm:state.minKm,targetKm:state.targetKm});
     state.minKm=r.min;state.targetKm=r.max;
-    setText('#distanceMinValue',r.min);setText('#distanceMaxValue',r.max);
-    setText('#distanceHint',`내 위치 기준 ${r.min}~${r.max}km`);
-    const minRange=$('#distanceMinRange'),maxRange=$('#distanceMaxRange'),fill=$('#distanceRangeFill');
-    if(minRange)minRange.value=r.min;if(maxRange)maxRange.value=r.max;
-    if(fill){fill.style.left=(r.min/400*100)+'%';fill.style.right=(100-r.max/400*100)+'%'}
+    const single=$('#searchDistanceRange');
+    if(single&&state.searchMode==='travel'){
+      single.min='10';single.max='400';single.step='10';single.value=String(Math.max(10,r.max));
+      setText('#searchDistanceValue',Math.max(10,r.max)+'km');
+      setText('#searchDistanceHint','출발지 기준 최대 '+Math.max(10,r.max)+'km');
+    }
   }
   
   function setDistanceBoundary(which,value,haptic=true){
