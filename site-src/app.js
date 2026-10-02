@@ -859,7 +859,7 @@ async function setOrigin(o){state.origin=o;setText('#originLabel',`${o.name||'�
 async function refreshLive(){if(!state.origin)return;try{const b=await api(`/api/bootstrap?lat=${state.origin.lat}&lng=${state.origin.lng}`);const w=b.weather.current;if(w.source==='fallback'){setText('#weatherNow','날씨 확인 필요');setText('#weatherMeta','날씨 API 연결 대기')}else{setText('#weatherNow',`${w.condition} ${Math.round(w.temperature_2m)}°`);setText('#weatherMeta',`체감 ${Math.round(w.apparent_temperature)}° · 바람 ${Math.round(w.wind_speed_10m)}km/h`)}setText('#trafficNow',b.traffic.label);setText('#trafficMeta',b.traffic.source);setText('#updatedAt',new Date(b.updatedAt).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})+' 갱신')}catch{setText('#weatherNow','업데이트 실패');setText('#trafficNow','업데이트 실패')}}
 
 function setStep(n){
-  n=Math.max(1,Math.min(5,n));state.step=n;document.body.dataset.tripStep=String(n);if(n!==2)document.body.classList.remove('tq-advanced-open');all('.step-view').forEach(x=>x.classList.toggle('active',Number(x.dataset.stepView)===n));
+  n=Math.max(1,Math.min(5,n));state.step=n;document.body.dataset.tripStep=String(n);if(n!==2){document.body.classList.remove('tq-advanced-open');const bar=$('#openAdvancedSearch');if(bar){bar.classList.remove('open');bar.setAttribute('aria-expanded','false')}}all('.step-view').forEach(x=>x.classList.toggle('active',Number(x.dataset.stepView)===n));
   all('.progress-step').forEach(x=>{const s=Number(x.dataset.step);x.classList.toggle('active',s===n);x.classList.toggle('done',s<n)});
   const m=stepMeta[n];setText('#stepEyebrow',m[0]);setText('#stepTitle',m[1]);setText('#stepDescription',m[2]);
   $('#backBtn').disabled=n===1;let label='다음 →',disabled=false,hint='';
