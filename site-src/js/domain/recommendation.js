@@ -49,7 +49,7 @@ export function normalizedDistanceRange(body={}){
   let max=Math.max(0,Math.min(450,Math.round(Number(body.targetKm??100)/10)*10));
   if(max<min)[min,max]=[max,min];
   if(max-min<10){
-    if(max<400)max=Math.min(450,min+10);
+    if(max<450)max=Math.min(450,min+10);
     else min=Math.max(0,max-10);
   }
   return {min,max};
