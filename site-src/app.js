@@ -848,7 +848,7 @@ async function startFromMainLocation(){
 }
 async function loadConfig(){
   state.config=await api('/api/config');$('#gasPrice').value=state.config.defaultGasPrice;const p=state.config.providers;
-  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.45 · 자연스러운 터치 상태 · 인터랙션 UI');
+  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.46 · 간결한 AI 검색 · 빠른 조건 선택');
 }
 async function useLocation(goNext=false){
   if(!navigator.geolocation){toast('브라우저 위치 기능을 사용할 수 없습니다. 출발지를 검색해주세요.');return}
@@ -859,7 +859,7 @@ async function setOrigin(o){state.origin=o;setText('#originLabel',`${o.name||'�
 async function refreshLive(){if(!state.origin)return;try{const b=await api(`/api/bootstrap?lat=${state.origin.lat}&lng=${state.origin.lng}`);const w=b.weather.current;if(w.source==='fallback'){setText('#weatherNow','날씨 확인 필요');setText('#weatherMeta','날씨 API 연결 대기')}else{setText('#weatherNow',`${w.condition} ${Math.round(w.temperature_2m)}°`);setText('#weatherMeta',`체감 ${Math.round(w.apparent_temperature)}° · 바람 ${Math.round(w.wind_speed_10m)}km/h`)}setText('#trafficNow',b.traffic.label);setText('#trafficMeta',b.traffic.source);setText('#updatedAt',new Date(b.updatedAt).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})+' 갱신')}catch{setText('#weatherNow','업데이트 실패');setText('#trafficNow','업데이트 실패')}}
 
 function setStep(n){
-  n=Math.max(1,Math.min(5,n));state.step=n;all('.step-view').forEach(x=>x.classList.toggle('active',Number(x.dataset.stepView)===n));
+  n=Math.max(1,Math.min(5,n));state.step=n;document.body.dataset.tripStep=String(n);if(n!==2)document.body.classList.remove('tq-advanced-open');all('.step-view').forEach(x=>x.classList.toggle('active',Number(x.dataset.stepView)===n));
   all('.progress-step').forEach(x=>{const s=Number(x.dataset.step);x.classList.toggle('active',s===n);x.classList.toggle('done',s<n)});
   const m=stepMeta[n];setText('#stepEyebrow',m[0]);setText('#stepTitle',m[1]);setText('#stepDescription',m[2]);
   $('#backBtn').disabled=n===1;let label='다음 →',disabled=false,hint='';
@@ -868,9 +868,9 @@ function setStep(n){
   if(n===3){label='추천지 찾기 →';hint='날씨·교통·거리 조건을 함께 계산합니다.'}
   if(n===4){label=state.selected?'선택 여행지 코스 보기 →':'추천지에서 하나를 선택하세요';disabled=!state.selected;hint=state.selected?`${state.selected.name} 선택됨`:'각 카드의 “이 여행지 선택” 버튼을 누르세요.'}
   if(n===5){label='새 여행 시작';hint=state.selectedCourse?`${state.selectedCourse}코스를 선택했습니다.`:'A 도보 근거리 / B 드라이브 중 선택할 수 있습니다.'}
-  $('#nextBtn').textContent=label;$('#nextBtn').disabled=disabled;setText('#actionHint',hint);window.scrollTo({top:Math.max(0,$('.wizard').offsetTop-18),behavior:'smooth'});if(n===4&&state.map)setTimeout(()=>state.map.invalidateSize(),120)
+  $('#nextBtn').textContent=label;$('#nextBtn').disabled=disabled;setText('#actionHint',hint);const simpleSearch=n===2&&!document.body.classList.contains('tq-advanced-open');const target=simpleSearch?$('.ai-hero'):$('.wizard');if(target)window.scrollTo({top:Math.max(0,target.offsetTop-18),behavior:'smooth'});if(n===4&&state.map)setTimeout(()=>state.map.invalidateSize(),120)
 }
-function resetTrip(){state.minKm=0;state.targetKm=100;state.resultSort='recommend';state.activeDistanceBand=null;state.lastSearchMode='ai';state.lastAIMessage='';state.direction='전체';state.categories=['관광지'];state.recommendations=[];state.selected=null;state.selectedCourse=null;state.selectedCourseData=null;state.sharedPending=false;syncDistanceUI();all('#directionChoices button').forEach(b=>b.classList.toggle('selected',b.dataset.value==='전체'));syncCategoriesUI();$('#ranking').innerHTML='조건을 설정한 뒤 추천지를 찾아보세요.';$('#ranking').className='ranking empty-state';initTimes();setStep(1);showMainLanding();toast('새 여행을 시작합니다.')}
+function resetTrip(){document.body.classList.remove('tq-advanced-open');const advanced=$('#advancedDistanceControl');if(advanced)advanced.hidden=true;const distanceToggle=$('#distanceAdvancedToggle');if(distanceToggle){distanceToggle.setAttribute('aria-expanded','false');distanceToggle.textContent='상세 설정'}state.minKm=0;state.targetKm=100;state.resultSort='recommend';state.activeDistanceBand=null;state.lastSearchMode='ai';state.lastAIMessage='';state.direction='전체';state.categories=['관광지'];state.recommendations=[];state.selected=null;state.selectedCourse=null;state.selectedCourseData=null;state.sharedPending=false;syncDistanceUI();all('#directionChoices button').forEach(b=>b.classList.toggle('selected',b.dataset.value==='전체'));syncCategoriesUI();$('#ranking').innerHTML='조건을 설정한 뒤 추천지를 찾아보세요.';$('#ranking').className='ranking empty-state';initTimes();setStep(1);showMainLanding();toast('새 여행을 시작합니다.')}
 
 let lastDistanceHaptic={min:state.minKm,max:state.targetKm};
 function syncDistanceUI(){
@@ -881,6 +881,7 @@ function syncDistanceUI(){
   const minRange=$('#distanceMinRange'),maxRange=$('#distanceMaxRange'),fill=$('#distanceRangeFill');
   if(minRange)minRange.value=r.min;if(maxRange)maxRange.value=r.max;
   if(fill){fill.style.left=(r.min/400*100)+'%';fill.style.right=(100-r.max/400*100)+'%'}
+  all('#quickDistanceChoices button').forEach(b=>b.classList.toggle('selected',r.min===0&&Number(b.dataset.distanceMax)===r.max));
 }
 function setDistanceBoundary(which,value,haptic=true){
   const v=Math.max(0,Math.min(400,Math.round(Number(value)/10)*10));
@@ -1100,7 +1101,7 @@ async function askAI(message,options={}){
     btn.textContent=count?`추천 완료 ✓ · ${count}곳`:'분석 완료 ✓';
     if(status){status.className='ai-search-status done';status.textContent=count?`완료 · AI 분석을 반영한 추천지 ${count}곳입니다.`:'완료 · 입력 내용을 분석했습니다.'}
     finishGauge(true);
-    setTimeout(()=>{if(!state.aiBusy){btn.classList.remove('ai-done');btn.textContent='AI로 찾기'}},1800);
+    setTimeout(()=>{if(!state.aiBusy){btn.classList.remove('ai-done');btn.textContent='여행지 찾기'}},1800);
   }catch(e){
     btn.classList.add('ai-error');btn.textContent='검색 실패 · 다시 시도';
     if(status){status.className='ai-search-status error';status.textContent=e.message||'검색 중 문제가 생겼습니다.'}
@@ -1129,6 +1130,32 @@ async function searchSimilarDistance(){
 function handleAIChoice(c){if(!c)return;if(c.action==='search'){if(c.patch)applyPatch(c.patch);recommend(c.focusQuery?{focusQuery:c.focusQuery}:{})}else if(c.action==='goto'){setStep(c.step||2)}else if(c.action==='ai_prompt'){const m=c.message||'';$('#aiInput').value=m;askAI(m)}else if(c.action==='focus'){$('#aiInput').focus()}else if(c.action==='reset'){resetTrip()}}
 
 function bindActions(){
+  const quickDistance=$('#quickDistanceChoices');
+  if(quickDistance)quickDistance.onclick=e=>{
+    const b=e.target.closest('button[data-distance-max]');if(!b)return;
+    state.minKm=0;state.targetKm=Number(b.dataset.distanceMax)||100;state.activeDistanceBand=null;syncDistanceUI();
+    try{navigator.vibrate?.(6)}catch{}
+  };
+  const quickThemes=$('#quickThemeChoices'),aiInput=$('#aiInput');
+  if(quickThemes)quickThemes.onclick=e=>{
+    const b=e.target.closest('button[data-theme-prompt]');if(!b)return;
+    quickThemes.querySelectorAll('button').forEach(x=>x.classList.toggle('selected',x===b));
+    const prompt=b.dataset.themePrompt||'';
+    if(aiInput){const previous=aiInput.dataset.quickPrompt||'';if(!aiInput.value.trim()||aiInput.value.trim()===previous)aiInput.value=prompt;aiInput.dataset.quickPrompt=prompt;aiInput.focus({preventScroll:true})}
+    try{navigator.vibrate?.(5)}catch{}
+  };
+  const distanceAdvanced=$('#distanceAdvancedToggle');
+  if(distanceAdvanced)distanceAdvanced.onclick=()=>{
+    const panel=$('#advancedDistanceControl');if(!panel)return;
+    panel.hidden=!panel.hidden;distanceAdvanced.setAttribute('aria-expanded',String(!panel.hidden));distanceAdvanced.textContent=panel.hidden?'상세 설정':'상세 닫기';
+    if(!panel.hidden)setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+  };
+  const openAdvanced=$('#openAdvancedSearch');
+  if(openAdvanced)openAdvanced.onclick=()=>{
+    document.body.classList.add('tq-advanced-open');setStep(2);openAdvanced.setAttribute('aria-expanded','true');
+    const box=$('#manualOptions'),toggle=$('#manualToggle');if(box)box.hidden=false;if(toggle){toggle.setAttribute('aria-expanded','true');toggle.textContent='직접 선택 접기 ↑'}
+    setTimeout(()=>$('.wizard')?.scrollIntoView({behavior:'smooth',block:'start'}),80);
+  };
   const mainLocate=$('#mainLocateBtn');if(mainLocate)mainLocate.onclick=startFromMainLocation;
   const mainManual=$('#mainManualBtn');if(mainManual)mainManual.onclick=()=>{hideMainLanding();setStep(1);setTimeout(()=>$('#originSearch')?.focus(),320)};
   const manualToggle=$('#manualToggle');if(manualToggle)manualToggle.onclick=()=>{const box=$('#manualOptions');if(!box)return;box.hidden=!box.hidden;manualToggle.setAttribute('aria-expanded',String(!box.hidden));manualToggle.textContent=box.hidden?'직접 선택으로 찾기 ↓':'직접 선택 접기 ↑';if(!box.hidden)setTimeout(()=>box.scrollIntoView({behavior:'smooth',block:'nearest'}),80)};
@@ -1136,7 +1163,7 @@ function bindActions(){
   $('#locateBtn').onclick=()=>useLocation(false);$('#searchOriginBtn').onclick=searchOrigin;$('#originSearch').addEventListener('keydown',e=>{if(e.key==='Enter')searchOrigin()});
   $('#departTime').addEventListener('change',updateSchedulePreview);$('#returnTime').addEventListener('change',updateSchedulePreview);$('#resetBtn').onclick=resetTrip;$('.brand').onclick=e=>{e.preventDefault();resetTrip()};
   $('#backBtn').onclick=()=>setStep(state.step-1);$('#nextBtn').onclick=async()=>{if(state.step===1){if(state.origin)setStep(2);else await useLocation(true)}else if(state.step===2)setStep(3);else if(state.step===3)await recommend();else if(state.step===4){if(state.selected)setStep(5)}else resetTrip()};
-  all('.progress-step').forEach(b=>b.onclick=()=>{const n=Number(b.dataset.step);if(n<=state.step||n<=3)setStep(n)});$('#editConditionsBtn').onclick=()=>setStep(2);$('#changePlaceBtn').onclick=()=>setStep(4);
+  all('.progress-step').forEach(b=>b.onclick=()=>{const n=Number(b.dataset.step);if(n<=state.step||n<=3)setStep(n)});$('#editConditionsBtn').onclick=()=>{document.body.classList.add('tq-advanced-open');setStep(2);const box=$('#manualOptions'),toggle=$('#manualToggle');if(box)box.hidden=false;if(toggle){toggle.setAttribute('aria-expanded','true');toggle.textContent='직접 선택 접기 ↑'}};$('#changePlaceBtn').onclick=()=>setStep(4);
   $('#noMatchActions').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.noMatch==='similar')searchSimilarDistance();else if(b.dataset.noMatch==='refine'){document.querySelector('.ai-hero')?.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>$('#aiInput')?.focus(),180)}};
   $('#aiSend').onclick=()=>askAI($('#aiInput').value);$('#aiInput').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')askAI($('#aiInput').value)});
 }
