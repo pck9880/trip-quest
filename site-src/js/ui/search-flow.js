@@ -13,6 +13,7 @@ export function initSearchFlow({state,travelService,setOrigin,hideMainLanding,sh
     if(launch==='gps'){
       const origin=await explorer.useGpsOrigin();
       if(origin)explorer.focusSearch();
+      else explorer.openStartPicker();
     }else{
       explorer.openStartPicker();
     }
