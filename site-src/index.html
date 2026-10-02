@@ -111,19 +111,25 @@
           <p>최대 2개까지 선택할 수 있습니다.</p>
         </section>
 
-        <div id="searchDistanceControl" class="tq-search-distance">
-          <div class="tq-search-distance-head">
-            <div><span>검색 거리</span><strong id="searchDistanceValue">100km</strong></div>
-            <small id="searchDistanceHint">내 위치 기준 최대 100km</small>
+        <div id="advancedDistanceControl" class="ai-distance-control tq-distance-primary">
+          <div class="ai-distance-head">
+            <div><span id="distanceTitle">검색 거리</span><strong><b id="distanceMinValue">0</b> ~ <b id="distanceMaxValue">100</b> km</strong></div>
+            <small id="distanceHint">50km 단위로 스냅 · 0~100km</small>
           </div>
-          <input id="searchDistanceRange" type="range" min="10" max="400" step="10" value="100" aria-label="검색 거리" />
-          <div id="searchDistanceScale" class="tq-search-distance-scale"><span>10km</span><span>100</span><span>200</span><span>400km</span></div>
+          <div id="distanceSlider" class="dual-distance-range">
+            <div class="dual-distance-track"><i id="distanceRangeFill"></i></div>
+            <input id="distanceMinRange" class="ai-distance-range min" type="range" min="0" max="400" step="50" value="0" aria-label="최소 검색 거리" />
+            <input id="distanceMaxRange" class="ai-distance-range max" type="range" min="0" max="400" step="50" value="100" aria-label="최대 검색 거리" />
+          </div>
+          <div id="distanceRuler" class="distance-ruler" aria-hidden="true"></div>
+          <div id="distanceLabels" class="distance-labels"><span>0</span><span>100</span><span>200</span><span>300</span><span>400km</span></div>
+          <p id="distanceHelp">양쪽 핸들을 드래그하면 50km마다 자석처럼 맞춰집니다.</p>
         </div>
         <div id="placeSearchResults" class="tq-place-results" hidden></div>
 
         <div id="aiSearchStatus" class="ai-search-status" role="status" aria-live="polite" hidden></div>
         <div id="aiProgress" class="ai-progress" hidden><div class="ai-progress-top"><span>스마트 추천 검색</span><b id="aiProgressText">0%</b></div><div class="ai-progress-track"><i id="aiProgressFill"></i></div><small id="aiEta">예상 1~3초</small></div>
-        <div id="aiConversation" class="ai-conversation" hidden><div class="ai-answer-row"><span class="ai-avatar">AI</span><div><div class="ai-mode" id="aiMode">TRIP QUEST 추천</div><p id="aiReply"></p><div id="aiAnalysisTags" class="ai-analysis-tags" hidden></div><div id="aiChoices" class="ai-choices"></div></div></div></div>
+        <div id="aiConversation" class="ai-conversation" hidden><div class="ai-answer-row"><span class="ai-avatar">TQ</span><div><div class="ai-mode" id="aiMode">SEARCH ANALYSIS</div><p id="aiReply"></p><div id="aiAnalysisTags" class="ai-analysis-tags" hidden></div><div id="aiChoices" class="ai-choices"></div></div></div></div>
 
       </section>
             <nav class="progress panel" id="progress" aria-label="여행 계획 단계"><button class="progress-step active" data-step="1"><b>1</b><span>출발지</span></button><span></span><button class="progress-step" data-step="2"><b>2</b><span>취향</span></button><span></span><button class="progress-step" data-step="3"><b>3</b><span>시간</span></button><span></span><button class="progress-step" data-step="4"><b>4</b><span>추천</span></button><span></span><button class="progress-step" data-step="5"><b>5</b><span>코스</span></button></nav>
