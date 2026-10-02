@@ -46,7 +46,8 @@ export function createResultsUI(state){
   function renderCourses(j){
     const w=j.weather;
     const courses=Array.isArray(j.courses)?j.courses:[];
-    if(w.source==='fallback')setText('#courseWeather','날씨 API 연결이 되면 방문 예정시간 기준으로 코스를 다시 판단합니다.');
+    if(w.source==='keep')setText('#courseWeather','KEEP에 저장된 코스입니다. 현재 날씨와 이동 조건은 새 검색 시 다시 계산됩니다.');
+    else if(w.source==='fallback')setText('#courseWeather','날씨 API 연결이 되면 방문 예정시간 기준으로 코스를 다시 판단합니다.');
     else setText('#courseWeather',`예상 ${w.condition} · ${Math.round(w.temperature_2m)}°C · 강수 ${w.precipitation_probability||0}% · 바람 ${Math.round(w.wind_speed_10m)}km/h · Open-Meteo`);
     $('#courseDetailPanel').hidden=true;
     $('#courseList').className='course-list';
@@ -94,5 +95,29 @@ export function createResultsUI(state){
       setTimeout(()=>document.querySelector('#courseDetailPanel')?.scrollIntoView({behavior:'smooth',block:'start'}),80);
     };
   }
-  return {setSelectPlaceHandler,renderRanking,renderSummary,renderCourses};
+  function renderSavedCourse(item){
+    const destination=item?.destination||{};
+    const course=item?.course;
+    if(!course)return false;
+
+    state.selected={...destination};
+    state.selectedCourse=course.id||'KEEP';
+    state.selectedCourseData=course;
+
+    setText('#selectedPlaceName',destination.name||'저장한 여행지');
+    setText('#selectedPlaceMeta',[destination.category||'여행지',destination.address||''].filter(Boolean).join(' · '));
+
+    const route=course.route||{},cost=course.estimatedCost||{};
+    const destinationDistance=Number(destination.distanceKm)||Number(destination.routePreview?.distanceKm)||0;
+    const destinationTime=Number(destination.routePreview?.timeMin)||0;
+    $('#tripSummary').className='summary-box';
+    $('#tripSummary').innerHTML=`<div class="metric-grid"><div class="metric"><span>저장 코스</span><strong>${esc(course.id||'KEEP')}코스</strong></div><div class="metric"><span>코스 거리</span><strong>${Number(route.distanceKm)>0.05?fmtKm(route.distanceKm):'단일 장소'}</strong></div><div class="metric"><span>코스 소요</span><strong>${Number(route.timeMin)>0.5?fmtMin(route.timeMin):'체류형'}</strong></div><div class="metric"><span>코스 예상 비용</span><strong>${fmtWon(cost.total||0)}</strong></div>${destinationDistance?`<div class="metric"><span>저장 당시 목적지 거리</span><strong>${fmtKm(destinationDistance)}</strong></div>`:''}${destinationTime?`<div class="metric"><span>저장 당시 편도</span><strong>${fmtMin(destinationTime)}</strong></div>`:''}</div><div class="source-note">KEEP에서 불러온 저장 코스 · 출발지·시간·차량 조건이 달라졌다면 새 검색으로 다시 계산하세요.</div>`;
+
+    renderCourses({weather:{source:'keep'},courses:[course]});
+    const choose=$('#courseList .choose-course');
+    if(choose)choose.click();
+    return true;
+  }
+
+  return {setSelectPlaceHandler,renderRanking,renderSummary,renderCourses,renderSavedCourse};
 }

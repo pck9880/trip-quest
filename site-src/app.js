@@ -23,7 +23,7 @@ const travelService=createTravelService();
 const wizardUI=createWizardUI(state);
 const {setStep,syncDistanceUI,setDistanceBoundary,syncCategoriesUI,syncDirectionUI,validateUIRuntime,bindChoices}=wizardUI;
 const searchController=createSearchController({state,travelService,setStep});
-const {sortRecommendations,currentPayload,recommend,selectPlace,renderRanking}=searchController;
+const {sortRecommendations,currentPayload,recommend,selectPlace,renderRanking,presentRecommendations,openKeptCourse}=searchController;
 const originController=createOriginController({state,travelService,setStep,recommend});
 const {startFromMainLocation,useLocation,setOrigin,refreshLive,searchOrigin}=originController;
 
@@ -80,7 +80,7 @@ function initPWA(){
 
 async function loadConfig(){
   state.config=await travelService.getConfig();$('#gasPrice').value=state.config.defaultGasPrice;
-  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v1.1.1 · AI/KEEP 안정화');
+  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v1.1.2 · AI 경로/코스 바로가기');
 }
 
 
@@ -153,7 +153,7 @@ function showAI(result){
   $('#aiChoices').onclick=e=>{const b=e.target.closest('button');if(!b)return;handleAIChoice(choices[Number(b.dataset.i)])};
   if(result.patch)applyPatch(result.patch);
   if(Array.isArray(result.items)){
-    state.recommendations=result.items;state.selected=null;sortRecommendations('recommend',false);renderRanking();drawMap(state.origin,state.recommendations);
+    presentRecommendations(result.items);
     setText('#resultCaption',`AI 요청 반영 · ${state.minKm}~${state.targetKm}km`);
     setStep(4);
     setTimeout(()=>document.querySelector('#step4')?.scrollIntoView({behavior:'smooth',block:'start'}),180);
@@ -287,5 +287,5 @@ if(typeof window!=='undefined'){
     if(state.step===4)showSafeRuntimeError();
   });
 }
-async function boot(){initTimes();initMap();initKeepPanel();validateUIRuntime();bindChoices();bindActions();initPWA();syncDistanceUI();syncDirectionUI();syncCategoriesUI();setStep(1);showMainLanding();try{await loadConfig()}catch{setText('#providerNow','설정 확인 필요')}setInterval(refreshLive,10*60*1000)}
+async function boot(){initTimes();initMap();initKeepPanel({onOpenCourse:openKeptCourse});validateUIRuntime();bindChoices();bindActions();initPWA();syncDistanceUI();syncDirectionUI();syncCategoriesUI();setStep(1);showMainLanding();try{await loadConfig()}catch{setText('#providerNow','설정 확인 필요')}setInterval(refreshLive,10*60*1000)}
 if(typeof document!=='undefined')boot();

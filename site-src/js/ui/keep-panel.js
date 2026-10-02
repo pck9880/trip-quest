@@ -9,7 +9,6 @@ function savedDate(value){
 }
 
 function modeLabel(mode){return mode==='drive'?'차량':'도보'}
-function naverMapUrl(name){return 'https://map.naver.com/p/search/'+encodeURIComponent(name||'여행지')}
 function routeDistanceLabel(course){
   const distance=Number(course?.route?.distanceKm)||0;
   const stops=Array.isArray(course?.stops)?course.stops:[];
@@ -21,7 +20,7 @@ function routeTimeLabel(course){
   return time>0.5?fmtMin(time):(stops.length<=1?'체류형':'현지 이동');
 }
 
-export function initKeepPanel(){
+export function initKeepPanel({onOpenCourse}={}){
   if(typeof document==='undefined'||$('#tqKeepOverlay'))return;
 
   const overlay=document.createElement('div');
@@ -135,7 +134,7 @@ export function initKeepPanel(){
         ${c.localRule?`<div class="tq-keep-detail-rule">${esc(c.localRule)}</div>`:''}
         <div class="tq-keep-detail-meta">저장 ${esc(savedDate(item.savedAt))}</div>
         <div class="tq-keep-detail-actions">
-          <a class="tq-keep-detail-go" href="${esc(naverMapUrl(destination.name||stops[0]?.name||'여행지'))}" target="_blank" rel="noopener">지도 바로가기 →</a>
+          <button class="tq-keep-detail-go" type="button" data-open-course-id="${esc(item.id)}">코스 바로가기 →</button>
           <button class="tq-keep-detail-remove" type="button" data-remove-id="${esc(item.id)}">★ KEEP 해제</button>
         </div>
       </div>`;
@@ -150,6 +149,16 @@ export function initKeepPanel(){
     if(removeButton){
       const item=removeButton.closest('.tq-keep-item');
       if(item)removeKeep(item.dataset.keepId,true);
+      return;
+    }
+
+    const openCourse=e.target.closest('[data-open-course-id]');
+    if(openCourse){
+      const id=openCourse.dataset.openCourseId;
+      const item=keepService.get(id);
+      close();
+      if(typeof onOpenCourse==='function')onOpenCourse(id,item);
+      else window.dispatchEvent(new CustomEvent('tripquest:open-kept-course',{detail:{id,item}}));
       return;
     }
 
