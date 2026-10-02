@@ -85,50 +85,6 @@ jobs:
               print('Opinet refresh fallback:',e)
           Path('_site/fuel-prices.json').write_text(json.dumps(fuel,ensure_ascii=False),encoding='utf-8')
 
-          # Lightweight runtime patch: vehicle class + powertrain + efficiency, and automatic fuel price.
-          chrome=Path('_site/app-chrome.js')
-          js=chrome.read_text(encoding='utf-8')
-          inject=r'''
-  const TQ_VEHICLES={
-    compact:{label:'경차',gasoline:13.5,diesel:15.0,lpg:10.5},
-    small:{label:'소형차',gasoline:13.0,diesel:15.5,lpg:10.0},
-    midsize:{label:'중형차',gasoline:11.5,diesel:14.0,lpg:9.0},
-    suv:{label:'SUV',gasoline:10.0,diesel:12.5,lpg:8.0},
-    van:{label:'승합차',gasoline:8.5,diesel:10.5,lpg:7.0},
-    ev:{label:'전기차',electric:5.0}
-  };
-  const TQ_ENERGY_FALLBACK={gasoline:1858,diesel:1844,lpg:1139,electric:347};
-  function tqVehicleSettings(){try{return {...{vehicle:'compact',fuel:'gasoline',efficiency:13.5,custom:false},...JSON.parse(localStorage.getItem('tqVehicleV1')||'{}')}}catch{return {vehicle:'compact',fuel:'gasoline',efficiency:13.5,custom:false}}}
-  function tqSaveVehicle(v){localStorage.setItem('tqVehicleV1',JSON.stringify(v))}
-  async function tqRefreshFuelPrice(){
-    let data=null;try{data=await fetch('./fuel-prices.json?d='+new Date().toISOString().slice(0,10),{cache:'no-store'}).then(r=>r.ok?r.json():null)}catch{}
-    const s=tqVehicleSettings(), key=s.fuel==='electric'?'electric':s.fuel;
-    const price=Number(data?.[key]||TQ_ENERGY_FALLBACK[key]||1858);
-    const input=$('#gasPrice');if(input&&s.fuel!=='electric')input.value=Math.round(price);
-    window.__TQ_ENERGY__={...TQ_ENERGY_FALLBACK,...(data||{}),activePrice:price};
-    const note=$('#tqFuelAutoNote');if(note)note.textContent=`전국 평균 자동 · ${Math.round(price).toLocaleString('ko-KR')}${s.fuel==='electric'?'원/kWh':'원/L'} · ${data?.updatedAt||'최근 기준'}`;
-  }
-  function tqAddVehicleControls(){
-    const gas=$('#gasPrice');const card=gas?.closest('.field-card');if(!card||$('#tqVehicleType'))return;
-    const box=el('div','tq-vehicle-lite');
-    box.style.cssText='grid-column:1/-1;display:grid;gap:10px;padding:14px;border:1px solid rgba(255,255,255,.09);border-radius:14px;background:rgba(255,255,255,.025)';
-    box.innerHTML=`<strong style="font-size:13px">차량 · 비용 기준</strong><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><select id="tqVehicleType" class="tq-lite-select"><option value="compact">경차</option><option value="small">소형차</option><option value="midsize">중형차</option><option value="suv">SUV</option><option value="van">승합차</option><option value="ev">전기차</option></select><select id="tqFuelType" class="tq-lite-select"><option value="gasoline">휘발유</option><option value="diesel">경유</option><option value="lpg">LPG</option><option value="electric">전기</option></select></div><label style="display:grid;gap:5px;font-size:12px;color:#9aa4b2">적용 연비/전비 <span style="display:flex;align-items:center;gap:8px"><input id="tqEfficiency" type="number" min="3" max="30" step="0.1" style="min-width:0;flex:1"><b id="tqEfficiencyUnit">km/L</b></span></label><small id="tqFuelAutoNote" style="color:#8e99a8">전국 평균 유가 확인 중…</small>`;
-    card.parentElement.appendChild(box);
-    const s=tqVehicleSettings(),vt=$('#tqVehicleType'),ft=$('#tqFuelType'),ef=$('#tqEfficiency'),unit=$('#tqEfficiencyUnit');
-    vt.value=s.vehicle;ft.value=s.fuel;ef.value=s.efficiency;
-    const sync=(resetEff=false)=>{let v=vt.value,f=ft.value;if(v==='ev'){f='electric';ft.value='electric'}else if(f==='electric'){f='gasoline';ft.value='gasoline'}const avg=TQ_VEHICLES[v]?.[f]||TQ_VEHICLES[v]?.gasoline||11;if(resetEff)ef.value=avg;unit.textContent=f==='electric'?'km/kWh':'km/L';const n={vehicle:v,fuel:f,efficiency:Number(ef.value)||avg,custom:!resetEff};tqSaveVehicle(n);tqRefreshFuelPrice();enhanceTripSummaryToll()};
-    vt.onchange=()=>sync(true);ft.onchange=()=>sync(true);ef.onchange=()=>sync(false);sync(false);
-  }
-  function tqRepriceTripSummary(){
-    const summary=$('#tripSummary');if(!summary)return;const metrics=[...summary.querySelectorAll('.metric')];const find=l=>metrics.find(m=>m.querySelector('span')?.textContent.trim()===l);const dm=find('왕복 거리'),fm=find('기름값')||find('연료비')||find('충전비'),tm=find('교통비 합계'),toll=find('예상 통행료')||find('통행료');if(!dm||!fm)return;
-    const km=parseKm(dm.querySelector('strong')?.textContent),s=tqVehicleSettings(),price=Number(window.__TQ_ENERGY__?.activePrice||TQ_ENERGY_FALLBACK[s.fuel]||1858),eff=Math.max(1,Number(s.efficiency)||11),cost=Math.round(km/eff*price),tv=parseWon(toll?.querySelector('strong')?.textContent);fm.querySelector('span').textContent=s.fuel==='electric'?'충전비':'연료비';fm.querySelector('strong').textContent=fmtWon(cost);if(tm?.querySelector('strong'))tm.querySelector('strong').textContent=fmtWon(cost+tv);
-  }
-'''
-          js=js.replace("  function bootChrome(){", inject+"\n  function bootChrome(){")
-          js=js.replace("    runtimeHealthCheck();", "    runtimeHealthCheck();\n    tqAddVehicleControls();\n    tqRefreshFuelPrice().then(tqRepriceTripSummary);")
-          js=js.replace("requestAnimationFrame(()=>{queued=false;enhanceTripSummaryToll()});", "requestAnimationFrame(()=>{queued=false;enhanceTripSummaryToll();tqRepriceTripSummary()});")
-          js=js.replace("TRIP QUEST · v0.29", "TRIP QUEST · v0.30")
-          chrome.write_text(js,encoding='utf-8')
           PY
 
       - uses: actions/configure-pages@v5
