@@ -68,7 +68,22 @@ export function createProfileService(storage=defaultStorage(),randomBytes=defaul
     }
     return next;
   }
-  return {get:ensure,update,key:PROFILE_KEY};
+  function importData(data={}){
+    const current=ensure();
+    const next={
+      version:1,
+      nickname:String(data.nickname||'여행자').trim().slice(0,20)||'여행자',
+      temporaryId:String(data.temporaryId||current.temporaryId),
+      accountId:data.accountId||null,
+      createdAt:data.createdAt||current.createdAt||new Date().toISOString(),
+      updatedAt:new Date().toISOString()
+    };
+    write(next);
+    if(typeof window!=='undefined'&&typeof window.dispatchEvent==='function')window.dispatchEvent(new CustomEvent('tripquest:profile-change',{detail:{profile:next}}));
+    return next;
+  }
+  function clear(){try{storage.removeItem(PROFILE_KEY)}catch{}return ensure()}
+  return {get:ensure,update,importData,clear,exportData:()=>ensure(),key:PROFILE_KEY};
 }
 
 function openAvatarDb(){
@@ -94,12 +109,34 @@ async function avatarTransaction(mode,action){
   }finally{db.close()}
 }
 
-export async function saveProfileAvatar(file){
+export async function compressProfileAvatar(file,{size=512,quality=.84}={}){
   if(!file||!String(file.type||'').startsWith('image/'))throw new Error('이미지 파일을 선택해주세요.');
   if(Number(file.size)>12*1024*1024)throw new Error('프로필 이미지는 12MB 이하로 선택해주세요.');
-  await avatarTransaction('readwrite',store=>store.put(file,AVATAR_KEY));
+  if(typeof document==='undefined')return file;
+  let source=null,revoke='';
+  try{
+    if(typeof createImageBitmap==='function')source=await createImageBitmap(file);
+    else source=await new Promise((resolve,reject)=>{
+      const img=new Image();revoke=URL.createObjectURL(file);
+      img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('프로필 이미지를 읽지 못했습니다.'));img.src=revoke;
+    });
+    const width=Number(source.width||source.naturalWidth)||1,height=Number(source.height||source.naturalHeight)||1,side=Math.min(width,height);
+    const canvas=document.createElement('canvas');canvas.width=size;canvas.height=size;
+    const ctx=canvas.getContext('2d',{alpha:false});if(!ctx)throw new Error('프로필 이미지 처리에 실패했습니다.');
+    ctx.drawImage(source,(width-side)/2,(height-side)/2,side,side,0,0,size,size);
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',quality));
+    return blob||file;
+  }finally{
+    if(typeof source?.close==='function')source.close();
+    if(revoke)URL.revokeObjectURL(revoke);
+  }
+}
+
+export async function saveProfileAvatar(file){
+  const compressed=await compressProfileAvatar(file);
+  await avatarTransaction('readwrite',store=>store.put(compressed,AVATAR_KEY));
   if(typeof window!=='undefined')window.dispatchEvent(new CustomEvent('tripquest:profile-avatar-change'));
-  return true;
+  return compressed;
 }
 
 export async function getProfileAvatar(){

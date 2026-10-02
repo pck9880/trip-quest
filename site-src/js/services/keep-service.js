@@ -128,7 +128,9 @@ export function createKeepService(storage=defaultStorage()){
     return has(item?.id)?remove(item.id):save(item);
   }
 
-  return {list,count,has,get,save,remove,toggle,key:KEEP_KEY};
+  function importData(items=[]){const clean=(Array.isArray(items)?items:[]).filter(item=>item?.id&&item.type==='course');write(clean);notify({imported:true});return clean}
+  function clear(){write([]);notify({cleared:true});return []}
+  return {list,count,has,get,save,remove,toggle,importData,clear,exportData:list,key:KEEP_KEY};
 }
 
 export const keepService=createKeepService();
