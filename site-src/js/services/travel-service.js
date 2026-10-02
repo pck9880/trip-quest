@@ -2,7 +2,7 @@ import { activeVehicleProfile } from './vehicle-settings.js';
 import { estimateRoundTripToll } from '../domain/trip-cost.js';
 import { roadRoute } from './routing.js';
 import { clientWeather, selectWeatherAt } from './weather.js';
-import { localGeocode } from './geocoding.js';
+import { localGeocode, reverseGeocode as reverseLookup } from './geocoding.js';
 import { localRecommend } from '../domain/recommendation.js';
 import { refineRoadDistanceResults } from '../usecases/search-destinations.js';
 import { localAI } from '../domain/intent-parser.js';
@@ -25,8 +25,16 @@ export function createTravelService(){
     return {items:await localGeocode(query||'')};
   }
 
+  async function resolvePlace(query){
+    return {items:await localGeocode(query||''),source:'OpenStreetMap / Nominatim + TRIP QUEST aliases'};
+  }
+
   async function searchRegion(query){
-    return {items:await placeSearchService.resolveRegion(query||''),source:'OpenStreetMap / Nominatim'};
+    return resolvePlace(query);
+  }
+
+  async function reverseGeocode(lat,lng){
+    return reverseLookup(lat,lng);
   }
 
   async function searchPlaces(body={}){
@@ -112,5 +120,5 @@ export function createTravelService(){
     return result;
   }
 
-  return {getConfig,geocode,searchRegion,searchPlaces,bootstrap,recommend,tripSummary,courses,aiSearch};
+  return {getConfig,geocode,resolvePlace,searchRegion,reverseGeocode,searchPlaces,bootstrap,recommend,tripSummary,courses,aiSearch};
 }
