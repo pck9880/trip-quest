@@ -4,6 +4,7 @@ import { focusMapPoint } from './main-map.js';
 import { drawCourseRoute } from './course-map.js';
 import { renderCourseActionButtons } from './course-actions.js';
 import { keepService, buildCourseKeep } from '../services/keep-service.js';
+import { historyService, buildTravelHistoryItem } from '../services/history-service.js';
 
 export function createResultsUI(state){
   let onSelectPlace=null;
@@ -16,6 +17,27 @@ export function createResultsUI(state){
     button.setAttribute('aria-label',kept?'KEEP 해제':'KEEP에 저장');
     button.title=kept?'KEEP 해제':'KEEP에 저장';
     button.textContent=kept?'★':'☆';
+  }
+
+  function renderTripCompletion(course){
+    const panel=$('#courseDetailPanel');
+    if(!panel||!course)return;
+    let card=$('#tripCompletionCard');
+    if(!card){
+      card=document.createElement('section');
+      card.id='tripCompletionCard';
+      card.className='trip-completion-card';
+      panel.appendChild(card);
+    }
+    const item=buildTravelHistoryItem(state.selected||{},course);
+    const completed=historyService.has(item.id);
+    card.innerHTML=`<div><small>TRIP LOG</small><strong>${completed?'오늘의 여행을 기록했어요.':'이 코스를 다녀왔나요?'}</strong><p>${completed?'MY PAGE > 내가 다녀온 곳에서 다시 확인할 수 있습니다.':'여행 완료를 누르면 MY PAGE의 다녀온 곳에 저장됩니다.'}</p></div><button id="tripCompleteBtn" type="button" ${completed?'disabled':''}>${completed?'여행 완료 ✓':'✓ 여행 완료'}</button>`;
+    const button=$('#tripCompleteBtn');
+    if(button&&!completed)button.onclick=()=>{
+      const result=historyService.complete(state.selected||{},course);
+      toast(result.created?'여행 완료 · MY PAGE에 기록했습니다.':'오늘 이미 완료한 코스입니다.');
+      renderTripCompletion(course);
+    };
   }
 
   if(typeof window!=='undefined'){
@@ -50,6 +72,7 @@ export function createResultsUI(state){
     else if(w.source==='fallback')setText('#courseWeather','날씨 API 연결이 되면 방문 예정시간 기준으로 코스를 다시 판단합니다.');
     else setText('#courseWeather',`예상 ${w.condition} · ${Math.round(w.temperature_2m)}°C · 강수 ${w.precipitation_probability||0}% · 바람 ${Math.round(w.wind_speed_10m)}km/h · Open-Meteo`);
     $('#courseDetailPanel').hidden=true;
+    const completion=$('#tripCompletionCard');if(completion)completion.hidden=true;
     $('#courseList').className='course-list';
     $('#courseList').innerHTML=courses.map(c=>{const keep=buildCourseKeep(state.selected,c);const kept=keepService.has(keep.id);return `<article class="course-card" data-course="${c.id}"><div class="course-top"><span class="course-id">${c.id}</span><span class="badge">날씨 적합 ${esc(c.weatherFit)}</span></div><h4>${esc(c.title)}</h4><p>${esc(c.reason)}</p><ol class="stops">${c.stops.map((s,i)=>`<li>${i+1}. ${esc(s.name)}</li>`).join('')}</ol><div class="course-rule">${esc(c.localRule||"근거리 코스")}${c.maxLocalLegKm?` · 최대 구간 ${c.maxLocalLegKm.toFixed(1)}km`:""}</div><div class="course-stats"><span>${fmtKm(c.route.distanceKm)}</span><span>${fmtMin(c.route.timeMin)}</span><span>약 ${fmtWon(c.estimatedCost.total)}</span></div><div class="course-choice-row"><button class="btn secondary choose-course" type="button">${c.id}코스 선택</button><button class="course-keep-toggle${kept?' is-kept':''}" type="button" data-keep-id="${esc(keep.id)}" aria-pressed="${kept}" aria-label="${kept?'KEEP 해제':'KEEP에 저장'}" title="${kept?'KEEP 해제':'KEEP에 저장'}">${kept?'★':'☆'}</button></div></article>`}).join('');
   
@@ -91,6 +114,8 @@ export function createResultsUI(state){
       }
   
       setText('#actionHint',`${id}코스를 선택했습니다. 아래에서 주변 카페·음식점을 확인할 수 있습니다.`);
+      renderTripCompletion(course);
+      const completion=$('#tripCompletionCard');if(completion)completion.hidden=false;
       toast(`${id}코스를 선택했습니다.`);
       setTimeout(()=>document.querySelector('#courseDetailPanel')?.scrollIntoView({behavior:'smooth',block:'start'}),80);
     };

@@ -10,6 +10,7 @@ import { initMap } from './js/ui/main-map.js';
 import { createTripStore } from './js/store/trip-store.js';
 import { createTravelService } from './js/services/travel-service.js';
 import { initKeepPanel } from './js/ui/keep-panel.js';
+import { initMyPage } from './js/ui/my-page.js';
 const store=createTripStore();
 const state=store.state;
 const travelService=createTravelService();
@@ -80,7 +81,7 @@ function initPWA(){
 
 async function loadConfig(){
   state.config=await travelService.getConfig();$('#gasPrice').value=state.config.defaultGasPrice;
-  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v1.1.2 · AI 경로/코스 바로가기');
+  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v1.2.0 · MY PAGE · 출석 · 여행 기록');
 }
 
 
@@ -287,5 +288,5 @@ if(typeof window!=='undefined'){
     if(state.step===4)showSafeRuntimeError();
   });
 }
-async function boot(){initTimes();initMap();initKeepPanel({onOpenCourse:openKeptCourse});validateUIRuntime();bindChoices();bindActions();initPWA();syncDistanceUI();syncDirectionUI();syncCategoriesUI();setStep(1);showMainLanding();try{await loadConfig()}catch{setText('#providerNow','설정 확인 필요')}setInterval(refreshLive,10*60*1000)}
+async function boot(){initTimes();initMap();initKeepPanel({onOpenCourse:openKeptCourse});initMyPage();validateUIRuntime();bindChoices();bindActions();initPWA();syncDistanceUI();syncDirectionUI();syncCategoriesUI();setStep(1);showMainLanding();try{await loadConfig()}catch{setText('#providerNow','설정 확인 필요')}setInterval(refreshLive,10*60*1000)}
 if(typeof document!=='undefined')boot();
