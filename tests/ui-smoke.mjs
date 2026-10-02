@@ -182,7 +182,7 @@ assert.ok(!chromeJs.includes('data-tab="settings"'),'settings must move inside M
 assert.ok(myPageSource.includes('MY PAGE'),'MY page heading missing');
 assert.ok(myPageSource.includes('임시 여행자 ID'),'temporary traveler ID disclosure missing');
 assert.ok(myPageSource.includes('type="file" accept="image/*"'),'profile image picker missing');
-assert.ok(myPageSource.includes('오늘의 출석'),'attendance card missing');
+assert.ok(myPageSource.includes('출석 캘린더'),'attendance card missing');
 assert.ok(myPageSource.includes('내가 다녀온 곳'),'travel history section missing');
 assert.ok(myPageSource.includes("tripquest:open-vehicle-settings"),'vehicle settings must be nested inside MY');
 assert.ok(profileSource.includes("indexedDB.open(AVATAR_DB,1)"),'profile avatar must use IndexedDB');
@@ -190,7 +190,7 @@ assert.ok(attendanceSource.includes("const ATTENDANCE_KEY='tq_attendance_v1'"),'
 assert.ok(historySource.includes("const HISTORY_KEY='tq_travel_history_v1'"),'travel-history persistence missing');
 assert.ok(resultsSource.includes('id=\'tripCompletionCard\'')||resultsSource.includes("card.id='tripCompletionCard'"),'travel completion card missing');
 assert.ok(resultsSource.includes("historyService.complete(state.selected||{},course)"),'travel completion action missing');
-assert.ok(app.includes('initMyPage();'),'MY page must initialize during boot');
+assert.ok(app.includes('initMyPage({onOpenHistoryCourse:openHistoryCourse})'),'MY page must initialize with history course handler');
 
 const userDataSource=read('js/services/user-data-service.js');
 assert.ok(myPageSource.includes('출석 캘린더'),'attendance calendar UI missing');
