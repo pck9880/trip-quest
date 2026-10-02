@@ -30,8 +30,9 @@ function cityLabel(place){const text=String(place?.address||place?.name||'');con
 function installKoreaCanvas(svg){
  if(!svg||svg.querySelector('#koreaMapLayer'))return;
  const ns='http://www.w3.org/2000/svg',layer=document.createElementNS(ns,'g');layer.id='koreaMapLayer';layer.setAttribute('class','tq-korea-map');
- let dots='';for(let lat=34.45;lat<=38.5;lat+=.17){for(let lng=125.95;lng<=129.55;lng+=.16){if(inside(lng,lat)){const p=geoToXY({lat,lng});dots+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4.1"/>`}}}
+ let dots='';for(let lat=34.42;lat<=38.56;lat+=.14){for(let lng=125.95;lng<=129.55;lng+=.13){if(inside(lng,lat)){const p=geoToXY({lat,lng});dots+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.7"/>`}}}
  for(let lat=33.32;lat<=33.58;lat+=.13){for(let lng=126.15;lng<=126.90;lng+=.14){const dx=(lng-126.52)/.43,dy=(lat-33.45)/.18;if(dx*dx+dy*dy<1){const p=geoToXY({lat,lng});dots+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4.1"/>`}}}
+ const ulleung=geoToXY({lat:37.4845,lng:130.9057});dots+=`<circle cx="${ulleung.x.toFixed(1)}" cy="${ulleung.y.toFixed(1)}" r="4.2"/>`;
  const labels=MAP_LABELS.map(r=>{const p=geoToXY({lat:r[1],lng:r[2]});return `<g class="tq-map-city" transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})"><circle r="4.8"/><text x="${r[3]}" y="${r[4]}">${r[0]}</text></g>`}).join('');
  layer.innerHTML=`<g class="tq-dot-land">${dots}</g><g class="tq-city-labels">${labels}</g>`;
  const field=svg.querySelector('.tq-geo-field');field?.after(layer);
