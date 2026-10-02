@@ -47,6 +47,7 @@ const domSource=fs.readFileSync(new URL('../site-src/js/core/dom.js',import.meta
 const recommendationSource=fs.readFileSync(new URL('../site-src/js/domain/recommendation.js',import.meta.url),'utf8');
 const intentSource=fs.readFileSync(new URL('../site-src/js/domain/intent-parser.js',import.meta.url),'utf8');
 const intentRulesSource=fs.readFileSync(new URL('../site-src/js/data/intent-rules.js',import.meta.url),'utf8');
+const coursePlannerSource=fs.readFileSync(new URL('../site-src/js/domain/course-planner.js',import.meta.url),'utf8');
 assert.ok(courseData.includes("export const CURATED_COURSES="),'curated nationwide route graph required');
 assert.ok(courseData.includes("'seoul-hongdae'"),'Hongdae route preset required');
 assert.ok(courseData.includes("'daegu-dongseong'"),'Daegu route preset required');
@@ -60,4 +61,6 @@ assert.ok(intentSource.includes('export function localAI('),'intent parser modul
 assert.ok(intentRulesSource.includes('export const INTENT_RULES='),'intent rule dataset missing');
 assert.ok(!appSource.includes('function localRecommend('),'recommendation engine must not remain embedded in app.js');
 assert.ok(!appSource.includes('function localAI('),'intent parser must not remain embedded in app.js');
-console.log('TRIP QUEST v0.50 recommendation engine, intent parser, route, and vehicle tests passed');
+assert.ok(coursePlannerSource.includes('export async function coursePack('),'course planner module missing');
+assert.ok(!appSource.includes('function coursePack('),'course planner must not remain embedded in app.js');
+console.log('TRIP QUEST v0.51 course planner, recommendation, route, and vehicle tests passed');
