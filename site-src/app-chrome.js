@@ -20,16 +20,71 @@
   function showCover(){const landing=$('#mainLanding');if(!landing)return;landing.hidden=false;landing.classList.remove('leaving');document.body.classList.add('landing-open');addCoverMotion();window.scrollTo({top:0,behavior:'smooth'})}
   function scrollToTarget(s){$(s)?.scrollIntoView({behavior:'smooth',block:'start'})}
 
-  function createVehicleSetup(){if($('#tqVehicleSetup'))return;const modal=el('div','tq-setup-overlay');modal.id='tqVehicleSetup';modal.hidden=true;modal.innerHTML=`<div class="tq-setup-card" role="dialog" aria-modal="true" aria-labelledby="tqSetupTitle"><div class="tq-setup-kicker">FIRST SETUP</div><h2 id="tqSetupTitle">차량을 설정하세요.</h2><p>이 값으로 이동거리의 예상 연료비·충전비와 통행료를 계산합니다.</p><div class="tq-setup-section"><label>차량 종류</label><div id="tqVehicleTypes" class="tq-choice-grid">${Object.entries(VEHICLES).map(([k,v])=>`<button type="button" data-vehicle="${k}">${v.label}</button>`).join('')}</div></div><div class="tq-setup-row"><label>동력원<select id="tqFuel"><option value="gasoline">휘발유</option><option value="diesel">경유</option><option value="lpg">LPG</option><option value="electric">전기</option></select></label><label><span id="tqEffLabel">연비</span><div class="tq-unit-input"><input id="tqEfficiency" type="number" min="1" max="30" step="0.1"><b id="tqEffUnit">km/L</b></div></label></div><div class="tq-setup-info"><span>에너지 가격</span><strong id="tqEnergyPrice">전국 평균 자동</strong><small>앱의 최신 평균 기준값을 자동 적용합니다.</small></div><label class="tq-check"><input id="tqTollDiscount" type="checkbox"><span>경차 통행료 할인 적용</span></label><button id="tqSetupSave" type="button" class="tq-setup-save">설정 완료</button><small class="tq-setup-foot">설정은 이 기기에 저장됩니다. 이후 설정 메뉴에서 변경할 수 있습니다.</small></div>`;document.body.appendChild(modal);
+  function createVehicleSetup(){
+    if($('#tqVehicleSetup'))return;
+    const modal=el('div','tq-setup-overlay');
+    modal.id='tqVehicleSetup';
+    modal.hidden=true;
+    modal.innerHTML=`
+      <div class="tq-setup-card" role="dialog" aria-modal="true" aria-labelledby="tqSetupTitle">
+        <div class="tq-sheet-handle" aria-hidden="true"></div>
+        <header class="tq-setup-head">
+          <div class="tq-setup-head-icon" aria-hidden="true"></div>
+          <div class="tq-setup-head-copy">
+            <div class="tq-setup-kicker">TRIP SETTINGS</div>
+            <h2 id="tqSetupTitle">내 차 기준으로 계산할게요.</h2>
+            <p>차량 종류와 실제 연비를 설정하면 여행 비용을 더 정확하게 계산합니다.</p>
+          </div>
+          <span class="tq-setup-step">1 / 1</span>
+        </header>
+        <section class="tq-setup-section">
+          <div class="tq-field-title"><span>차량 종류</span><small>가장 가까운 차급을 선택하세요</small></div>
+          <div id="tqVehicleTypes" class="tq-choice-grid">
+            ${Object.entries(VEHICLES).map(([k,v])=>`<button type="button" data-vehicle="${k}"><i aria-hidden="true"></i><span>${v.label}</span></button>`).join('')}
+          </div>
+        </section>
+        <section class="tq-setup-section tq-setup-details">
+          <div class="tq-setup-row">
+            <label><span>동력원</span><select id="tqFuel"><option value="gasoline">휘발유</option><option value="diesel">경유</option><option value="lpg">LPG</option><option value="electric">전기</option></select></label>
+            <label><span id="tqEffLabel">연비</span><div class="tq-unit-input"><input id="tqEfficiency" type="number" min="1" max="30" step="0.1" inputmode="decimal"><b id="tqEffUnit">km/L</b></div></label>
+          </div>
+          <div class="tq-setup-info">
+            <div class="tq-energy-icon" aria-hidden="true"></div>
+            <div><span>자동 에너지 가격</span><strong id="tqEnergyPrice">전국 평균 확인 중</strong><small>최신 평균 기준값을 비용 계산에 자동 적용합니다.</small></div>
+          </div>
+          <label class="tq-switch-row">
+            <span><b>경차 통행료 할인</b><small>해당 차량이면 예상 통행료에 반영합니다.</small></span>
+            <input id="tqTollDiscount" type="checkbox">
+            <i class="tq-switch-ui" aria-hidden="true"></i>
+          </label>
+        </section>
+        <div class="tq-setup-actions">
+          <button id="tqSetupSave" type="button" class="tq-setup-save">설정 완료</button>
+          <small class="tq-setup-foot">이 기기에 저장 · 하단 설정 메뉴에서 언제든 변경</small>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
     const typeBox=$('#tqVehicleTypes'),fuel=$('#tqFuel'),eff=$('#tqEfficiency'),discount=$('#tqTollDiscount');
     const sync=()=>{const f=fuel.value;$('#tqEffLabel').textContent=f==='electric'?'전비':'연비';$('#tqEffUnit').textContent=f==='electric'?'km/kWh':'km/L';$('#tqEnergyPrice').textContent=f==='electric'?`평균 충전단가 ${ENERGY_DEFAULT[f].toLocaleString()}원/kWh`:`평균 ${FUEL_LABEL[f]} ${ENERGY_DEFAULT[f].toLocaleString()}원/L`};
-    typeBox.onclick=e=>{const b=e.target.closest('[data-vehicle]');if(!b)return;typeBox.querySelectorAll('button').forEach(x=>x.classList.toggle('selected',x===b));const d=VEHICLES[b.dataset.vehicle];fuel.value=d.fuel;eff.value=d.eff;discount.checked=b.dataset.vehicle==='compact';sync()};fuel.onchange=()=>{const selected=typeBox.querySelector('.selected')?.dataset.vehicle;const d=VEHICLES[selected]||VEHICLES.midsize;if(fuel.value==='electric')eff.value=5.0;else if(d.fuel===fuel.value)eff.value=d.eff;sync()};
+    typeBox.onclick=e=>{const b=e.target.closest('[data-vehicle]');if(!b)return;typeBox.classList.remove('error');typeBox.querySelectorAll('button').forEach(x=>x.classList.toggle('selected',x===b));const d=VEHICLES[b.dataset.vehicle];fuel.value=d.fuel;eff.value=d.eff;discount.checked=b.dataset.vehicle==='compact';sync()};
+    fuel.onchange=()=>{const selected=typeBox.querySelector('.selected')?.dataset.vehicle;const d=VEHICLES[selected]||VEHICLES.midsize;if(fuel.value==='electric')eff.value=5.0;else if(d.fuel===fuel.value)eff.value=d.eff;sync()};
     $('#tqSetupSave').onclick=()=>{const vehicle=typeBox.querySelector('.selected')?.dataset.vehicle;if(!vehicle){typeBox.classList.add('error');return}const efficiency=Number(eff.value);if(!Number.isFinite(efficiency)||efficiency<=0){eff.focus();return}const settings={vehicle,vehicleLabel:VEHICLES[vehicle].label,fuel:fuel.value,fuelLabel:FUEL_LABEL[fuel.value],efficiency,tollDiscount:discount.checked,energyPrice:ENERGY_DEFAULT[fuel.value],savedAt:new Date().toISOString()};writeVehicle(settings);applyVehicleSettings(settings);closeVehicleSetup();window.dispatchEvent(new CustomEvent('tripquest:vehicle-settings',{detail:settings}))};
   }
   function openVehicleSetup(){createVehicleSetup();const modal=$('#tqVehicleSetup'),saved=readVehicle();const key=saved?.vehicle||'compact';const d=VEHICLES[key]||VEHICLES.compact;modal.hidden=false;document.body.classList.add('tq-modal-open');const btn=modal.querySelector(`[data-vehicle="${key}"]`);btn?.click();if(saved){$('#tqFuel').value=saved.fuel||d.fuel;$('#tqEfficiency').value=saved.efficiency||d.eff;$('#tqTollDiscount').checked=!!saved.tollDiscount;$('#tqFuel').dispatchEvent(new Event('change'))}}
   function closeVehicleSetup(){$('#tqVehicleSetup')?.setAttribute('hidden','');document.body.classList.remove('tq-modal-open')}
   function applyVehicleSettings(s=readVehicle()){if(!s)return;const gas=$('#gasPrice');if(gas&&s.fuel!=='electric')gas.value=s.energyPrice||ENERGY_DEFAULT[s.fuel]||1858;document.documentElement.dataset.vehicle=s.vehicle||''}
   function watchFirstLocation(){const label=$('#originLabel');if(!label)return;const ready=()=>{const t=label.textContent.trim();return t&&t!=='위치를 아직 선택하지 않았습니다.'&&!/확인|검색|불러|실패|허용/.test(t)};const check=()=>{if(!setupWaitingForLocation||!ready())return;setupWaitingForLocation=false;if(!readVehicle())setTimeout(openVehicleSetup,180)};new MutationObserver(check).observe(label,{childList:true,subtree:true,characterData:true});$('#mainLocateBtn')?.addEventListener('click',()=>{setupWaitingForLocation=true;setTimeout(check,250)},{capture:true});check()}
+
+  function enhanceLandingSurface(){
+    const landing=$('#mainLanding');if(!landing||landing.dataset.polished)return;
+    landing.dataset.polished='1';
+    const brand=$('.main-cover-brand');
+    if(brand&&!brand.querySelector('.tq-brand-sub'))brand.insertAdjacentHTML('beforeend','<small class="tq-brand-sub">AI TRAVEL PLANNER</small>');
+    const copy=$('.main-cover-copy');
+    if(copy&&!copy.querySelector('.tq-cover-points'))copy.insertAdjacentHTML('beforeend','<div class="tq-cover-points" aria-label="주요 기능"><span>실시간 위치</span><span>AI 추천</span><span>비용 계산</span></div>');
+    const action=$('.main-cover-action');
+    if(action&&!action.querySelector('.tq-cover-trust'))action.insertAdjacentHTML('beforeend','<div class="tq-cover-trust"><i aria-hidden="true"></i><span>위치는 여행 계산에만 사용합니다.</span></div>');
+  }
 
   function addBottomNav(){if($('.tq-bottom-nav'))return;const nav=el('nav','tq-bottom-nav');nav.setAttribute('aria-label','앱 하단 메뉴');nav.innerHTML='<button type="button" data-tab="home" class="active"><i>⌂</i><span>홈</span></button><button type="button" data-tab="ai"><i>✦</i><span>AI 찾기</span></button><button type="button" data-tab="plan"><i>⌖</i><span>여행</span></button><button type="button" data-tab="settings"><i>⚙</i><span>설정</span></button>';document.body.appendChild(nav);const setActive=tab=>nav.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));nav.onclick=e=>{const b=e.target.closest('button');if(!b)return;const tab=b.dataset.tab;if(tab==='home'){setActive('home');showCover()}else if(tab==='ai'){setActive('ai');scrollToTarget('.ai-hero');$('#aiInput')?.focus({preventScroll:true})}else if(tab==='plan'){setActive('plan');scrollToTarget('#progress')}else if(tab==='settings'){setActive('settings');openVehicleSetup()}}}
   function enhanceTopbar(){const top=$('.topbar');if(!top||top.querySelector('.tq-top-label'))return;top.classList.add('tq-appbar');const label=el('div','tq-top-label','<small>TRIP QUEST</small><strong>여행 플래너</strong>');$('.brand')?.after(label);const share=$('#topShareBtn');if(share){share.setAttribute('aria-label','여행 공유');share.textContent='↗';share.classList.add('tq-icon-btn')}}
@@ -43,6 +98,6 @@
   function enhanceTripSummaryToll(){const summary=$('#tripSummary');if(!summary||!summary.querySelector('.metric-grid'))return;const metrics=[...summary.querySelectorAll('.metric')],find=l=>metrics.find(m=>m.querySelector('span')?.textContent.trim()===l),dm=find('왕복 거리'),tm=find('통행료')||find('예상 통행료'),total=find('교통비 합계'),fuel=find('기름값');if(!dm||!tm)return;const distance=parseKm(dm.querySelector('strong')?.textContent),estimated=estimateToll(distance),label=tm.querySelector('span'),value=tm.querySelector('strong');if(label)label.textContent='예상 통행료';if(value)value.textContent=estimated?`약 ${fmtWon(estimated)}`:'0원';if(total){const f=parseWon(fuel?.querySelector('strong')?.textContent);total.querySelector('strong').textContent=fmtWon(f+estimated)}}
   function observeTripSummary(){const summary=$('#tripSummary');if(!summary)return;new MutationObserver(()=>requestAnimationFrame(enhanceTripSummaryToll)).observe(summary,{childList:true,subtree:true,characterData:true});enhanceTripSummaryToll()}
   function runtimeHealthCheck(){document.querySelectorAll('#categoryChoices button,#directionChoices button,.progress-step').forEach(b=>b.type='button')}
-  function bootChrome(){addCoverMotion();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();addManualSearchButton();observeTripSummary();createVehicleSetup();watchFirstLocation();applyVehicleSettings();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.31';document.documentElement.classList.add('tq-chrome-ready')}
+  function bootChrome(){enhanceLandingSurface();addCoverMotion();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();addManualSearchButton();observeTripSummary();createVehicleSetup();watchFirstLocation();applyVehicleSettings();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.32';document.documentElement.classList.add('tq-chrome-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootChrome,{once:true});else bootChrome();
 })();
