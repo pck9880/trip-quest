@@ -168,24 +168,29 @@ export function initGeoExplorer({state,travelService,setOrigin,onSearch,onSelect
     const overlay=$('#geoStartPicker');if(overlay)overlay.hidden=true;document.body.classList.remove('tq-modal-open');
   }
   async function useGpsOrigin(){
-    const btn=$('#geoStartUseGps');
-    if(!navigator.geolocation){toast('현재 위치 기능을 사용할 수 없습니다. 직접 입력해주세요.');return}
-    if(btn){btn.disabled=true;btn.classList.add('is-loading');btn.querySelector('b').textContent='현재 위치 확인 중…'}
-    navigator.geolocation.getCurrentPosition(async pos=>{
-      try{
-        const lat=pos.coords.latitude,lng=pos.coords.longitude;
-        const found=await travelService.reverseGeocode(lat,lng);
-        const origin=found||{lat,lng,name:'현재 위치',address:'현재 위치',placeTypeLabel:'현재 위치'};
-        state.searchRegion=origin;
-        await setOrigin({...origin,name:origin.name||'현재 위치'});
-        syncOrigin();closeStartPicker();toast((origin.name||'현재 위치')+'에서 시작합니다.');
-      }finally{
-        if(btn){btn.disabled=false;btn.classList.remove('is-loading');btn.querySelector('b').textContent='현재 위치 사용'}
-      }
-    },()=>{
-      if(btn){btn.disabled=false;btn.classList.remove('is-loading');btn.querySelector('b').textContent='현재 위치 사용'}
-      toast('위치 권한을 허용하거나 시작 위치를 직접 입력해주세요.');
-    },{enableHighAccuracy:true,timeout:10000,maximumAge:30000});
+    const btn=$('#geoStartUseGps')||$('#geoStartQuickGps');
+    if(!navigator.geolocation){toast('현재 위치 기능을 사용할 수 없습니다. 직접 입력해주세요.');return null}
+    if(btn){btn.disabled=true;btn.classList.add('is-loading');const label=btn.querySelector?.('b');if(label)label.textContent='현재 위치 확인 중…'}
+    return new Promise(resolve=>{
+      navigator.geolocation.getCurrentPosition(async pos=>{
+        let origin=null;
+        try{
+          const lat=pos.coords.latitude,lng=pos.coords.longitude;
+          const found=await travelService.reverseGeocode(lat,lng);
+          origin=found||{lat,lng,name:'현재 위치',address:'현재 위치',placeTypeLabel:'현재 위치'};
+          state.searchRegion=origin;
+          await setOrigin({...origin,name:origin.name||'현재 위치'});
+          syncOrigin();closeStartPicker();toast((origin.name||'현재 위치')+'에서 시작합니다.');
+        }catch{}
+        finally{
+          if(btn){btn.disabled=false;btn.classList.remove('is-loading');const label=btn.querySelector?.('b');if(label)label.textContent='현재 위치 사용'}
+        }
+        resolve(origin);
+      },()=>{
+        if(btn){btn.disabled=false;btn.classList.remove('is-loading');const label=btn.querySelector?.('b');if(label)label.textContent='현재 위치 사용'}
+        toast('위치 권한을 허용하거나 시작 위치를 직접 입력해주세요.');resolve(null);
+      },{enableHighAccuracy:true,timeout:10000,maximumAge:30000});
+    });
   }
   async function searchOrigin(){
     const q=$('#geoStartQuery')?.value.trim()||'',box=$('#geoStartResults');
@@ -267,6 +272,12 @@ export function initGeoExplorer({state,travelService,setOrigin,onSearch,onSelect
     setSheetState('full',true);
   }
 
+  function renderEmpty(message='현재 조건에서 추천 가능한 여행지가 부족합니다.'){
+    clearCandidates();
+    if(results)results.innerHTML='<div class="tq-start-empty">'+esc(message)+'</div>';
+    setSheetState('mid',true);
+  }
+
   function renderSearchState(label){
     const node=$('#geoSearchContext');
     if(node)node.textContent=label||'지도 탐색 포인트와 자연어 조건을 함께 분석합니다.';
@@ -290,5 +301,5 @@ export function initGeoExplorer({state,travelService,setOrigin,onSearch,onSelect
   window.addEventListener('resize',()=>setSheetState(sheetState,false));
 
   syncOrigin();previewAt(lastXY.x,lastXY.y);setSheetState('mid',false);
-  return {syncOrigin,openStartPicker,closeStartPicker,useGpsOrigin,renderRecommendations,clearCandidates,renderSearchState,setSheetState,focusSearch,resetTarget};
+  return {syncOrigin,openStartPicker,closeStartPicker,useGpsOrigin,renderRecommendations,renderEmpty,clearCandidates,renderSearchState,setSheetState,focusSearch,resetTarget};
 }
