@@ -65,7 +65,9 @@ for(const m of html.matchAll(/(?:src|href)="\.\/assets\/([^"?]+)(?:\?[^"]*)?"/g)
 assert.ok(landingCss.includes('Landing press lifecycle'),'landing touch lifecycle CSS missing');
 assert.ok(searchCss.includes('Search page hierarchy'),'simplified search CSS missing');
 assert.ok(searchCss.includes('Distance range and manual-input drawer'),'distance/drawer CSS missing');
-assert.ok(landingCss.includes('background-image:url("./assets/tq-cover-main-v044.webp")'),'clean cover asset must be used');
+assert.ok(landingCss.includes('background-image:url("../assets/tq-cover-main-v044.webp")'),'landing stylesheet must resolve cover relative to /css');
+assert.ok(html.includes('id="mainLanding" class="main-landing tq-photo-ready"'),'landing must start photo-ready to prevent fallback flash');
+assert.ok(!chromeJs.includes("landing.classList.remove('tq-photo-ready','tq-photo-error')"),'cover probe must not clear photo-ready before load');
 assert.ok(!chromeCss.includes('opacity:.001!important'),'transparent image-button hit areas must be removed');
 assert.ok(!chromeJs.includes('function bindLandingFallback'),'legacy landing coordinate fallback must be removed');
 assert.ok(chromeJs.includes("probe.src='./assets/tq-cover-main-v044.webp'"),'landing preload must use v0.43 cover');
@@ -127,7 +129,7 @@ assert.ok(!app.includes("const openAdvanced=$('#openAdvancedSearch')"),'event im
 assert.ok(resultsSource.includes('function renderCourses('),'course result rendering module missing');
 assert.ok(searchControllerSource.includes('function sortRecommendations('),'search controller sorting missing');
 assert.ok(chromeCss.includes('body[data-trip-step="2"]:not(.tq-advanced-open) .wizard'),'simple search must hide advanced wizard at step two');
-console.log('TRIP QUEST v1.0 UI/runtime smoke tests passed');
+console.log('TRIP QUEST v1.0.1 UI/runtime smoke tests passed');
 
 const mainMapSource=read('js/ui/main-map.js');
 const courseMapSource=read('js/ui/course-map.js');
@@ -139,5 +141,5 @@ assert.ok(originControllerSource.includes('OpenStreetMap / Nominatim'),'geocoder
 assert.ok(originControllerSource.includes('Open-Meteo'),'weather attribution required');
 assert.ok(resultsSource.includes('OSRM 도로 경로'),'routing provider disclosure required');
 
-assert.ok(html.includes('TRIP QUEST · v1.0.0'),'v1.0.0 footer/version marker missing');
-assert.ok(chromeJs.includes("footer.textContent='TRIP QUEST · v1.0.0'"),'chrome footer version missing');
+assert.ok(html.includes('TRIP QUEST · v1.0.1'),'v1.0.0 footer/version marker missing');
+assert.ok(chromeJs.includes("footer.textContent='TRIP QUEST · v1.0.1'"),'chrome footer version missing');

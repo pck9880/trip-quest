@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.1 — Landing cover hotfix
+
+- Fixed the cover image URL after stylesheets moved into `site-src/css/`
+- Prevented fallback landing copy from flashing before the cover-image probe completes
+- Added regression checks for cover-path resolution and initial photo-ready state
+- Bumped Service Worker/static asset versions so existing PWA installs receive the fix
+
+
 ## 1.0.0 — Sale-ready baseline
 
 - Structured Store and named travel-service facade
