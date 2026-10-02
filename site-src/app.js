@@ -1,14 +1,5 @@
 import { $, all, setText, loading, toast, esc } from './js/core/dom.js';
 import { categoryLabels } from './js/data/ui-options.js';
-import { activeVehicleProfile } from './js/services/vehicle-settings.js';
-import { estimateRoundTripToll } from './js/domain/trip-cost.js';
-import { approxRoute, roadRoute } from './js/services/routing.js';
-import { clientWeather, selectWeatherAt } from './js/services/weather.js';
-import { localGeocode } from './js/services/geocoding.js';
-import { normalizedDistanceRange, localRecommend } from './js/domain/recommendation.js';
-import { refineRoadDistanceResults } from './js/usecases/search-destinations.js';
-import { localAI } from './js/domain/intent-parser.js';
-import { coursePack } from './js/domain/course-planner.js';
 import { initTimes, updateSchedulePreview } from './js/ui/time-controls.js';
 import { showMainLanding, hideMainLanding } from './js/ui/landing.js';
 import { createWizardUI } from './js/ui/wizard.js';
@@ -16,44 +7,23 @@ import { createSearchController } from './js/controllers/search-controller.js';
 import { createOriginController } from './js/controllers/origin-controller.js';
 import { bindAppActions } from './js/controllers/app-controller.js';
 import { initMap } from './js/ui/main-map.js';
-const state={step:1,origin:null,minKm:0,targetKm:100,direction:'전체',categories:['관광지'],recommendations:[],selected:null,selectedCourse:null,selectedCourseData:null,config:null,aiBusy:false,installPrompt:null,sharedTrip:null,sharedPending:false,resultSort:'recommend',lastSearchMode:'ai',lastAIMessage:'',activeDistanceBand:null};
+import { createTripStore } from './js/store/trip-store.js';
+import { createTravelService } from './js/services/travel-service.js';
+const store=createTripStore();
+const state=store.state;
+const travelService=createTravelService();
 
 
 
 
-
-
-async function api(url,opts={}){const u=new URL(url,location.href),method=(opts.method||'GET').toUpperCase(),body=opts.body?JSON.parse(opts.body):{};
-  if(u.pathname.endsWith('/api/config'))return {providers:{kakao:false,tmap:false,openai:false,weather:true},defaultGasPrice:1858,fuelEconomyKmL:11,publicBaseUrl:''};
-  if(u.pathname.endsWith('/api/geocode'))return {items:await localGeocode(u.searchParams.get('q')||'')};
-  if(u.pathname.endsWith('/api/bootstrap')){const lat=Number(u.searchParams.get('lat')),lng=Number(u.searchParams.get('lng')),weather=await clientWeather(lat,lng);return {weather,traffic:{label:'경로 선택 후 계산',avgSpeed:0,source:'정적 배포판'},updatedAt:new Date().toISOString()}}
-  if(u.pathname.endsWith('/api/recommend')){const base=localRecommend(body),items=await refineRoadDistanceResults(base,body);return {items,source:items.some(x=>x.roadVerified)?'도로 경로 + 내장 장소 데이터':'근사 경로 + 내장 장소 데이터'}};
-  if(u.pathname.endsWith('/api/trip-summary')){
-    const [a,b]=await Promise.all([roadRoute(body.origin,body.destination),roadRoute(body.destination,body.origin)]);
-    const distanceKm=a.distanceKm+b.distanceKm,drivingMin=a.timeMin+b.timeMin,vehicle=activeVehicleProfile(body);
-    const energyAmount=distanceKm/vehicle.efficiency,energyCost=Math.round(energyAmount*vehicle.energyPrice);
-    const toll=estimateRoundTripToll(distanceKm,vehicle.tollDiscount);
-    return {outbound:a,inbound:b,total:{
-      distanceKm,drivingMin,toll,tripCost:energyCost+toll,
-      fuelLiters:energyAmount,fuelCost:energyCost,
-      energyAmount,energyCost,energyUnit:vehicle.energyUnit,energyPrice:vehicle.energyPrice,
-      vehicleLabel:vehicle.vehicleLabel,fuelLabel:vehicle.fuelLabel,efficiency:vehicle.efficiency,efficiencyUnit:vehicle.efficiencyUnit,
-      energyLabel:vehicle.fuel==='electric'?'예상 전력':'예상 연료',
-      costLabel:vehicle.fuel==='electric'?'충전비':'연료비'
-    },fuelEconomyKmL:vehicle.efficiency}
-  }
-  if(u.pathname.endsWith('/api/courses')){const ww=await clientWeather(body.destination.lat,body.destination.lng),w=selectWeatherAt(ww,body.departure);return {weather:w,courses:await coursePack(body,w),provider:{ai:false,road:'osrm-or-fallback',kakao:false}}}
-  if(u.pathname.endsWith('/api/ai-search')){const r=localAI(body.message||'',body.context||{});if(r.intent==='travel_search'&&body.context?.origin){const merged={...body.context,...r.patch,focusQuery:r.focusQuery,semanticProfile:r.semanticProfile};r.items=await refineRoadDistanceResults(localRecommend(merged),merged)}return r}
-  throw new Error('지원하지 않는 요청입니다.');
-}
 
 
 
 const wizardUI=createWizardUI(state);
 const {setStep,syncDistanceUI,setDistanceBoundary,syncCategoriesUI,syncDirectionUI,validateUIRuntime,bindChoices}=wizardUI;
-const searchController=createSearchController({state,api,setStep});
+const searchController=createSearchController({state,travelService,setStep});
 const {sortRecommendations,currentPayload,recommend,selectPlace,renderRanking}=searchController;
-const originController=createOriginController({state,api,setStep,recommend});
+const originController=createOriginController({state,travelService,setStep,recommend});
 const {startFromMainLocation,useLocation,setOrigin,refreshLive,searchOrigin}=originController;
 
 function isIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent)}
@@ -108,21 +78,28 @@ function initPWA(){
 
 
 async function loadConfig(){
-  state.config=await api('/api/config');$('#gasPrice').value=state.config.defaultGasPrice;const p=state.config.providers;
-  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.52 · UI·컨트롤러 분리 · 기존 기능 유지');
+  state.config=await travelService.getConfig();$('#gasPrice').value=state.config.defaultGasPrice;
+  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.53 · Store·서비스 파사드 · 기존 기능 유지');
 }
 
 
 
 
 
-function resetTrip(){document.body.classList.remove('tq-advanced-open');const manualBar=$('#openAdvancedSearch');if(manualBar){manualBar.setAttribute('aria-expanded','false');manualBar.classList.remove('open')}state.minKm=0;state.targetKm=100;state.resultSort='recommend';state.activeDistanceBand=null;state.lastSearchMode='ai';state.lastAIMessage='';state.direction='전체';state.categories=['관광지'];state.recommendations=[];state.selected=null;state.selectedCourse=null;state.selectedCourseData=null;state.sharedPending=false;syncDistanceUI();all('#directionChoices button').forEach(b=>b.classList.toggle('selected',b.dataset.value==='전체'));syncCategoriesUI();$('#ranking').innerHTML='조건을 설정한 뒤 추천지를 찾아보세요.';$('#ranking').className='ranking empty-state';initTimes();setStep(1);showMainLanding();toast('새 여행을 시작합니다.')}
-
-function applyPatch(patch={}){
-  /* 거리 범위는 AI 문장이 아니라 상단 최소/최대 슬라이더가 전담합니다. */
-  if(patch.direction&&['전체','북','북동','동','남동','남','남서','서','북서'].includes(patch.direction)){state.direction=patch.direction;syncDirectionUI()}
-  if(Array.isArray(patch.categories)){state.categories=[...new Set(patch.categories.filter(x=>categoryLabels.includes(x)))];if(!state.categories.length&&patch.keepEmpty!==true)state.categories=['관광지'];syncCategoriesUI()}
-  if(patch.departure)$('#departTime').value=patch.departure;if(patch.returnTime)$('#returnTime').value=patch.returnTime;if(patch.gasPrice)$('#gasPrice').value=patch.gasPrice;updateSchedulePreview();
+function resetTrip(){
+  document.body.classList.remove('tq-advanced-open');
+  const manualBar=$('#openAdvancedSearch');
+  if(manualBar){manualBar.setAttribute('aria-expanded','false');manualBar.classList.remove('open')}
+  store.resetJourney();
+  syncDistanceUI();
+  all('#directionChoices button').forEach(b=>b.classList.toggle('selected',b.dataset.value==='전체'));
+  syncCategoriesUI();
+  $('#ranking').innerHTML='조건을 설정한 뒤 추천지를 찾아보세요.';
+  $('#ranking').className='ranking empty-state';
+  initTimes();
+  setStep(1);
+  showMainLanding();
+  toast('새 여행을 시작합니다.');
 }
 function startAIProgressGauge(){
   const wrap=$('#aiProgress'),fill=$('#aiProgressFill'),label=$('#aiProgressText'),eta=$('#aiEta');
@@ -206,7 +183,7 @@ async function askAI(message,options={}){
     btn.textContent='추천지 찾는 중…';
     if(status)status.textContent='2/2 · 분석한 취향과 조건으로 추천지 계산 중…';
 
-    const result=await api('/api/ai-search',{method:'POST',body:JSON.stringify({message:message.trim(),context:{...currentPayload(),distanceBand:state.activeDistanceBand}})});
+    const result=await travelService.aiSearch(message.trim(),{...currentPayload(),distanceBand:state.activeDistanceBand});
     await new Promise(r=>setTimeout(r,520));
 
     showAI(result);
@@ -294,5 +271,4 @@ if(typeof window!=='undefined'){
   });
 }
 async function boot(){initTimes();initMap();validateUIRuntime();bindChoices();bindActions();initPWA();syncDistanceUI();syncDirectionUI();syncCategoriesUI();setStep(1);showMainLanding();try{await loadConfig()}catch{setText('#providerNow','설정 확인 필요')}setInterval(refreshLive,10*60*1000)}
-globalThis.__TQ_TEST__={localAI,localRecommend,coursePack,approxRoute,normalizedDistanceRange,refineRoadDistanceResults,roadRoute,activeVehicleProfile,estimateRoundTripToll};
 if(typeof document!=='undefined')boot();

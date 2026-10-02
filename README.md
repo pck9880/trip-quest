@@ -1,4 +1,4 @@
-# TRIP QUEST · v0.52
+# TRIP QUEST · v0.53
 
 국내여행 AI 플래너의 GitHub Pages/PWA 배포 저장소입니다.
 
@@ -60,3 +60,12 @@
 - `js/controllers/app-controller.js`: DOM 이벤트 바인딩
 
 `app.js`는 도메인 구현보다 모듈 조립과 AI 흐름 중심으로 축소했습니다.
+
+## v0.53 Store / Service Facade
+
+- `js/store/trip-store.js`: navigation/origin/search/selection/runtime 상태를 한 Store가 소유
+- 기존 flat state 접근은 Store proxy를 통해 호환하면서 실제 데이터는 영역별 section으로 분리
+- `resetJourney()`, `update()`, `snapshot()`으로 상태 lifecycle을 중앙화
+- `js/services/travel-service.js`: config/geocode/bootstrap/recommend/tripSummary/courses/aiSearch 명시적 서비스 API 제공
+- 프론트 내부의 가상 `/api/*` 라우터 제거
+- 검색/출발지 Controller는 URL 문자열 대신 named service method에 의존
