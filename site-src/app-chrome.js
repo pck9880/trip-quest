@@ -104,12 +104,33 @@
     sync();
   }
 
+  function enforceCourseDetailOrder(){
+    const panel=$('#courseDetailPanel');
+    const map=panel?.querySelector('.course-route-map-card');
+    const actions=panel?.querySelector('#courseActionButtons');
+    if(!panel||!map||!actions)return;
+    if(map.nextElementSibling!==actions)map.insertAdjacentElement('afterend',actions);
+  }
+
+  function observeCourseDetailOrder(){
+    const panel=$('#courseDetailPanel');
+    if(!panel)return;
+    enforceCourseDetailOrder();
+    let queued=false;
+    new MutationObserver(()=>{
+      if(queued)return;
+      queued=true;
+      requestAnimationFrame(()=>{queued=false;enforceCourseDetailOrder()});
+    }).observe(panel,{childList:true,subtree:false});
+  }
+
   function bootChrome(){
     addCoverMotion();
     enhanceTopbar();
     addBottomNav();
     observeLanding();
-    const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.26';
+    observeCourseDetailOrder();
+    const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.28';
     document.documentElement.classList.add('tq-chrome-ready');
   }
 
