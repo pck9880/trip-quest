@@ -124,13 +124,117 @@
     }).observe(panel,{childList:true,subtree:false});
   }
 
+  function selectedManualCount(){
+    return document.querySelectorAll('#categoryChoices button.selected').length;
+  }
+
+  function addManualSearchButton(){
+    const options=$('#manualOptions');
+    if(!options||$('#manualSearchNow'))return;
+    const wrap=el('div','manual-search-now');
+    wrap.style.cssText='margin-top:18px;display:grid;gap:8px';
+    wrap.innerHTML='<button id="manualSearchNow" class="btn primary" type="button" style="width:100%;min-height:56px">선택한 조건으로 검색하기 →</button><small id="manualSearchHint" style="color:#8e99a8;text-align:center">선택 후 바로 추천지를 검색합니다.</small>';
+    options.appendChild(wrap);
+    const btn=$('#manualSearchNow');
+    const hint=$('#manualSearchHint');
+    const sync=()=>{
+      const count=selectedManualCount();
+      btn.disabled=count===0;
+      if(hint)hint.textContent=count?`취향 ${count}개 선택 · 현재 거리/방향 조건으로 검색`:'여행 취향을 1개 이상 선택하세요.';
+    };
+    options.addEventListener('click',()=>setTimeout(sync,0));
+    sync();
+    btn.onclick=async()=>{
+      if(btn.disabled)return;
+      const next=$('#nextBtn');
+      if(!next)return;
+      btn.disabled=true;btn.textContent='추천 조건 준비 중…';
+      try{
+        /* STEP 2 -> STEP 3 -> 추천 실행. 기존 검색 로직을 그대로 사용해 상태 불일치를 막는다. */
+        next.click();
+        await new Promise(r=>setTimeout(r,120));
+        btn.textContent='추천지 검색 중…';
+        $('#nextBtn')?.click();
+      }finally{
+        setTimeout(()=>{btn.disabled=selectedManualCount()===0;btn.textContent='선택한 조건으로 검색하기 →'},900);
+      }
+    };
+  }
+
+  function parseWon(text){
+    const n=Number(String(text||'').replace(/[^0-9.-]/g,''));
+    return Number.isFinite(n)?n:0;
+  }
+  function parseKm(text){
+    const n=Number(String(text||'').replace(/[^0-9.]/g,''));
+    return Number.isFinite(n)?n:0;
+  }
+  function fmtWon(n){return `${Math.round(n||0).toLocaleString('ko-KR')}원`}
+  function estimateCompactToll(roundTripKm){
+    const oneWay=Math.max(0,roundTripKm/2);
+    if(oneWay<40)return 0;
+    /* 정적 배포판의 OSRM은 유료도로 요금을 주지 않는다. 한국 경차 50% 할인 기준의 보수적 추정치. */
+    const oneWayToll=(900+oneWay*44.3)*0.5;
+    return Math.max(0,Math.round((oneWayToll*2)/100)*100);
+  }
+  function enhanceTripSummaryToll(){
+    const summary=$('#tripSummary');
+    if(!summary||!summary.querySelector('.metric-grid'))return;
+    const metrics=[...summary.querySelectorAll('.metric')];
+    const findMetric=label=>metrics.find(m=>m.querySelector('span')?.textContent.trim()===label);
+    const distanceMetric=findMetric('왕복 거리');
+    const tollMetric=findMetric('통행료')||findMetric('예상 통행료');
+    const totalMetric=findMetric('교통비 합계');
+    const fuelMetric=findMetric('기름값');
+    if(!distanceMetric||!tollMetric)return;
+    const distance=parseKm(distanceMetric.querySelector('strong')?.textContent);
+    const current=parseWon(tollMetric.querySelector('strong')?.textContent);
+    if(current>0)return;
+    const estimated=estimateCompactToll(distance);
+    const label=tollMetric.querySelector('span');
+    const value=tollMetric.querySelector('strong');
+    if(label)label.textContent='예상 통행료';
+    if(value)value.textContent=estimated?`약 ${fmtWon(estimated)}`:'0원';
+    if(totalMetric){
+      const fuel=parseWon(fuelMetric?.querySelector('strong')?.textContent);
+      const total=totalMetric.querySelector('strong');
+      if(total)total.textContent=fmtWon(fuel+estimated);
+    }
+    const note=summary.querySelector('.source-note');
+    if(note&&!note.dataset.tollNote){
+      note.dataset.tollNote='1';
+      note.textContent+=estimated?' · 통행료는 OSRM 미제공으로 경차(50% 할인) 기준 추정':' · 단거리 구간은 예상 통행료 0원';
+    }
+  }
+  function observeTripSummary(){
+    const summary=$('#tripSummary');
+    if(!summary)return;
+    let queued=false;
+    new MutationObserver(()=>{
+      if(queued)return;queued=true;
+      requestAnimationFrame(()=>{queued=false;enhanceTripSummaryToll()});
+    }).observe(summary,{childList:true,subtree:true,characterData:true});
+    enhanceTripSummaryToll();
+  }
+
+  function runtimeHealthCheck(){
+    const critical=['#aiSend','#nextBtn','#categoryChoices','#directionChoices','#ranking','#tripSummary','#courseList'];
+    const missing=critical.filter(s=>!$(s));
+    if(missing.length)console.error('TRIP QUEST UI missing:',missing.join(', '));
+    const next=$('#nextBtn');if(next)next.type='button';
+    document.querySelectorAll('#categoryChoices button,#directionChoices button,.progress-step').forEach(b=>b.type='button');
+  }
+
   function bootChrome(){
     addCoverMotion();
     enhanceTopbar();
     addBottomNav();
     observeLanding();
     observeCourseDetailOrder();
-    const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.28';
+    addManualSearchButton();
+    observeTripSummary();
+    runtimeHealthCheck();
+    const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.29';
     document.documentElement.classList.add('tq-chrome-ready');
   }
 
