@@ -51,7 +51,7 @@ export function createQuestService(storage=defaultStorage(),clock=()=>new Date()
     const newTitles=rewardEnabled?refreshTitles(data):[];write(data);
     const detail={created:true,questId:quest.id,xp:earnedXp,earnedXp,newTitles,stats:statsFrom(data)};
     if(typeof window!=='undefined')window.dispatchEvent(new CustomEvent('tripquest:quest-change',{detail}));
-    return {created:true,progress:data,stats:detail.stats,newTitles};
+    return {created:true,progress:data,stats:detail.stats,newTitles,earnedXp};
   }
   function equipTitle(id){
     const data=read();
