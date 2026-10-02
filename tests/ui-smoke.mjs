@@ -35,13 +35,15 @@ for(const m of html.matchAll(/(?:src|href)="\.\/assets\/([^"?]+)(?:\?[^"]*)?"/g)
   assert.ok(fs.existsSync(p),'missing referenced asset: assets/'+m[1]);
 }
 
-assert.ok(chromeCss.includes('v0.43 — clean artwork + native landing controls'),'v0.43 native landing CSS missing');
-assert.ok(chromeCss.includes('background-image:url("./assets/tq-cover-main-v043.webp")'),'clean cover asset must be used');
-assert.ok(chromeCss.includes('.tq-cover-action-head'),'native landing action header missing');
+assert.ok(chromeCss.includes('v0.44 — original composition + native tactile landing buttons'),'v0.44 tactile landing CSS missing');
+assert.ok(chromeCss.includes('background-image:url("./assets/tq-cover-main-v044.webp")'),'clean cover asset must be used');
 assert.ok(!chromeCss.includes('opacity:.001!important'),'transparent image-button hit areas must be removed');
 assert.ok(!chromeJs.includes('function bindLandingFallback'),'legacy landing coordinate fallback must be removed');
-assert.ok(chromeJs.includes("probe.src='./assets/tq-cover-main-v043.webp'"),'landing preload must use v0.43 cover');
-assert.ok(chromeJs.includes('tq-cover-action-head'),'native landing action header injection missing');
+assert.ok(chromeJs.includes("probe.src='./assets/tq-cover-main-v044.webp'"),'landing preload must use v0.43 cover');
+assert.ok(chromeJs.includes('function bindLandingPressFeedback'),'pressed feedback binding missing');
+assert.ok(chromeCss.includes('#mainLocateBtn.is-pressed'),'primary pressed state missing');
+assert.ok(chromeCss.includes('#mainManualBtn.is-pressed'),'secondary pressed state missing');
+assert.ok(!chromeJs.includes('tq-cover-action-head'),'extra landing action header must not be injected');
 assert.ok(chromeJs.includes("fetch('./fuel-prices.json'"),'runtime fuel-price refresh missing');
 assert.ok(app.includes('function activeVehicleProfile'),'vehicle profile calculation missing');
 assert.ok(app.includes('function estimateRoundTripToll'),'toll estimation missing');
@@ -49,4 +51,4 @@ assert.ok(app.includes("costLabel:vehicle.fuel==='electric'?'충전비':'연료�
 const boot=(chromeJs.match(/function bootChrome\(\)\{([^}]*)\}/)||[])[1]||'';
 assert.ok(!boot.includes('observeTripSummary()'),'legacy DOM toll patch must not run');
 
-console.log('TRIP QUEST v0.43 UI/runtime smoke tests passed');
+console.log('TRIP QUEST v0.44 UI/runtime smoke tests passed');

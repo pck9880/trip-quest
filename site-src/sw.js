@@ -1,5 +1,5 @@
-const CACHE='trip-quest-v0.43-landing-ui-20261002';
-const SHELL=['./','./index.html','./styles.css?v=20261002-1300','./app.js?v=20261002-1430','./app-chrome.css?v=043','./app-chrome.js?v=043','./landing-touch-fix.css?v=20261002-1300','./assets/tq-cover-main-v043.webp','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/apple-touch-icon.png'];
+const CACHE='trip-quest-v0.44-landing-press-20261002';
+const SHELL=['./','./index.html','./styles.css?v=20261002-1300','./app.js?v=20261002-1510','./app-chrome.css?v=044','./app-chrome.js?v=044','./landing-touch-fix.css?v=20261002-1300','./assets/tq-cover-main-v044.webp','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/apple-touch-icon.png'];
 
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()));
@@ -19,12 +19,12 @@ async function decorateNavigation(response){
   if(!type.includes('text/html'))return response;
   let html=await response.text();
   html=html.replace(/\.\/styles\.css\?v=[^"']+/g,'./styles.css?v=20261002-1300');
-  html=html.replace(/\.\/app\.js\?v=[^"']+/g,'./app.js?v=20261002-1430');
-  html=html.replace(/\.\/app-chrome\.css\?v=[^"']+/g,'./app-chrome.css?v=043');
-  html=html.replace(/\.\/app-chrome\.js\?v=[^"']+/g,'./app-chrome.js?v=043');
+  html=html.replace(/\.\/app\.js\?v=[^"']+/g,'./app.js?v=20261002-1510');
+  html=html.replace(/\.\/app-chrome\.css\?v=[^"']+/g,'./app-chrome.css?v=044');
+  html=html.replace(/\.\/app-chrome\.js\?v=[^"']+/g,'./app-chrome.js?v=044');
   html=html.replace(/\.\/landing-touch-fix\.css\?v=[^"']+/g,'./landing-touch-fix.css?v=20261002-1300');
-  if(!html.includes('app-chrome.css'))html=html.replace('</head>','  <link rel="stylesheet" href="./app-chrome.css?v=043" />\n</head>');
-  if(!html.includes('app-chrome.js'))html=html.replace('</body>','  <script src="./app-chrome.js?v=043" defer></script>\n</body>');
+  if(!html.includes('app-chrome.css'))html=html.replace('</head>','  <link rel="stylesheet" href="./app-chrome.css?v=044" />\n</head>');
+  if(!html.includes('app-chrome.js'))html=html.replace('</body>','  <script src="./app-chrome.js?v=044" defer></script>\n</body>');
   return new Response(html,{status:response.status,statusText:response.statusText,headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store'}});
 }
 
