@@ -321,3 +321,9 @@ body.tq-local-search-mode .ai-hero{margin-bottom:calc(90px + env(safe-area-inset
   .tq-place-results-head{align-items:flex-start;flex-direction:column}
   .tq-place-results-head>span{max-width:none;text-align:left}
 }
+
+.main-search-mode{display:grid;gap:8px;margin-bottom:4px}
+.main-search-mode>small{font-size:10px;font-weight:800;letter-spacing:.1em;color:rgba(255,255,255,.68)}
+.main-search-mode>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.main-search-mode button{min-height:42px;border:1px solid rgba(255,255,255,.22);border-radius:13px;background:rgba(7,12,18,.28);color:#eef2f6;font-weight:800;backdrop-filter:blur(12px)}
+.main-search-mode button.active{background:#f2f5f7;color:#0b1117;border-color:#f2f5f7}
