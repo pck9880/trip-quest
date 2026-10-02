@@ -3,9 +3,29 @@ import { fmtWon, fmtMin, fmtKm } from '../core/format.js';
 import { focusMapPoint } from './main-map.js';
 import { drawCourseRoute } from './course-map.js';
 import { renderCourseActionButtons } from './course-actions.js';
+import { keepService, buildCourseKeep } from '../services/keep-service.js';
 
 export function createResultsUI(state){
   let onSelectPlace=null;
+
+  function syncKeepButton(button){
+    if(!button)return;
+    const kept=keepService.has(button.dataset.keepId);
+    button.classList.toggle('is-kept',kept);
+    button.setAttribute('aria-pressed',String(kept));
+    button.setAttribute('aria-label',kept?'KEEP 해제':'KEEP에 저장');
+    button.title=kept?'KEEP 해제':'KEEP에 저장';
+    button.textContent=kept?'★':'☆';
+  }
+
+  if(typeof window!=='undefined'){
+    window.addEventListener('tripquest:keep-change',e=>{
+      const id=e.detail?.id;
+      document.querySelectorAll('.course-keep-toggle').forEach(button=>{
+        if(!id||button.dataset.keepId===id)syncKeepButton(button);
+      });
+    });
+  }
   function setSelectPlaceHandler(handler){onSelectPlace=handler}
   function renderRanking(){
     if(!state.recommendations.length){$('#ranking').className='ranking empty-state';$('#ranking').innerHTML='선택한 거리와 조건에 맞는 장소를 찾지 못했습니다.<br>비슷한 거리 범위에서 다시 찾아볼 수 있습니다.';$('#noMatchActions').hidden=false;return}
@@ -30,16 +50,26 @@ export function createResultsUI(state){
     else setText('#courseWeather',`예상 ${w.condition} · ${Math.round(w.temperature_2m)}°C · 강수 ${w.precipitation_probability||0}% · 바람 ${Math.round(w.wind_speed_10m)}km/h · Open-Meteo`);
     $('#courseDetailPanel').hidden=true;
     $('#courseList').className='course-list';
-    $('#courseList').innerHTML=courses.map(c=>`<article class="course-card" data-course="${c.id}"><div class="course-top"><span class="course-id">${c.id}</span><span class="badge">날씨 적합 ${esc(c.weatherFit)}</span></div><h4>${esc(c.title)}</h4><p>${esc(c.reason)}</p><ol class="stops">${c.stops.map((s,i)=>`<li>${i+1}. ${esc(s.name)}</li>`).join('')}</ol><div class="course-rule">${esc(c.localRule||"근거리 코스")}${c.maxLocalLegKm?` · 최대 구간 ${c.maxLocalLegKm.toFixed(1)}km`:""}</div><div class="course-stats"><span>${fmtKm(c.route.distanceKm)}</span><span>${fmtMin(c.route.timeMin)}</span><span>약 ${fmtWon(c.estimatedCost.total)}</span></div><button class="btn secondary choose-course" type="button">${c.id}코스 선택</button></article>`).join('');
+    $('#courseList').innerHTML=courses.map(c=>{const keep=buildCourseKeep(state.selected,c);const kept=keepService.has(keep.id);return `<article class="course-card" data-course="${c.id}"><div class="course-top"><span class="course-id">${c.id}</span><span class="badge">날씨 적합 ${esc(c.weatherFit)}</span></div><h4>${esc(c.title)}</h4><p>${esc(c.reason)}</p><ol class="stops">${c.stops.map((s,i)=>`<li>${i+1}. ${esc(s.name)}</li>`).join('')}</ol><div class="course-rule">${esc(c.localRule||"근거리 코스")}${c.maxLocalLegKm?` · 최대 구간 ${c.maxLocalLegKm.toFixed(1)}km`:""}</div><div class="course-stats"><span>${fmtKm(c.route.distanceKm)}</span><span>${fmtMin(c.route.timeMin)}</span><span>약 ${fmtWon(c.estimatedCost.total)}</span></div><div class="course-choice-row"><button class="btn secondary choose-course" type="button">${c.id}코스 선택</button><button class="course-keep-toggle${kept?' is-kept':''}" type="button" data-keep-id="${esc(keep.id)}" aria-pressed="${kept}" aria-label="${kept?'KEEP 해제':'KEEP에 저장'}" title="${kept?'KEEP 해제':'KEEP에 저장'}">${kept?'★':'☆'}</button></div></article>`}).join('');
   
     $('#courseList').onclick=e=>{
-      const button=e.target.closest('.choose-course');
       const card=e.target.closest('.course-card');
-      if(!button||!card)return;
-  
+      if(!card)return;
+
       const id=card.dataset.course;
       const course=courses.find(c=>c.id===id);
       if(!course){toast('코스 정보를 다시 불러와주세요.');return}
+
+      const keepButton=e.target.closest('.course-keep-toggle');
+      if(keepButton){
+        const result=keepService.toggle(buildCourseKeep(state.selected,course));
+        syncKeepButton(keepButton);
+        toast(result.saved?'KEEP에 저장했어요.':'KEEP에서 해제했어요.');
+        return;
+      }
+
+      const button=e.target.closest('.choose-course');
+      if(!button)return;
   
       state.selectedCourse=id;
       state.selectedCourseData=course;

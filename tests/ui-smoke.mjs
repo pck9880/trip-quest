@@ -14,7 +14,7 @@ const productCss=read('css/product.css');
 const landingCss=read('css/landing.css');
 const searchCss=read('css/search.css');
 const chromeCss=productCss+landingCss+searchCss;
-const moduleFiles=['js/core/dom.js','js/core/format.js','js/data/places.js','js/data/recommendation-data.js','js/data/course-data.js','js/data/ui-options.js','js/domain/geo.js','js/domain/schedule.js','js/domain/trip-cost.js','js/services/vehicle-settings.js','js/services/routing.js','js/services/weather.js','js/services/geocoding.js','js/data/intent-rules.js','js/domain/recommendation.js','js/domain/intent-parser.js','js/usecases/search-destinations.js','js/domain/course-planner.js','js/ui/main-map.js','js/ui/course-map.js','js/ui/time-controls.js','js/ui/course-actions.js','js/ui/landing.js','js/ui/wizard.js','js/ui/results.js','js/controllers/search-controller.js','js/controllers/origin-controller.js','js/controllers/app-controller.js','js/store/trip-store.js','js/services/travel-service.js'];
+const moduleFiles=['js/core/dom.js','js/core/format.js','js/data/places.js','js/data/recommendation-data.js','js/data/course-data.js','js/data/ui-options.js','js/domain/geo.js','js/domain/schedule.js','js/domain/trip-cost.js','js/services/vehicle-settings.js','js/services/routing.js','js/services/weather.js','js/services/geocoding.js','js/data/intent-rules.js','js/domain/recommendation.js','js/domain/intent-parser.js','js/usecases/search-destinations.js','js/domain/course-planner.js','js/ui/main-map.js','js/ui/course-map.js','js/ui/time-controls.js','js/ui/course-actions.js','js/ui/landing.js','js/ui/wizard.js','js/ui/results.js','js/controllers/search-controller.js','js/controllers/origin-controller.js','js/controllers/app-controller.js','js/store/trip-store.js','js/services/travel-service.js','js/services/keep-service.js','js/ui/keep-panel.js'];
 for(const file of moduleFiles)assert.ok(fs.existsSync(new URL(file,root)),'missing extracted module: '+file);
 assert.ok(app.includes("from './js/core/dom.js'"),'app.js must use core DOM module');
 const recommendationModule=read('js/domain/recommendation.js');
@@ -129,7 +129,7 @@ assert.ok(!app.includes("const openAdvanced=$('#openAdvancedSearch')"),'event im
 assert.ok(resultsSource.includes('function renderCourses('),'course result rendering module missing');
 assert.ok(searchControllerSource.includes('function sortRecommendations('),'search controller sorting missing');
 assert.ok(chromeCss.includes('body[data-trip-step="2"]:not(.tq-advanced-open) .wizard'),'simple search must hide advanced wizard at step two');
-console.log('TRIP QUEST v1.0.1 UI/runtime smoke tests passed');
+console.log('TRIP QUEST v1.1.0 UI/runtime smoke tests passed');
 
 const mainMapSource=read('js/ui/main-map.js');
 const courseMapSource=read('js/ui/course-map.js');
@@ -141,5 +141,19 @@ assert.ok(originControllerSource.includes('OpenStreetMap / Nominatim'),'geocoder
 assert.ok(originControllerSource.includes('Open-Meteo'),'weather attribution required');
 assert.ok(resultsSource.includes('OSRM 도로 경로'),'routing provider disclosure required');
 
-assert.ok(html.includes('TRIP QUEST · v1.0.1'),'v1.0.0 footer/version marker missing');
-assert.ok(chromeJs.includes("footer.textContent='TRIP QUEST · v1.0.1'"),'chrome footer version missing');
+assert.ok(html.includes('TRIP QUEST · v1.1.0'),'v1.0.0 footer/version marker missing');
+assert.ok(chromeJs.includes("footer.textContent='TRIP QUEST · v1.1.0'"),'chrome footer version missing');
+
+const keepServiceSource=read('js/services/keep-service.js');
+const keepPanelSource=read('js/ui/keep-panel.js');
+assert.ok(resultsSource.includes('course-keep-toggle'),'course cards must expose KEEP star toggles');
+assert.ok(resultsSource.includes('keepService.toggle('),'course KEEP star must toggle persistence');
+assert.ok(keepServiceSource.includes("const KEEP_KEY='tq_keep_courses_v1'"),'KEEP storage key missing');
+assert.ok(keepServiceSource.includes("window.dispatchEvent(new CustomEvent('tripquest:keep-change'"),'KEEP change event missing');
+assert.ok(keepPanelSource.includes("tripquest:open-keep"),'bottom KEEP panel open event missing');
+assert.ok(keepPanelSource.includes('tq-keep-detail'),'KEEP detail view missing');
+assert.ok(keepPanelSource.includes('data-remove-id'),'KEEP detail removal missing');
+assert.ok(chromeJs.includes('data-tab="keep"'),'bottom KEEP tab missing');
+assert.ok(chromeJs.includes('tq-keep-badge'),'KEEP badge missing');
+assert.ok(!chromeJs.includes('data-tab="home"'),'legacy bottom home tab must be removed');
+assert.ok(!chromeJs.includes('data-tab="plan"'),'legacy bottom plan tab must be removed');
