@@ -129,7 +129,7 @@ assert.ok(!app.includes("const openAdvanced=$('#openAdvancedSearch')"),'event im
 assert.ok(resultsSource.includes('function renderCourses('),'course result rendering module missing');
 assert.ok(searchControllerSource.includes('function sortRecommendations('),'search controller sorting missing');
 assert.ok(chromeCss.includes('body[data-trip-step="2"]:not(.tq-advanced-open) .wizard'),'simple search must hide advanced wizard at step two');
-console.log('TRIP QUEST v1.5.0 UI/runtime smoke tests passed');
+console.log('TRIP QUEST v1.5.1 UI/runtime smoke tests passed');
 
 const mainMapSource=read('js/ui/main-map.js');
 const courseMapSource=read('js/ui/course-map.js');
@@ -141,8 +141,8 @@ assert.ok(originControllerSource.includes('OpenStreetMap / Nominatim'),'geocoder
 assert.ok(originControllerSource.includes('Open-Meteo'),'weather attribution required');
 assert.ok(resultsSource.includes('OSRM 도로 경로'),'routing provider disclosure required');
 
-assert.ok(html.includes('TRIP QUEST · v1.5.0'),'v1.0.0 footer/version marker missing');
-assert.ok(chromeJs.includes("footer.textContent='TRIP QUEST · v1.5.0'"),'chrome footer version missing');
+assert.ok(html.includes('TRIP QUEST · v1.5.1'),'v1.0.0 footer/version marker missing');
+assert.ok(chromeJs.includes("footer.textContent='TRIP QUEST · v1.5.1'"),'chrome footer version missing');
 
 const keepServiceSource=read('js/services/keep-service.js');
 const keepPanelSource=read('js/ui/keep-panel.js');
@@ -219,6 +219,7 @@ const questServiceSource=read('js/services/quest-service.js');
 const questSessionSource=read('js/services/quest-session-service.js');
 const courseQuestSource=read('js/domain/course-quest.js');
 const questVerificationSource=read('js/domain/quest-verification.js');
+const questIslandSource=read('js/ui/quest-island.js');
 assert.ok(chromeJs.includes('data-tab="quest"'),'QUEST bottom tab missing');
 assert.ok(chromeJs.includes("tripquest:open-quest"),'QUEST tab open event missing');
 assert.ok(app.includes('initQuestPanel();'),'QUEST panel must initialize at app boot');
@@ -231,9 +232,11 @@ assert.ok(courseQuestSource.includes("rewardStatus:'pending'"),'QUEST rewards mu
 assert.ok(questPanelSource.includes('먼저 여행 코스를 선택하세요.'),'QUEST empty course-selection guidance missing');
 assert.ok(!questPanelSource.includes('QUEST 위치정보 사용 안내'),'QUEST must not ask for location consent inside the QUEST panel');
 assert.ok(questPanelSource.includes('GPS 설정 열기'),'QUEST GPS settings shortcut missing');
-assert.ok(questPanelSource.includes('앱이 꺼져 있거나 백그라운드 상태에서는 QUEST가 완료되지 않습니다.'),'inactive-app completion limitation missing');
-assert.ok(questPanelSource.includes('visibilitychange'),'foreground/background lifecycle handling missing');
-assert.ok(questPanelSource.includes('maintainTracking'),'foreground automatic GPS tracking missing');
+assert.ok(questPanelSource.includes('앱이 꺼져 있거나 백그라운드 상태에서는 위치를 확인하지 않습니다.'),'inactive-app reward limitation missing');
+assert.ok(questPanelSource.includes('data-quest-action="claim"'),'reward claim action missing');
+assert.ok(questPanelSource.includes('>보상받기</button>'),'reward claim label missing');
+assert.ok(questPanelSource.includes('아쉽지만 아직 보상을 받을 수 없어요.'),'wrong-location reward popup copy missing');
+assert.ok(!questPanelSource.includes('maintainTracking'),'QUEST must not continuously auto-track GPS');
 assert.ok(gpsSource.includes('permission_denied'),'GPS permission denial mapping missing');
 assert.ok(gpsSource.includes('position_unavailable'),'GPS unavailable mapping missing');
 assert.ok(gpsSource.includes("type:'insecure'"),'secure-context GPS guard missing');
@@ -241,11 +244,20 @@ assert.ok(consentSource.includes('isEnabled'),'GPS ON/OFF state missing');
 assert.ok(consentSource.includes("purpose:'trip-location-and-course-quest-verification'"),'global location purpose missing');
 assert.ok(questVerificationSource.includes("status:'jump'"),'GPS jump rejection missing');
 assert.ok(questVerificationSource.includes("status:'weak'"),'GPS accuracy rejection missing');
+assert.ok(questSessionSource.includes("async function claimReward()"),'on-demand reward claim service missing');
 assert.ok(questSessionSource.includes("if(!isActive())"),'inactive-app verification guard missing');
+assert.ok(questSessionSource.includes("maximumAge:0"),'reward claim must request a fresh GPS fix');
 assert.ok(questSessionSource.includes('armCourseQuest'),'course QUEST session arming missing');
 assert.ok(myPageSource.includes('GPS 켜기 및 위치 권한 요청'),'MY GPS ON control missing');
 assert.ok(myPageSource.includes('GPS 끄기'),'MY GPS OFF control missing');
-assert.ok(myPageSource.includes('자동 완료 안 함'),'background completion setting copy missing');
+assert.ok(myPageSource.includes('보상받기에서 사용'),'on-demand QUEST GPS setting copy missing');
 assert.ok(myPageSource.includes('보상과 칭호 시스템은 추후 적용 예정'),'pending reward copy missing');
 assert.ok(questServiceSource.includes("quest.rewardStatus!=='pending'"),'pending rewards must not unlock titles');
 assert.ok(userDataSource.includes('quests:questService.exportData()'),'QUEST completion backup missing');
+
+assert.ok(app.includes('initQuestIsland();'),'active course island must initialize at boot');
+assert.ok(questIslandSource.includes('ACTIVE COURSE'),'dynamic-island course bar missing');
+assert.ok(questIslandSource.includes('코스 설정 완료'),'course-ready popup missing');
+assert.ok(questIslandSource.includes("tripquest:open-quest"),'course island must open QUEST');
+assert.ok(resultsSource.includes('setTimeout(resolve,420)'),'course setup loading state must remain visible');
+assert.ok(resultsSource.includes('코스 설정 완료 · QUEST가 준비됐습니다.'),'course setup completion feedback missing');

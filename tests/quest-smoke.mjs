@@ -72,13 +72,15 @@ const sessionStorage=new FakeStorage();
 const sessionProgress=createQuestService(new FakeStorage(),()=>new Date(now));
 let ms=1000;
 let active=true;
-let gpsWatching=false,stopCount=0,handlers=null;
+let currentPosition={lat:35.123456,lng:129.123456,accuracyM:18,timestamp:ms};
+let stopCount=0;
 const sessionGps={
   support:()=>({ok:true,error:null}),
   permissionState:async()=> 'granted',
-  watch({onPosition,onError}){handlers={onPosition,onError};gpsWatching=true;return 9},
-  stop(){const was=gpsWatching;gpsWatching=false;if(was)stopCount++;return was},
-  isWatching:()=>gpsWatching
+  async current(){return {...currentPosition}},
+  watch(){throw new Error('reward claim must not start continuous GPS watch')},
+  stop(){stopCount++;return true},
+  isWatching:()=>false
 };
 const session=createQuestSessionService({
   storage:sessionStorage,gps:sessionGps,consent,progress:sessionProgress,
@@ -88,51 +90,53 @@ const session=createQuestSessionService({
 session.armCourseQuest(courseQuest);
 assert.equal(session.getSnapshot().session.status,'armed');
 assert.equal(session.getSnapshot().quest.course.id,'A');
-await session.resume();
-assert.equal(session.getSnapshot().isWatching,true);
+assert.equal(session.getSnapshot().isWatching,false,'armed course must not continuously watch GPS');
 
-// A live user position outside the target is evaluated but never persisted.
-const userOutside={lat:35.123456,lng:129.123456,accuracyM:18,timestamp:ms};
-handlers.onPosition(userOutside);
+// Wrong location: reward is denied and raw user coordinates are never persisted.
+let claim=await session.claimReward();
+assert.equal(claim.ok,false);
+assert.equal(claim.reason,'outside');
+assert.ok(claim.result.distanceM>0);
 const stored=sessionStorage.getItem('tq_quest_session_v1');
 assert.ok(!stored.includes('35.123456'),'live user latitude must not be persisted');
 assert.ok(!stored.includes('129.123456'),'live user longitude must not be persisted');
-assert.ok(stored.includes('"checkpoints"'),'public course target may be persisted for session restore');
+assert.ok(session.getSnapshot().session,'wrong location must keep QUEST armed');
 
-// Background/inactive callbacks must not complete a QUEST.
+// Weak GPS also cannot complete.
+currentPosition={lat:courseQuest.checkpoints[0].lat,lng:courseQuest.checkpoints[0].lng,accuracyM:150,timestamp:ms};
+claim=await session.claimReward();
+assert.equal(claim.ok,false);
+assert.equal(claim.reason,'weak');
+
+// Background/inactive app cannot claim.
 active=false;
-handlers.onPosition({lat:courseQuest.checkpoints[0].lat,lng:courseQuest.checkpoints[0].lng,accuracyM:15,timestamp:ms});
-assert.ok(session.getSnapshot().session,'inactive app must keep QUEST pending');
-assert.equal(session.getSnapshot().session.status,'paused');
-assert.equal(session.getSnapshot().isWatching,false);
+await assert.rejects(()=>session.claimReward(),error=>error.type==='inactive');
+assert.ok(session.getSnapshot().session,'inactive claim must keep QUEST pending');
 
-// Reopening the app resumes GPS; two good fixes complete the arrival verification.
+// Correct foreground GPS position completes with one on-demand position check.
 active=true;
-await session.resume();
 ms+=1000;now=new Date(now.getTime()+1000);
-handlers.onPosition({lat:courseQuest.checkpoints[0].lat,lng:courseQuest.checkpoints[0].lng,accuracyM:15,timestamp:ms});
-assert.ok(session.getSnapshot().session,'first arrival fix should not complete yet');
-ms+=1500;now=new Date(now.getTime()+1500);
-handlers.onPosition({lat:courseQuest.checkpoints[0].lat,lng:courseQuest.checkpoints[0].lng,accuracyM:15,timestamp:ms});
-assert.equal(session.getSnapshot().session,null,'foreground GPS arrival should complete QUEST');
+currentPosition={lat:courseQuest.checkpoints[0].lat,lng:courseQuest.checkpoints[0].lng,accuracyM:15,timestamp:ms};
+claim=await session.claimReward();
+assert.equal(claim.ok,true);
+assert.equal(session.getSnapshot().session,null,'successful reward claim must clear QUEST session');
 assert.equal(sessionProgress.getStats().completedCount,1);
 assert.equal(sessionProgress.getStats().xp,0,'completion record should not grant reward yet');
-assert.ok(stopCount>=1,'GPS watch must stop after completion');
+assert.ok(stopCount>=1,'claim flow should stop any stale GPS watch');
 
 session.armCourseQuest(courseQuest);
-await session.resume();
 session.cancel();
 assert.equal(session.getSnapshot().session,null);
-assert.equal(session.getSnapshot().isWatching,false);
 
 const deniedGps={...sessionGps,permissionState:async()=> 'denied'};
 const deniedSession=createQuestSessionService({storage:new FakeStorage(),gps:deniedGps,consent,progress:sessionProgress});
 deniedSession.armCourseQuest(courseQuest);
-await assert.rejects(()=>deniedSession.resume(),error=>error.type==='permission_denied');
+await assert.rejects(()=>deniedSession.claimReward(),error=>error.type==='permission_denied');
 
 consent.disable();
 const gpsOffSession=createQuestSessionService({storage:new FakeStorage(),gps:sessionGps,consent,progress:sessionProgress});
 gpsOffSession.armCourseQuest(courseQuest);
-await assert.rejects(()=>gpsOffSession.resume(),error=>error.type==='gps_disabled');
+await assert.rejects(()=>gpsOffSession.claimReward(),error=>error.type==='gps_disabled');
 
-console.log('TRIP QUEST v1.5 course-linked foreground GPS QUEST tests passed');
+console.log('TRIP QUEST v1.5.1 on-demand GPS reward claim tests passed');
+
