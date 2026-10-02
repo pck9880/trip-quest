@@ -33,7 +33,7 @@
       <div class="main-cover-action">
         <button id="mainLocateBtn" class="main-locate-btn" type="button"><span class="loc-dot"></span>내 위치에서 시작</button>
         <p id="mainLocationStatus">GPS 위치는 실제 지역명으로 자동 확인합니다.</p>
-        <button id="mainManualBtn" class="main-manual-btn" type="button">장소로 시작</button>
+        <button id="mainManualBtn" class="main-manual-btn" type="button">직접 입력으로 시작</button>
       </div>
     </div>
   </section>
@@ -45,47 +45,102 @@
     </header>
     <main>
       <section id="sharedTripBanner" class="shared-trip panel" hidden><div><span>공유 받은 여행</span><strong id="sharedTripTitle">—</strong><small id="sharedTripMeta">—</small></div><button id="sharedTripUseBtn" class="btn primary small">내 위치로 다시 계산</button></section>
-      <section class="ai-hero panel tq-search-page" aria-labelledby="aiTitle">
-        <div class="ai-copy tq-search-head">
-          <div class="eyebrow">TRIP SEARCH</div>
-          <h1 id="aiTitle">어디로 떠나고 싶나요?</h1>
-          <p>거리와 장소 키워드를 바탕으로 여행지를 찾고, 선택 후 코스를 추천합니다.</p>
+      <section id="tripExplorer" class="tq-geo-explorer" aria-labelledby="aiTitle">
+        <div class="tq-geo-stage">
+          <div class="tq-geo-topline">
+            <div><span>TRIP GEO</span><b>EXPLORE VECTOR</b></div>
+            <div class="tq-geo-coordinates"><small>RANGE</small><strong id="geoExploreDistance">100 km</strong></div>
+          </div>
+
+          <svg id="geoCanvas" class="tq-geo-canvas" viewBox="0 0 1000 760" role="img" aria-label="출발점에서 탐색 포인트를 드래그해 여행 방향을 선택하는 인터랙티브 탐색판">
+            <defs>
+              <radialGradient id="geoGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#c9ff45" stop-opacity=".13"></stop>
+                <stop offset="55%" stop-color="#c9ff45" stop-opacity=".025"></stop>
+                <stop offset="100%" stop-color="#c9ff45" stop-opacity="0"></stop>
+              </radialGradient>
+              <linearGradient id="geoVectorGradient" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#c9ff45" stop-opacity=".22"></stop>
+                <stop offset="100%" stop-color="#c9ff45" stop-opacity=".92"></stop>
+              </linearGradient>
+              <filter id="geoSoftGlow"><feGaussianBlur stdDeviation="10"></feGaussianBlur></filter>
+            </defs>
+            <rect class="tq-geo-field" width="1000" height="760"></rect>
+            <circle class="tq-geo-ambient" cx="500" cy="318" r="300" fill="url(#geoGlow)"></circle>
+            <g class="tq-geo-grid" aria-hidden="true">
+              <path d="M70 318H930M500 38V598"></path>
+              <path d="M128 92L872 544M872 92L128 544"></path>
+              <circle cx="500" cy="318" r="64"></circle>
+              <circle cx="500" cy="318" r="127"></circle>
+              <circle cx="500" cy="318" r="191"></circle>
+              <circle cx="500" cy="318" r="254"></circle>
+              <circle cx="500" cy="318" r="286"></circle>
+            </g>
+            <g class="tq-geo-ring-labels" aria-hidden="true">
+              <text x="512" y="258">100</text>
+              <text x="512" y="194">200</text>
+              <text x="512" y="130">300</text>
+              <text x="512" y="69">450 KM</text>
+            </g>
+            <g class="tq-geo-cardinals" aria-hidden="true">
+              <text x="500" y="30" text-anchor="middle">N</text>
+              <text x="947" y="323" text-anchor="middle">E</text>
+              <text x="500" y="627" text-anchor="middle">S</text>
+              <text x="53" y="323" text-anchor="middle">W</text>
+            </g>
+            <g class="tq-geo-contours" aria-hidden="true">
+              <path d="M120 210C220 154 294 202 354 170S498 106 586 148 720 220 882 172"></path>
+              <path d="M98 430C210 374 304 408 386 392S536 356 628 402 774 478 906 424"></path>
+              <path d="M176 520C286 476 366 518 462 492S650 468 826 526"></path>
+            </g>
+            <line id="geoVector" class="tq-geo-vector" x1="500" y1="318" x2="596" y2="254"></line>
+            <g id="geoCandidateLayer"></g>
+            <g class="tq-geo-origin" transform="translate(500 318)">
+              <circle class="halo" r="29"></circle><circle class="core" r="12"></circle>
+              <text y="48" text-anchor="middle">START</text>
+            </g>
+            <g id="geoTargetPulse" class="tq-geo-target-pulse" transform="translate(596 254)"><circle r="34"></circle></g>
+            <g id="geoTarget" class="tq-geo-target" transform="translate(596 254)" role="button" aria-label="탐색 포인트. 드래그해서 이동하세요." tabindex="0">
+              <circle class="grab" r="36"></circle><circle class="outer" r="22"></circle><circle class="inner" r="9"></circle>
+              <path d="M0-45V-30M0 30V45M-45 0H-30M30 0H45"></path>
+              <text y="60" text-anchor="middle">DRAG</text>
+            </g>
+          </svg>
+
+          <div class="tq-geo-readout">
+            <span><small>DIRECTION</small><b id="geoExploreDirection">북동 · 56°</b></span>
+            <span><small>LOCATION</small><b id="geoExplorePlace">포인트를 드래그해 탐색 방향을 정하세요.</b></span>
+          </div>
+
+          <div id="geoLocationPopup" class="tq-geo-location-popup" hidden>
+            <div><small>LOCATION FOUND</small><strong id="geoPopupTitle">위치 분석 중…</strong><span id="geoPopupMeta">—</span></div>
+            <button id="geoPopupUse" type="button">이 주변 탐색 →</button>
+          </div>
         </div>
 
-        <section id="searchRegionPanel" class="tq-search-region-panel">
-          <div class="tq-search-region-head"><span>검색 기준 장소</span><strong id="searchRegionLabel">내 위치 또는 원하는 장소를 선택하세요.</strong></div>
-          <div class="tq-search-region-row">
-            <input id="searchRegionInput" type="search" placeholder="예: 가야공원, 사상 번화가, 백화점, 아울렛, 놀이공원" autocomplete="off" />
-            <button id="searchRegionBtn" class="btn secondary" type="button">장소 찾기</button>
-            <button id="searchUseCurrentBtn" class="btn ghost" type="button">내 위치</button>
+        <section id="geoSearchSheet" class="tq-geo-search-sheet" data-state="mid">
+          <button id="geoSheetHandle" class="tq-geo-sheet-handle" type="button" aria-label="검색 패널을 위아래로 드래그"><i></i></button>
+          <div class="tq-geo-sheet-top">
+            <div class="tq-geo-start">
+              <span><small>START</small><strong id="geoStartLabel">시작 위치를 설정하세요.</strong></span>
+              <div><button id="geoStartQuickGps" type="button">현재 위치</button><button id="geoStartChange" type="button">직접 입력</button></div>
+            </div>
+            <button id="geoSheetExpand" class="tq-geo-sheet-expand" type="button" aria-label="검색 패널 펼치기">↕</button>
           </div>
-          <div id="searchRegionResults" class="tq-search-region-results" hidden></div>
+          <div class="tq-geo-search-copy">
+            <div><span>AI TRIP SEARCH</span><h1 id="aiTitle">어디로 떠나고 싶나요?</h1></div>
+            <p id="geoSearchContext">지도 탐색 포인트와 자연어 조건을 함께 분석합니다.</p>
+          </div>
+          <div class="ai-composer tq-geo-composer">
+            <label class="sr-only" for="aiInput">TRIP QUEST 검색 요청</label>
+            <textarea id="aiInput" rows="2" placeholder="예: 조용한 바다 드라이브, 산책하고 카페 가기"></textarea>
+            <button id="aiSend" class="btn primary ai-send" type="button">여행지 찾기</button>
+          </div>
+          <div id="aiSearchStatus" class="ai-search-status" role="status" aria-live="polite" hidden></div>
+          <div id="aiProgress" class="ai-progress" hidden><div class="ai-progress-top"><span>스마트 추천 검색</span><b id="aiProgressText">0%</b></div><div class="ai-progress-track"><i id="aiProgressFill"></i></div><small id="aiEta">예상 1~3초</small></div>
+          <div id="aiConversation" class="ai-conversation" hidden><div class="ai-answer-row"><span class="ai-avatar">TQ</span><div><div class="ai-mode" id="aiMode">SEARCH ANALYSIS</div><p id="aiReply"></p><div id="aiAnalysisTags" class="ai-analysis-tags" hidden></div><div id="aiChoices" class="ai-choices"></div></div></div></div>
+          <div id="geoResults" class="tq-geo-results"></div>
         </section>
-
-        <div class="ai-composer tq-search-composer">
-          <label class="sr-only" for="aiInput">TRIP QUEST 검색 요청</label>
-          <textarea id="aiInput" rows="2" placeholder="예: 조용한 바다, 힙한 동네, 분위기 좋은 카페"></textarea>
-          <button id="aiSend" class="btn primary ai-send" type="button">여행지 찾기</button>
-        </div>
-
-        <div id="advancedDistanceControl" class="ai-distance-control tq-distance-primary">
-          <div class="ai-distance-head">
-            <div><span id="distanceTitle">검색 거리</span><strong><b id="distanceMinValue">0</b> ~ <b id="distanceMaxValue">100</b> km</strong></div>
-            <small id="distanceHint">50km 단위로 스냅 · 0~100km</small>
-          </div>
-          <div id="distanceSlider" class="dual-distance-range">
-            <div class="dual-distance-track"><i id="distanceRangeFill"></i></div>
-            <input id="distanceMinRange" class="ai-distance-range min" type="range" min="0" max="450" step="50" value="0" aria-label="최소 검색 거리" />
-            <input id="distanceMaxRange" class="ai-distance-range max" type="range" min="0" max="450" step="50" value="100" aria-label="최대 검색 거리" />
-          </div>
-          <div id="distanceRuler" class="distance-ruler" aria-hidden="true"></div>
-          <div id="distanceLabels" class="distance-labels"><span>0</span><span>100</span><span>200</span><span>300</span><span>400</span><span>450km</span></div>
-          <p id="distanceHelp">양쪽 핸들을 드래그하면 50km마다 자석처럼 맞춰집니다.</p>
-        </div>
-        <div id="aiSearchStatus" class="ai-search-status" role="status" aria-live="polite" hidden></div>
-        <div id="aiProgress" class="ai-progress" hidden><div class="ai-progress-top"><span>스마트 추천 검색</span><b id="aiProgressText">0%</b></div><div class="ai-progress-track"><i id="aiProgressFill"></i></div><small id="aiEta">예상 1~3초</small></div>
-        <div id="aiConversation" class="ai-conversation" hidden><div class="ai-answer-row"><span class="ai-avatar">TQ</span><div><div class="ai-mode" id="aiMode">SEARCH ANALYSIS</div><p id="aiReply"></p><div id="aiAnalysisTags" class="ai-analysis-tags" hidden></div><div id="aiChoices" class="ai-choices"></div></div></div></div>
-
       </section>
             <nav class="progress panel" id="progress" aria-label="여행 계획 단계"><button class="progress-step active" data-step="1"><b>1</b><span>출발지</span></button><span></span><button class="progress-step" data-step="2"><b>2</b><span>취향</span></button><span></span><button class="progress-step" data-step="3"><b>3</b><span>시간</span></button><span></span><button class="progress-step" data-step="4"><b>4</b><span>추천</span></button><span></span><button class="progress-step" data-step="5"><b>5</b><span>코스</span></button></nav>
       <section class="wizard panel"><div class="wizard-head"><div><div class="eyebrow" id="stepEyebrow">STEP 1 / 5</div><h2 id="stepTitle">어디에서 출발하나요?</h2><p id="stepDescription">현재 위치를 사용하거나 출발지를 직접 검색하세요.</p></div><button id="resetBtn" class="btn ghost small">처음부터</button></div>
@@ -98,7 +153,7 @@
       </section>
     </main>
   </div>
-  <footer class="app-version-footer">TRIP QUEST · v1.9.0</footer>
+  <footer class="app-version-footer">TRIP QUEST · v1.10.0</footer>
   <div id="iosInstallTip" class="install-sheet" hidden><div class="install-card"><button id="closeInstallTip" class="install-close" aria-label="닫기">×</button><b>iPhone / iPad에 설치</b><p>Safari 하단의 공유 버튼을 누른 뒤 <strong>홈 화면에 추가</strong>를 선택하세요.</p></div></div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
