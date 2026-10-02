@@ -106,7 +106,7 @@ const boot=(chromeJs.match(/function bootChrome\(\)\{([^}]*)\}/)||[])[1]||'';
 assert.ok(!boot.includes('observeTripSummary()'),'legacy DOM toll patch must not run');
 
 assert.ok(html.includes('오늘 어디로 떠날까요?'),'simplified search title missing');
-assert.ok(html.includes('현재 위치에서 취향에 맞는 여행지를 빠르게 찾아드려요.'),'simplified search subtitle missing');
+assert.ok(html.includes('거리와 취향을 분석해 갈 만한 여행지를 추천합니다.'),'simplified search subtitle missing');
 const wizardSource=read('js/ui/wizard.js');
 const appControllerSource=read('js/controllers/app-controller.js');
 const resultsSource=read('js/ui/results.js');
