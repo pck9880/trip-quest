@@ -21,7 +21,7 @@ for(const id of ['mainLanding','mainLocateBtn','mainManualBtn','aiInput','aiSend
 
 function q(file,name){
   const safe=name.replaceAll('.','\\.');
-  const m=file.match(new RegExp(safe+'\\?v=([^"\\']+)'));
+  const m=file.match(new RegExp(safe+"\\?v=([^\"']+)"));
   return m?.[1]||'';
 }
 for(const asset of ['styles.css','app.js','app-chrome.css','app-chrome.js','landing-touch-fix.css']){
