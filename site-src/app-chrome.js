@@ -8,6 +8,7 @@
     star:'<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/>',
     route:'<circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M7.8 17.1c2.6-1.1 1.8-4.3 4.4-5.4 1.5-.7 2.9-.2 4.1-1.8"/><path d="M7.7 6.3h4.7"/><path d="m10.5 4.2 2.1 2.1-2.1 2.1"/>',
     settings:'<path d="M4 6h10"/><path d="M18 6h2"/><circle cx="16" cy="6" r="2"/><path d="M4 12h2"/><path d="M10 12h10"/><circle cx="8" cy="12" r="2"/><path d="M4 18h8"/><path d="M16 18h4"/><circle cx="14" cy="18" r="2"/>',
+    user:'<circle cx="12" cy="8" r="3.5"/><path d="M5 20c.6-4 3-6 7-6s6.4 2 7 6"/>',
     location:'<path d="M20 10c0 5.2-8 12-8 12S4 15.2 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
     edit:'<path d="M4 20h4l11-11-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/>',
     car:'<path d="M5 17h14"/><path d="m6 17-1-4 2-5h10l2 5-1 4"/><path d="M7 12h10"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/>',
@@ -107,7 +108,7 @@
         </section>
         <div class="tq-setup-actions">
           <button id="tqSetupSave" type="button" class="tq-setup-save">설정 완료</button>
-          <small class="tq-setup-foot">이 기기에 저장 · 하단 설정 메뉴에서 언제든 변경</small>
+          <small class="tq-setup-foot">이 기기에 저장 · MY > 설정에서 언제든 변경</small>
         </div>
       </div>`;
     document.body.appendChild(modal);
@@ -285,10 +286,14 @@
     if($('.tq-bottom-nav'))return;
     const nav=el('nav','tq-bottom-nav');
     nav.setAttribute('aria-label','앱 하단 메뉴');
-    nav.innerHTML=`<button type="button" data-tab="explore" class="active"><i>${iconSvg('ai','tq-icon tq-nav-icon')}</i><span>탐색</span></button><button type="button" data-tab="keep"><i>${iconSvg('star','tq-icon tq-nav-icon')}</i><span>KEEP</span><b class="tq-keep-badge" hidden>0</b></button><button type="button" data-tab="settings"><i>${iconSvg('settings','tq-icon tq-nav-icon')}</i><span>설정</span></button>`;
+    nav.innerHTML=`<button type="button" data-tab="explore" class="active"><i>${iconSvg('ai','tq-icon tq-nav-icon')}</i><span>탐색</span></button><button type="button" data-tab="keep"><i>${iconSvg('star','tq-icon tq-nav-icon')}</i><span>KEEP</span><b class="tq-keep-badge" hidden>0</b></button><button type="button" data-tab="my"><i>${iconSvg('user','tq-icon tq-nav-icon')}</i><span>MY</span></button>`;
     document.body.appendChild(nav);
 
-    const setActive=tab=>nav.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+    let activeTab='explore';
+    const setActive=tab=>{
+      activeTab=tab;
+      nav.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+    };
     const updateKeepBadge=count=>{
       const badge=nav.querySelector('.tq-keep-badge');
       if(!badge)return;
@@ -302,23 +307,26 @@
       if(!b)return;
       const tab=b.dataset.tab;
       if(tab==='explore'){
-        setActive('explore');
         window.dispatchEvent(new CustomEvent('tripquest:close-keep'));
+        window.dispatchEvent(new CustomEvent('tripquest:close-my'));
+        setActive('explore');
         scrollToTarget('.ai-hero');
         $('#aiInput')?.focus({preventScroll:true});
       }else if(tab==='keep'){
-        setActive('keep');
+        window.dispatchEvent(new CustomEvent('tripquest:close-my'));
         window.dispatchEvent(new CustomEvent('tripquest:open-keep'));
-      }else if(tab==='settings'){
-        setActive('settings');
+        setActive('keep');
+      }else if(tab==='my'){
         window.dispatchEvent(new CustomEvent('tripquest:close-keep'));
-        openVehicleSetup();
+        window.dispatchEvent(new CustomEvent('tripquest:open-my'));
+        setActive('my');
       }
     };
 
     window.addEventListener('tripquest:keep-change',e=>updateKeepBadge(e.detail?.count));
     window.addEventListener('tripquest:keep-count',e=>updateKeepBadge(e.detail?.count));
-    window.addEventListener('tripquest:keep-closed',()=>setActive('explore'));
+    window.addEventListener('tripquest:keep-closed',()=>{if(activeTab==='keep')setActive('explore')});
+    window.addEventListener('tripquest:my-closed',()=>{if(activeTab==='my')setActive('explore')});
     window.dispatchEvent(new CustomEvent('tripquest:keep-request-count'));
   }
   function enhanceTopbar(){const top=$('.topbar');if(!top||top.querySelector('.tq-top-label'))return;top.classList.add('tq-appbar');const label=el('div','tq-top-label','<small>TRIP QUEST</small><strong>여행 찾기</strong>');$('.brand')?.after(label);const share=$('#topShareBtn');if(share){share.setAttribute('aria-label','여행 공유');share.textContent='↗';share.classList.add('tq-icon-btn')}}
@@ -328,6 +336,6 @@
   function selectedManualCount(){return document.querySelectorAll('#categoryChoices button.selected').length}
   function addManualSearchButton(){const options=$('#manualOptions');if(!options||$('#manualSearchNow'))return;const wrap=el('div','manual-search-now');wrap.style.cssText='margin-top:18px;display:grid;gap:8px';wrap.innerHTML='<button id="manualSearchNow" class="btn primary" type="button" style="width:100%;min-height:56px">선택한 조건으로 검색하기 →</button><small id="manualSearchHint" style="color:#8e99a8;text-align:center"></small>';options.appendChild(wrap);const btn=$('#manualSearchNow'),hint=$('#manualSearchHint');const sync=()=>{const count=selectedManualCount();btn.disabled=count===0;hint.textContent=count?`취향 ${count}개 선택 · 현재 거리/방향 조건으로 검색`:'여행 취향을 1개 이상 선택하세요.'};options.addEventListener('click',()=>setTimeout(sync,0));sync();btn.onclick=async()=>{if(btn.disabled)return;const next=$('#nextBtn');if(!next)return;btn.disabled=true;btn.textContent='추천 조건 준비 중…';try{next.click();await new Promise(r=>setTimeout(r,120));btn.textContent='추천지 검색 중…';$('#nextBtn')?.click()}finally{setTimeout(()=>{btn.disabled=selectedManualCount()===0;btn.textContent='선택한 조건으로 검색하기 →'},900)}}}
   function runtimeHealthCheck(){document.querySelectorAll('#categoryChoices button,#directionChoices button,.progress-step').forEach(b=>b.type='button')}
-  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();bindLandingPressFeedback();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();addManualSearchButton();createVehicleSetup();watchFirstLocation();applyVehicleSettings();refreshEnergyPrices();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v1.1.2';document.documentElement.classList.add('tq-chrome-ready')}
+  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();bindLandingPressFeedback();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();addManualSearchButton();createVehicleSetup();window.addEventListener('tripquest:open-vehicle-settings',openVehicleSetup);watchFirstLocation();applyVehicleSettings();refreshEnergyPrices();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v1.2.0';document.documentElement.classList.add('tq-chrome-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootChrome,{once:true});else bootChrome();
 })();

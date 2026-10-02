@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.2.0 — MY PAGE foundation
+
+- Replaced the bottom Settings tab with MY PAGE
+- Added local profile creation with stable random temporary traveler ID
+- Added nickname editing and profile-image persistence in IndexedDB
+- Added daily attendance, current streak, monthly/total attendance counts
+- Added explicit Travel Complete action on selected courses
+- Added local completed-trip history with MY PAGE list/detail views
+- Added KEEP/visited/streak profile statistics
+- Moved vehicle/efficiency settings under MY PAGE > Settings
+- Kept profile, attendance, history, and avatar storage separated for future account/login migration
+
+
 ## 1.1.2 — AI map reference + KEEP course shortcut
 
 - Removed the stale direct `drawMap()` call from `app.js`; AI recommendation presentation now goes through the search controller

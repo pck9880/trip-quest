@@ -129,7 +129,7 @@ assert.ok(!app.includes("const openAdvanced=$('#openAdvancedSearch')"),'event im
 assert.ok(resultsSource.includes('function renderCourses('),'course result rendering module missing');
 assert.ok(searchControllerSource.includes('function sortRecommendations('),'search controller sorting missing');
 assert.ok(chromeCss.includes('body[data-trip-step="2"]:not(.tq-advanced-open) .wizard'),'simple search must hide advanced wizard at step two');
-console.log('TRIP QUEST v1.1.2 UI/runtime smoke tests passed');
+console.log('TRIP QUEST v1.2.0 UI/runtime smoke tests passed');
 
 const mainMapSource=read('js/ui/main-map.js');
 const courseMapSource=read('js/ui/course-map.js');
@@ -141,8 +141,8 @@ assert.ok(originControllerSource.includes('OpenStreetMap / Nominatim'),'geocoder
 assert.ok(originControllerSource.includes('Open-Meteo'),'weather attribution required');
 assert.ok(resultsSource.includes('OSRM 도로 경로'),'routing provider disclosure required');
 
-assert.ok(html.includes('TRIP QUEST · v1.1.2'),'v1.0.0 footer/version marker missing');
-assert.ok(chromeJs.includes("footer.textContent='TRIP QUEST · v1.1.2'"),'chrome footer version missing');
+assert.ok(html.includes('TRIP QUEST · v1.2.0'),'v1.0.0 footer/version marker missing');
+assert.ok(chromeJs.includes("footer.textContent='TRIP QUEST · v1.2.0'"),'chrome footer version missing');
 
 const keepServiceSource=read('js/services/keep-service.js');
 const keepPanelSource=read('js/ui/keep-panel.js');
@@ -172,3 +172,22 @@ assert.ok(resultsSource.includes('function renderSavedCourse('),'saved-course St
 assert.ok(keepPanelSource.includes('data-open-course-id'),'KEEP course shortcut target missing');
 assert.ok(keepPanelSource.includes('onOpenCourse(id,item)'),'KEEP course shortcut callback missing');
 assert.ok(app.includes('initKeepPanel({onOpenCourse:openKeptCourse})'),'KEEP panel must be wired to in-app course page');
+
+const myPageSource=read('js/ui/my-page.js');
+const profileSource=read('js/services/profile-service.js');
+const attendanceSource=read('js/services/attendance-service.js');
+const historySource=read('js/services/history-service.js');
+assert.ok(chromeJs.includes('data-tab="my"'),'MY bottom tab missing');
+assert.ok(!chromeJs.includes('data-tab="settings"'),'settings must move inside MY page');
+assert.ok(myPageSource.includes('MY PAGE'),'MY page heading missing');
+assert.ok(myPageSource.includes('임시 여행자 ID'),'temporary traveler ID disclosure missing');
+assert.ok(myPageSource.includes('type="file" accept="image/*"'),'profile image picker missing');
+assert.ok(myPageSource.includes('오늘의 출석'),'attendance card missing');
+assert.ok(myPageSource.includes('내가 다녀온 곳'),'travel history section missing');
+assert.ok(myPageSource.includes("tripquest:open-vehicle-settings"),'vehicle settings must be nested inside MY');
+assert.ok(profileSource.includes("indexedDB.open(AVATAR_DB,1)"),'profile avatar must use IndexedDB');
+assert.ok(attendanceSource.includes("const ATTENDANCE_KEY='tq_attendance_v1'"),'attendance persistence missing');
+assert.ok(historySource.includes("const HISTORY_KEY='tq_travel_history_v1'"),'travel-history persistence missing');
+assert.ok(resultsSource.includes('id=\'tripCompletionCard\'')||resultsSource.includes("card.id='tripCompletionCard'"),'travel completion card missing');
+assert.ok(resultsSource.includes("historyService.complete(state.selected||{},course)"),'travel completion action missing');
+assert.ok(app.includes('initMyPage();'),'MY page must initialize during boot');
