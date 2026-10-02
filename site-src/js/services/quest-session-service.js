@@ -92,6 +92,9 @@ export function createQuestSessionService({
     emit('position');
     if(!result.verified)return;
 
+    finishCheckpoint(session,quest,checkpoint,result);
+  }
+  function finishCheckpoint(session,quest,checkpoint,result){
     const verified=[...(session.verified||[]),{checkpointId:checkpoint.id,verifiedAt:clock().toISOString(),accuracyM:Math.round(Number(result.accuracyM)||0)}];
     const nextIndex=(Number(session.checkpointIndex)||0)+1;
     if(nextIndex>=quest.checkpoints.length){
@@ -100,10 +103,38 @@ export function createQuestSessionService({
       lastCompletion={questId:quest.id,questTitle:quest.title,xp:Number(completion.earnedXp)||0,newTitles:completion.newTitles||[],stats:completion.stats,rewardStatus:quest.rewardStatus||'active'};
       remove();verifier=null;telemetry=null;
       emit('completed',{completion:lastCompletion});
-      return;
+      return {ok:true,completed:true,completion:lastCompletion};
     }
-    write({...session,verified,checkpointIndex:nextIndex,status:'active',pausedReason:null});resetVerifier();emit('checkpoint_complete',{verifiedCheckpointId:checkpoint.id});
+    write({...session,verified,checkpointIndex:nextIndex,status:'armed',pausedReason:null});
+    resetVerifier();emit('checkpoint_complete',{verifiedCheckpointId:checkpoint.id});
+    return {ok:true,completed:false,session:read()};
   }
+  async function claimReward(){
+    if(!isActive())throw questError('inactive','앱이 활성화된 상태에서 보상받기를 눌러주세요.',true);
+    await ensureCanTrack();
+    stopWatch();
+    const session=read(),quest=questFor(session),checkpoint=currentCheckpoint(session);
+    if(!session||!quest||!checkpoint)throw questError('session_missing','진행 중인 코스 QUEST가 없습니다.',false);
+
+    const position=await gps.current({enableHighAccuracy:true,timeout:15000,maximumAge:0});
+    const oneShot=createCheckpointVerifier(checkpoint,{...(quest.verification||{}),requiredHits:1,dwellMs:0});
+    const result=oneShot.evaluate(position,receivedNow());
+    telemetry={
+      status:result.status,
+      distanceM:Number.isFinite(result.distanceM)?Math.round(result.distanceM):null,
+      accuracyM:Number.isFinite(result.accuracyM)?Math.round(result.accuracyM):null,
+      hits:Number(result.hits)||0,dwellMs:Number(result.dwellMs)||0,
+      progress:Number(result.progress)||0,updatedAt:clock().toISOString()
+    };
+    if(!result.verified){
+      updateSession({status:'armed',pausedReason:null});
+      const failed={ok:false,reason:result.status,result:telemetry,quest,checkpoint};
+      emit('claim_failed',failed);
+      return failed;
+    }
+    return finishCheckpoint(session,quest,checkpoint,result);
+  }
+
   function gpsFailure(error){
     stopWatch();telemetry={status:'error',errorType:error?.type||'unknown',message:error?.message||'GPS 오류가 발생했습니다.',updatedAt:clock().toISOString()};
     updateSession({status:'error',pausedReason:error?.type||'gps_error'});emit('error',{error});
@@ -136,7 +167,7 @@ export function createQuestSessionService({
   function getSnapshot(){return {session:read(),quest:questFor(),checkpoint:currentCheckpoint(),telemetry,lastCompletion,isWatching:gps.isWatching()}}
   function clearCompletion(){lastCompletion=null}
 
-  return {armCourseQuest,begin,resume,pause,cancel,subscribe,getSnapshot,clearCompletion,key:SESSION_KEY};
+  return {armCourseQuest,claimReward,begin,resume,pause,cancel,subscribe,getSnapshot,clearCompletion,key:SESSION_KEY};
 }
 
 export const questSessionService=createQuestSessionService();
