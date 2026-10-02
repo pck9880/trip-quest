@@ -7,7 +7,8 @@
     ai:'<path d="M12 3l1.2 3.3L16.5 7.5l-3.3 1.2L12 12l-1.2-3.3-3.3-1.2 3.3-1.2L12 3Z"/><path d="m18.5 13 .8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z"/><path d="m5 14 .7 1.8 1.8.7-1.8.7L5 19l-.7-1.8-1.8-.7 1.8-.7L5 14Z"/>',
     route:'<circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M7.8 17.1c2.6-1.1 1.8-4.3 4.4-5.4 1.5-.7 2.9-.2 4.1-1.8"/><path d="M7.7 6.3h4.7"/><path d="m10.5 4.2 2.1 2.1-2.1 2.1"/>',
     settings:'<path d="M4 6h10"/><path d="M18 6h2"/><circle cx="16" cy="6" r="2"/><path d="M4 12h2"/><path d="M10 12h10"/><circle cx="8" cy="12" r="2"/><path d="M4 18h8"/><path d="M16 18h4"/><circle cx="14" cy="18" r="2"/>',
-    location:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><path d="M5.6 5.6 7.7 7.7M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/>',
+    location:'<path d="M20 10c0 5.2-8 12-8 12S4 15.2 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
+    edit:'<path d="M4 20h4l11-11-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/>',
     car:'<path d="M5 17h14"/><path d="m6 17-1-4 2-5h10l2 5-1 4"/><path d="M7 12h10"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/>',
     fuel:'<path d="M6 21V4h9v17"/><path d="M5 21h11"/><path d="M8.5 7h4"/><path d="M15 8h2.2l2.3 2.5V17a1.5 1.5 0 0 0 3 0v-5.5l-2.2-2.2"/><path d="M19.5 7.5 21 6"/>',
     time:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/>'
@@ -55,7 +56,7 @@
     probe.decoding='async';
     probe.onload=()=>{landing.classList.add('tq-photo-ready');landing.classList.remove('tq-photo-error')};
     probe.onerror=()=>{landing.classList.remove('tq-photo-ready');landing.classList.add('tq-photo-error')};
-    probe.src='./assets/tq-cover-main-v043.webp';
+    probe.src='./assets/tq-cover-main-v044.webp';
     if(probe.complete&&probe.naturalWidth)probe.onload();
   }
   function showCover(){const landing=$('#mainLanding');if(!landing)return;landing.hidden=false;landing.classList.remove('leaving');document.body.classList.add('landing-open');addCoverMotion();window.scrollTo({top:0,behavior:'smooth'})}
@@ -144,7 +145,6 @@
     const copy=$('.main-cover-copy');
     if(copy&&!copy.querySelector('.tq-cover-points'))copy.insertAdjacentHTML('beforeend','<div class="tq-cover-points" aria-label="주요 기능"><span>실시간 위치</span><span>AI 추천</span><span>비용 계산</span></div>');
     const action=$('.main-cover-action');
-    if(action&&!action.querySelector('.tq-cover-action-head'))action.insertAdjacentHTML('afterbegin','<div class="tq-cover-action-head"><span>START TRIP</span><strong>출발 방법을 선택하세요</strong></div>');
     if(action&&!action.querySelector('.tq-cover-trust'))action.insertAdjacentHTML('beforeend','<div class="tq-cover-trust"><i aria-hidden="true"></i><span>위치는 여행 계산에만 사용합니다.</span></div>');
   }
 
@@ -153,6 +153,10 @@
     if(mainLocate&&!mainLocate.querySelector('svg')){
       mainLocate.querySelector('.loc-dot')?.remove();
       mainLocate.insertAdjacentHTML('afterbegin',iconSvg('location','tq-icon tq-button-icon'));
+    }
+    const mainManual=$('#mainManualBtn');
+    if(mainManual&&!mainManual.querySelector('svg')){
+      mainManual.insertAdjacentHTML('afterbegin',iconSvg('edit','tq-icon tq-button-icon'));
     }
     const locationIcon=$('.location-card .location-icon');
     if(locationIcon){locationIcon.innerHTML=iconSvg('location','tq-icon tq-location-icon')}
@@ -167,6 +171,23 @@
     });
   }
 
+  function bindLandingPressFeedback(){
+    const buttons=[$('#mainLocateBtn'),$('#mainManualBtn')].filter(Boolean);
+    const press=btn=>{
+      if(btn.disabled)return;
+      btn.classList.add('is-pressed');
+      try{navigator.vibrate?.(7)}catch{}
+    };
+    const release=btn=>btn.classList.remove('is-pressed');
+    buttons.forEach(btn=>{
+      btn.addEventListener('pointerdown',()=>press(btn),{passive:true});
+      ['pointerup','pointercancel','pointerleave'].forEach(name=>btn.addEventListener(name,()=>release(btn),{passive:true}));
+      btn.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')press(btn)});
+      btn.addEventListener('keyup',()=>release(btn));
+      btn.addEventListener('blur',()=>release(btn));
+    });
+  }
+
   function addBottomNav(){if($('.tq-bottom-nav'))return;const nav=el('nav','tq-bottom-nav');nav.setAttribute('aria-label','앱 하단 메뉴');nav.innerHTML=`<button type="button" data-tab="home" class="active"><i>${iconSvg('home','tq-icon tq-nav-icon')}</i><span>홈</span></button><button type="button" data-tab="ai"><i>${iconSvg('ai','tq-icon tq-nav-icon')}</i><span>AI 찾기</span></button><button type="button" data-tab="plan"><i>${iconSvg('route','tq-icon tq-nav-icon')}</i><span>여행</span></button><button type="button" data-tab="settings"><i>${iconSvg('settings','tq-icon tq-nav-icon')}</i><span>설정</span></button>`;document.body.appendChild(nav);const setActive=tab=>nav.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));nav.onclick=e=>{const b=e.target.closest('button');if(!b)return;const tab=b.dataset.tab;if(tab==='home'){setActive('home');showCover()}else if(tab==='ai'){setActive('ai');scrollToTarget('.ai-hero');$('#aiInput')?.focus({preventScroll:true})}else if(tab==='plan'){setActive('plan');scrollToTarget('#progress')}else if(tab==='settings'){setActive('settings');openVehicleSetup()}}}
   function enhanceTopbar(){const top=$('.topbar');if(!top||top.querySelector('.tq-top-label'))return;top.classList.add('tq-appbar');const label=el('div','tq-top-label','<small>TRIP QUEST</small><strong>여행 플래너</strong>');$('.brand')?.after(label);const share=$('#topShareBtn');if(share){share.setAttribute('aria-label','여행 공유');share.textContent='↗';share.classList.add('tq-icon-btn')}}
   function observeLanding(){const landing=$('#mainLanding'),nav=$('.tq-bottom-nav');if(!landing)return;const sync=()=>nav?.classList.toggle('cover-open',!landing.hidden);new MutationObserver(sync).observe(landing,{attributes:true,attributeFilter:['hidden','class']});sync()}
@@ -175,6 +196,6 @@
   function selectedManualCount(){return document.querySelectorAll('#categoryChoices button.selected').length}
   function addManualSearchButton(){const options=$('#manualOptions');if(!options||$('#manualSearchNow'))return;const wrap=el('div','manual-search-now');wrap.style.cssText='margin-top:18px;display:grid;gap:8px';wrap.innerHTML='<button id="manualSearchNow" class="btn primary" type="button" style="width:100%;min-height:56px">선택한 조건으로 검색하기 →</button><small id="manualSearchHint" style="color:#8e99a8;text-align:center"></small>';options.appendChild(wrap);const btn=$('#manualSearchNow'),hint=$('#manualSearchHint');const sync=()=>{const count=selectedManualCount();btn.disabled=count===0;hint.textContent=count?`취향 ${count}개 선택 · 현재 거리/방향 조건으로 검색`:'여행 취향을 1개 이상 선택하세요.'};options.addEventListener('click',()=>setTimeout(sync,0));sync();btn.onclick=async()=>{if(btn.disabled)return;const next=$('#nextBtn');if(!next)return;btn.disabled=true;btn.textContent='추천 조건 준비 중…';try{next.click();await new Promise(r=>setTimeout(r,120));btn.textContent='추천지 검색 중…';$('#nextBtn')?.click()}finally{setTimeout(()=>{btn.disabled=selectedManualCount()===0;btn.textContent='선택한 조건으로 검색하기 →'},900)}}}
   function runtimeHealthCheck(){document.querySelectorAll('#categoryChoices button,#directionChoices button,.progress-step').forEach(b=>b.type='button')}
-  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();addManualSearchButton();createVehicleSetup();watchFirstLocation();applyVehicleSettings();refreshEnergyPrices();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.43';document.documentElement.classList.add('tq-chrome-ready')}
+  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();bindLandingPressFeedback();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();addManualSearchButton();createVehicleSetup();watchFirstLocation();applyVehicleSettings();refreshEnergyPrices();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.44';document.documentElement.classList.add('tq-chrome-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootChrome,{once:true});else bootChrome();
 })();
