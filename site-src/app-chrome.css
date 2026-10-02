@@ -491,7 +491,7 @@ body.tq-modal-open{overflow:hidden}.tq-setup-overlay[hidden]{display:none!import
 }
 
 
-/* v0.44 — original composition + native tactile landing buttons */
+/* v0.45 — natural touch lifecycle for landing buttons */
 .main-landing{
   background:#06101b!important;
   overflow:hidden!important;
@@ -624,12 +624,12 @@ body.tq-modal-open{overflow:hidden}.tq-setup-overlay[hidden]{display:none!import
   gap:15px!important;
   border-radius:999px!important;
   transition:
-    transform .09s cubic-bezier(.2,.8,.2,1),
-    box-shadow .09s ease,
-    filter .09s ease,
-    background .12s ease,
-    border-color .12s ease!important;
-  will-change:transform!important;
+    transform .07s cubic-bezier(.2,.72,.25,1),
+    box-shadow .08s cubic-bezier(.2,.72,.25,1),
+    filter .08s ease,
+    background .14s ease,
+    border-color .14s ease!important;
+  will-change:transform,box-shadow!important;
 }
 .main-landing.tq-photo-ready #mainLocateBtn{
   border:2px solid #d6ff38!important;
@@ -658,23 +658,51 @@ body.tq-modal-open{overflow:hidden}.tq-setup-overlay[hidden]{display:none!import
   border-color:#fff!important;
   background:linear-gradient(180deg,rgba(27,42,58,.78),rgba(11,22,34,.78))!important;
 }
+/* Touch start: quick compression, without the heavy "jump" of v0.44. */
 .main-landing.tq-photo-ready #mainLocateBtn:active,
 .main-landing.tq-photo-ready #mainLocateBtn.is-pressed{
-  transform:translateY(7px) scale(.985)!important;
+  transform:translateY(4px) scale(.991)!important;
   box-shadow:
-    0 2px 0 rgba(83,112,5,.52),
-    0 8px 17px rgba(0,0,0,.24),
-    0 0 18px rgba(201,255,69,.1)!important;
-  filter:brightness(.97)!important;
+    0 5px 0 rgba(83,112,5,.5),
+    0 11px 22px rgba(0,0,0,.25),
+    0 0 20px rgba(201,255,69,.1)!important;
+  filter:brightness(.985) saturate(.99)!important;
 }
 .main-landing.tq-photo-ready #mainManualBtn:active,
 .main-landing.tq-photo-ready #mainManualBtn.is-pressed{
-  transform:translateY(6px) scale(.985)!important;
+  transform:translateY(4px) scale(.991)!important;
   box-shadow:
-    0 1px 0 rgba(0,0,0,.44),
-    0 7px 14px rgba(0,0,0,.25),
-    inset 0 1px 0 rgba(255,255,255,.06)!important;
-  filter:brightness(.94)!important;
+    0 3px 0 rgba(0,0,0,.42),
+    0 10px 20px rgba(0,0,0,.24),
+    inset 0 1px 0 rgba(255,255,255,.055)!important;
+  filter:brightness(.965)!important;
+}
+
+/* Touch hold: settle a fraction deeper after the initial press. */
+.main-landing.tq-photo-ready #mainLocateBtn.is-held{
+  transform:translateY(5px) scale(.989)!important;
+  box-shadow:
+    0 4px 0 rgba(83,112,5,.5),
+    0 9px 18px rgba(0,0,0,.24),
+    0 0 16px rgba(201,255,69,.08)!important;
+}
+.main-landing.tq-photo-ready #mainManualBtn.is-held{
+  transform:translateY(5px) scale(.989)!important;
+  box-shadow:
+    0 2px 0 rgba(0,0,0,.42),
+    0 8px 16px rgba(0,0,0,.24),
+    inset 0 1px 0 rgba(255,255,255,.05)!important;
+}
+
+/* Touch release: short, damped rebound back to rest. */
+.main-landing.tq-photo-ready #mainLocateBtn.is-releasing,
+.main-landing.tq-photo-ready #mainManualBtn.is-releasing{
+  animation:tqLandingButtonRelease .22s cubic-bezier(.2,.82,.28,1.08)!important;
+}
+@keyframes tqLandingButtonRelease{
+  0%{transform:translateY(4px) scale(.991)}
+  58%{transform:translateY(-1px) scale(1.002)}
+  100%{transform:translateY(0) scale(1)}
 }
 .main-landing.tq-photo-ready #mainLocateBtn .tq-button-icon,
 .main-landing.tq-photo-ready #mainManualBtn .tq-button-icon{
@@ -683,6 +711,24 @@ body.tq-modal-open{overflow:hidden}.tq-setup-overlay[hidden]{display:none!import
   height:27px!important;
   flex:0 0 27px!important;
   stroke-width:2!important;
+}
+.main-landing.tq-photo-ready #mainLocateBtn .tq-button-icon,
+.main-landing.tq-photo-ready #mainManualBtn .tq-button-icon,
+.main-landing.tq-photo-ready #mainLocateBtn:after,
+.main-landing.tq-photo-ready #mainManualBtn:after{
+  transition:transform .08s cubic-bezier(.2,.72,.25,1)!important;
+}
+.main-landing.tq-photo-ready #mainLocateBtn.is-pressed .tq-button-icon,
+.main-landing.tq-photo-ready #mainManualBtn.is-pressed .tq-button-icon,
+.main-landing.tq-photo-ready #mainLocateBtn.is-held .tq-button-icon,
+.main-landing.tq-photo-ready #mainManualBtn.is-held .tq-button-icon{
+  transform:translateY(1px)!important;
+}
+.main-landing.tq-photo-ready #mainLocateBtn.is-pressed:after,
+.main-landing.tq-photo-ready #mainManualBtn.is-pressed:after,
+.main-landing.tq-photo-ready #mainLocateBtn.is-held:after,
+.main-landing.tq-photo-ready #mainManualBtn.is-held:after{
+  transform:translate(1px,1px)!important;
 }
 .main-landing.tq-photo-ready #mainLocateBtn:after,
 .main-landing.tq-photo-ready #mainManualBtn:after{
@@ -703,7 +749,6 @@ body.tq-modal-open{overflow:hidden}.tq-setup-overlay[hidden]{display:none!import
 .main-landing.tq-photo-ready #mainLocateBtn:disabled{
   cursor:wait!important;
   opacity:.88!important;
-  transform:none!important;
   box-shadow:
     0 5px 0 rgba(83,112,5,.42),
     0 12px 25px rgba(0,0,0,.24)!important;
@@ -785,7 +830,14 @@ body.tq-modal-open{overflow:hidden}.tq-setup-overlay[hidden]{display:none!import
 }
 @media(prefers-reduced-motion:reduce){
   .main-landing.tq-photo-ready #mainLocateBtn,
-  .main-landing.tq-photo-ready #mainManualBtn{
+  .main-landing.tq-photo-ready #mainManualBtn,
+  .main-landing.tq-photo-ready #mainLocateBtn .tq-button-icon,
+  .main-landing.tq-photo-ready #mainManualBtn .tq-button-icon{
     transition:none!important;
+    animation:none!important;
+  }
+  .main-landing.tq-photo-ready #mainLocateBtn.is-releasing,
+  .main-landing.tq-photo-ready #mainManualBtn.is-releasing{
+    animation:none!important;
   }
 }

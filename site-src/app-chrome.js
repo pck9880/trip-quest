@@ -173,18 +173,106 @@
 
   function bindLandingPressFeedback(){
     const buttons=[$('#mainLocateBtn'),$('#mainManualBtn')].filter(Boolean);
-    const press=btn=>{
-      if(btn.disabled)return;
-      btn.classList.add('is-pressed');
-      try{navigator.vibrate?.(7)}catch{}
-    };
-    const release=btn=>btn.classList.remove('is-pressed');
+    const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+
     buttons.forEach(btn=>{
-      btn.addEventListener('pointerdown',()=>press(btn),{passive:true});
-      ['pointerup','pointercancel','pointerleave'].forEach(name=>btn.addEventListener(name,()=>release(btn),{passive:true}));
-      btn.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')press(btn)});
-      btn.addEventListener('keyup',()=>release(btn));
-      btn.addEventListener('blur',()=>release(btn));
+      let pointerId=null;
+      let holdTimer=0;
+      let releaseTimer=0;
+      let isDown=false;
+      let suppressClick=false;
+
+      const clearTimers=()=>{
+        clearTimeout(holdTimer);
+        clearTimeout(releaseTimer);
+        holdTimer=0;
+        releaseTimer=0;
+      };
+
+      const startPress=(source,id=null)=>{
+        if(btn.disabled||isDown)return;
+        clearTimers();
+        isDown=true;
+        suppressClick=false;
+        pointerId=id;
+        btn.classList.remove('is-releasing','is-held');
+        btn.classList.add('is-pressed');
+        btn.dataset.pressState='start';
+
+        if(source==='pointer'&&id!==null){
+          try{btn.setPointerCapture?.(id)}catch{}
+          try{navigator.vibrate?.(6)}catch{}
+        }
+
+        holdTimer=setTimeout(()=>{
+          if(!isDown)return;
+          btn.classList.add('is-held');
+          btn.dataset.pressState='hold';
+        },130);
+      };
+
+      const finishPress=(cancelled=false)=>{
+        if(!isDown&&!btn.classList.contains('is-pressed')&&!btn.classList.contains('is-held'))return;
+        clearTimeout(holdTimer);
+        holdTimer=0;
+        isDown=false;
+        pointerId=null;
+        btn.classList.remove('is-pressed','is-held');
+
+        if(cancelled)suppressClick=true;
+
+        if(cancelled||reduceMotion){
+          btn.classList.remove('is-releasing');
+          btn.dataset.pressState='idle';
+          return;
+        }
+
+        btn.classList.remove('is-releasing');
+        void btn.offsetWidth;
+        btn.classList.add('is-releasing');
+        btn.dataset.pressState='release';
+        releaseTimer=setTimeout(()=>{
+          btn.classList.remove('is-releasing');
+          btn.dataset.pressState='idle';
+        },240);
+      };
+
+      btn.dataset.pressState='idle';
+
+      btn.addEventListener('pointerdown',e=>{
+        if(e.pointerType==='mouse'&&e.button!==0)return;
+        startPress('pointer',e.pointerId);
+      },{passive:true});
+
+      btn.addEventListener('pointermove',e=>{
+        if(!isDown||pointerId!==e.pointerId)return;
+        const r=btn.getBoundingClientRect(),slop=22;
+        const outside=e.clientX<r.left-slop||e.clientX>r.right+slop||e.clientY<r.top-slop||e.clientY>r.bottom+slop;
+        if(outside)finishPress(true);
+      },{passive:true});
+
+      btn.addEventListener('pointerup',e=>{
+        if(pointerId!==null&&e.pointerId!==pointerId)return;
+        finishPress(false);
+      },{passive:true});
+
+      btn.addEventListener('pointercancel',()=>finishPress(true),{passive:true});
+      btn.addEventListener('lostpointercapture',()=>{if(isDown)finishPress(true)},{passive:true});
+      btn.addEventListener('click',e=>{
+        if(!suppressClick)return;
+        suppressClick=false;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      },{capture:true});
+
+      btn.addEventListener('keydown',e=>{
+        if(e.repeat)return;
+        if(e.key==='Enter'||e.key===' ')startPress('keyboard');
+      });
+      btn.addEventListener('keyup',e=>{
+        if(e.key==='Enter'||e.key===' ')finishPress(false);
+      });
+      btn.addEventListener('blur',()=>finishPress(true));
     });
   }
 
@@ -196,6 +284,6 @@
   function selectedManualCount(){return document.querySelectorAll('#categoryChoices button.selected').length}
   function addManualSearchButton(){const options=$('#manualOptions');if(!options||$('#manualSearchNow'))return;const wrap=el('div','manual-search-now');wrap.style.cssText='margin-top:18px;display:grid;gap:8px';wrap.innerHTML='<button id="manualSearchNow" class="btn primary" type="button" style="width:100%;min-height:56px">선택한 조건으로 검색하기 →</button><small id="manualSearchHint" style="color:#8e99a8;text-align:center"></small>';options.appendChild(wrap);const btn=$('#manualSearchNow'),hint=$('#manualSearchHint');const sync=()=>{const count=selectedManualCount();btn.disabled=count===0;hint.textContent=count?`취향 ${count}개 선택 · 현재 거리/방향 조건으로 검색`:'여행 취향을 1개 이상 선택하세요.'};options.addEventListener('click',()=>setTimeout(sync,0));sync();btn.onclick=async()=>{if(btn.disabled)return;const next=$('#nextBtn');if(!next)return;btn.disabled=true;btn.textContent='추천 조건 준비 중…';try{next.click();await new Promise(r=>setTimeout(r,120));btn.textContent='추천지 검색 중…';$('#nextBtn')?.click()}finally{setTimeout(()=>{btn.disabled=selectedManualCount()===0;btn.textContent='선택한 조건으로 검색하기 →'},900)}}}
   function runtimeHealthCheck(){document.querySelectorAll('#categoryChoices button,#directionChoices button,.progress-step').forEach(b=>b.type='button')}
-  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();bindLandingPressFeedback();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();addManualSearchButton();createVehicleSetup();watchFirstLocation();applyVehicleSettings();refreshEnergyPrices();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.44';document.documentElement.classList.add('tq-chrome-ready')}
+  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();bindLandingPressFeedback();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();addManualSearchButton();createVehicleSetup();watchFirstLocation();applyVehicleSettings();refreshEnergyPrices();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.45';document.documentElement.classList.add('tq-chrome-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootChrome,{once:true});else bootChrome();
 })();
