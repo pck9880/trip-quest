@@ -11,13 +11,13 @@
   <meta name="format-detection" content="telephone=no" />
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>TRIP QUEST · 국내여행 AI 플래너</title>
+  <title>TRIP QUEST · 국내여행 스마트 플래너</title>
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="./css/base.css?v=110" />
   <link rel="stylesheet" href="./css/product.css?v=151" />
   <link rel="stylesheet" href="./css/landing.css?v=101" />
-  <link rel="stylesheet" href="./css/search.css?v=100" />
+  <link rel="stylesheet" href="./css/search.css?v=160" />
   <link rel="preload" as="image" href="./assets/tq-cover-main-v044.webp" fetchpriority="high" />
 </head>
 <body>
@@ -47,13 +47,29 @@
       <section id="sharedTripBanner" class="shared-trip panel" hidden><div><span>공유 받은 여행</span><strong id="sharedTripTitle">—</strong><small id="sharedTripMeta">—</small></div><button id="sharedTripUseBtn" class="btn primary small">내 위치로 다시 계산</button></section>
       <section class="ai-hero panel tq-search-page" aria-labelledby="aiTitle">
         <div class="ai-copy tq-search-head">
-          <div class="eyebrow">TRIP QUEST AI</div>
+          <div class="eyebrow">TRIP QUEST 추천</div>
           <h1 id="aiTitle">오늘 어디로 떠날까요?</h1>
-          <p>현재 위치에서 취향에 맞는 여행지를 빠르게 찾아드려요.</p>
+          <p>거리와 취향을 분석해 갈 만한 여행지를 추천합니다.</p>
         </div>
 
+        <div id="searchModeChooser" class="tq-search-mode-chooser" aria-label="검색 종류">
+          <button type="button" data-search-mode="travel" class="active" aria-pressed="true"><span>여행지</span><small>추천 · 코스 · QUEST</small></button>
+          <button type="button" data-search-mode="cafe" aria-pressed="false"><span>카페</span><small>동네 주변 카페</small></button>
+          <button type="button" data-search-mode="food" aria-pressed="false"><span>맛집</span><small>주변 음식점</small></button>
+        </div>
+
+        <section id="searchRegionPanel" class="tq-search-region-panel" hidden>
+          <div class="tq-search-region-head"><span>검색 지역</span><strong id="searchRegionLabel">내 위치 또는 지역을 선택하세요.</strong></div>
+          <div class="tq-search-region-row">
+            <input id="searchRegionInput" type="search" placeholder="예: 부산진구 가야동, 전포동, 광안리" autocomplete="off" />
+            <button id="searchRegionBtn" class="btn secondary" type="button">지역 찾기</button>
+            <button id="searchUseCurrentBtn" class="btn ghost" type="button">내 위치</button>
+          </div>
+          <div id="searchRegionResults" class="tq-search-region-results" hidden></div>
+        </section>
+
         <div class="ai-composer tq-search-composer">
-          <label class="sr-only" for="aiInput">AI에게 여행 요청</label>
+          <label class="sr-only" for="aiInput">TRIP QUEST 검색 요청</label>
           <textarea id="aiInput" rows="2" placeholder="예: 조용한 바다, 힙한 동네, 분위기 좋은 카페"></textarea>
           <button id="aiSend" class="btn primary ai-send" type="button">여행지 찾기</button>
         </div>
@@ -72,6 +88,18 @@
           <div class="distance-labels"><span>0</span><span>100</span><span>200</span><span>300</span><span>400km</span></div>
           <p>양쪽 핸들을 드래그해 원하는 거리 범위를 맞춰보세요.</p>
         </div>
+
+        <div id="localRadiusControl" class="tq-local-radius" hidden>
+          <span>검색 반경</span>
+          <div>
+            <button type="button" data-radius-km="0.5">500m</button>
+            <button type="button" data-radius-km="1">1km</button>
+            <button type="button" data-radius-km="2" class="active">2km</button>
+            <button type="button" data-radius-km="5">5km</button>
+            <button type="button" data-radius-km="10">10km</button>
+          </div>
+        </div>
+        <div id="placeSearchResults" class="tq-place-results" hidden></div>
 
         <div id="aiSearchStatus" class="ai-search-status" role="status" aria-live="polite" hidden></div>
         <div id="aiProgress" class="ai-progress" hidden><div class="ai-progress-top"><span>AI 추천 검색</span><b id="aiProgressText">0%</b></div><div class="ai-progress-track"><i id="aiProgressFill"></i></div><small id="aiEta">예상 1~3초</small></div>
@@ -93,11 +121,11 @@
       </section>
     </main>
   </div>
-  <footer class="app-version-footer">TRIP QUEST · v1.5.1</footer>
+  <footer class="app-version-footer">TRIP QUEST · v1.6.0</footer>
   <div id="iosInstallTip" class="install-sheet" hidden><div class="install-card"><button id="closeInstallTip" class="install-close" aria-label="닫기">×</button><b>iPhone / iPad에 설치</b><p>Safari 하단의 공유 버튼을 누른 뒤 <strong>홈 화면에 추가</strong>를 선택하세요.</p></div></div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script type="module" src="./app.js?v=20261002-v151"></script>
-  <script src="./app-chrome.js?v=151" defer></script>
+  <script type="module" src="./app.js?v=20261002-v160"></script>
+  <script src="./app-chrome.js?v=160" defer></script>
 </body>
 </html>
