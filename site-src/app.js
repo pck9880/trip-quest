@@ -40,6 +40,38 @@ function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&l
 function fmtWon(n){return `${Math.round(n||0).toLocaleString('ko-KR')}원`}
 function fmtMin(m){const h=Math.floor((m||0)/60),min=Math.round((m||0)%60);return h?`${h}시간 ${min}분`:`${min}분`}
 function fmtKm(k){return `${(k||0).toFixed(1)} km`}
+const VEHICLE_SETTINGS_KEY='tq_vehicle_settings_v1';
+const FUEL_NAMES={gasoline:'휘발유',diesel:'경유',lpg:'LPG',electric:'전기'};
+function readVehicleSettings(){
+  if(typeof localStorage==='undefined')return null;
+  try{return JSON.parse(localStorage.getItem(VEHICLE_SETTINGS_KEY)||'null')}catch{return null}
+}
+function activeVehicleProfile(body={}){
+  const saved=readVehicleSettings();
+  const fuel=saved?.fuel||'gasoline';
+  const efficiency=Math.max(.1,Number(saved?.efficiency)||11);
+  const fallbackPrice={gasoline:1858,diesel:1844,lpg:1139,electric:347}[fuel]||1858;
+  const bodyPrice=Number(body.gasPrice);
+  const energyPrice=fuel==='electric'
+    ?Math.max(1,Number(saved?.energyPrice)||fallbackPrice)
+    :(Number.isFinite(bodyPrice)&&bodyPrice>0?bodyPrice:Math.max(1,Number(saved?.energyPrice)||fallbackPrice));
+  return {
+    vehicleLabel:saved?.vehicleLabel||'캐스퍼',
+    fuel,
+    fuelLabel:FUEL_NAMES[fuel]||'연료',
+    efficiency,
+    energyPrice,
+    tollDiscount:!!saved?.tollDiscount,
+    energyUnit:fuel==='electric'?'kWh':'L',
+    efficiencyUnit:fuel==='electric'?'km/kWh':'km/L'
+  };
+}
+function estimateRoundTripToll(distanceKm,tollDiscount=false){
+  const oneWay=Math.max(0,Number(distanceKm)||0)/2;
+  if(oneWay<40)return 0;
+  const estimate=(900+oneWay*44.3)*2*(tollDiscount?.5:1);
+  return Math.max(0,Math.round(estimate/100)*100);
+}
 function setText(sel,t){const el=$(sel);if(el)el.textContent=t}
 function loading(on){document.body.classList.toggle('loading',on)}
 function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),1800)}
@@ -441,8 +473,9 @@ async function coursePack(body,w){
   const results=[];
   for(const c of configs){
     const route=await buildLocalCourseRoute(c.stops,c.mode);
-    const fuel=c.mode==='drive'?route.distanceKm/11:0;
-    const fuelCost=c.mode==='drive'?Math.round(fuel*Number(body.gasPrice||1700)):0;
+    const vehicle=activeVehicleProfile(body);
+    const fuel=c.mode==='drive'?route.distanceKm/vehicle.efficiency:0;
+    const fuelCost=c.mode==='drive'?Math.round(fuel*vehicle.energyPrice):0;
     results.push({...c,
       weatherFit:rain?(c.mode==='walk'?'낮음':'보통'):'높음',
       localRule:c.mode==='walk'
@@ -580,11 +613,24 @@ function localAI(message,context){
     choices:settings?[{label:'이 조건으로 검색',action:'search',patch,focusQuery:focus},{label:'조건 직접 확인',action:'goto',step:2}]:[{label:'조건 직접 수정',action:'goto',step:2},{label:'다른 조건 말하기',action:'focus'}]}
 }
 async function api(url,opts={}){const u=new URL(url,location.href),method=(opts.method||'GET').toUpperCase(),body=opts.body?JSON.parse(opts.body):{};
-  if(u.pathname.endsWith('/api/config'))return {providers:{kakao:false,tmap:false,openai:false,weather:true},defaultGasPrice:1700,fuelEconomyKmL:11,publicBaseUrl:''};
+  if(u.pathname.endsWith('/api/config'))return {providers:{kakao:false,tmap:false,openai:false,weather:true},defaultGasPrice:1858,fuelEconomyKmL:11,publicBaseUrl:''};
   if(u.pathname.endsWith('/api/geocode'))return {items:await localGeocode(u.searchParams.get('q')||'')};
   if(u.pathname.endsWith('/api/bootstrap')){const lat=Number(u.searchParams.get('lat')),lng=Number(u.searchParams.get('lng')),weather=await clientWeather(lat,lng);return {weather,traffic:{label:'경로 선택 후 계산',avgSpeed:0,source:'정적 배포판'},updatedAt:new Date().toISOString()}}
   if(u.pathname.endsWith('/api/recommend')){const base=localRecommend(body),items=await refineRoadDistanceResults(base,body);return {items,source:items.some(x=>x.roadVerified)?'도로 경로 + 내장 장소 데이터':'근사 경로 + 내장 장소 데이터'}};
-  if(u.pathname.endsWith('/api/trip-summary')){const [a,b]=await Promise.all([roadRoute(body.origin,body.destination),roadRoute(body.destination,body.origin)]),distanceKm=a.distanceKm+b.distanceKm,drivingMin=a.timeMin+b.timeMin,fuelLiters=distanceKm/11,fuelCost=Math.round(fuelLiters*Number(body.gasPrice||1700));return {outbound:a,inbound:b,total:{distanceKm,drivingMin,toll:0,fuelLiters,fuelCost,tripCost:fuelCost},fuelEconomyKmL:11}}
+  if(u.pathname.endsWith('/api/trip-summary')){
+    const [a,b]=await Promise.all([roadRoute(body.origin,body.destination),roadRoute(body.destination,body.origin)]);
+    const distanceKm=a.distanceKm+b.distanceKm,drivingMin=a.timeMin+b.timeMin,vehicle=activeVehicleProfile(body);
+    const energyAmount=distanceKm/vehicle.efficiency,energyCost=Math.round(energyAmount*vehicle.energyPrice);
+    const toll=estimateRoundTripToll(distanceKm,vehicle.tollDiscount);
+    return {outbound:a,inbound:b,total:{
+      distanceKm,drivingMin,toll,tripCost:energyCost+toll,
+      fuelLiters:energyAmount,fuelCost:energyCost,
+      energyAmount,energyCost,energyUnit:vehicle.energyUnit,energyPrice:vehicle.energyPrice,
+      vehicleLabel:vehicle.vehicleLabel,fuelLabel:vehicle.fuelLabel,efficiency:vehicle.efficiency,efficiencyUnit:vehicle.efficiencyUnit,
+      energyLabel:vehicle.fuel==='electric'?'예상 전력':'예상 연료',
+      costLabel:vehicle.fuel==='electric'?'충전비':'연료비'
+    },fuelEconomyKmL:vehicle.efficiency}
+  }
   if(u.pathname.endsWith('/api/courses')){const ww=await clientWeather(body.destination.lat,body.destination.lng),w=selectWeatherAt(ww,body.departure);return {weather:w,courses:await coursePack(body,w),provider:{ai:false,road:'osrm-or-fallback',kakao:false}}}
   if(u.pathname.endsWith('/api/ai-search')){const r=localAI(body.message||'',body.context||{});if(r.intent==='travel_search'&&body.context?.origin){const merged={...body.context,...r.patch,focusQuery:r.focusQuery,semanticProfile:r.semanticProfile};r.items=await refineRoadDistanceResults(localRecommend(merged),merged)}return r}
   throw new Error('지원하지 않는 요청입니다.');
@@ -802,7 +848,7 @@ async function startFromMainLocation(){
 }
 async function loadConfig(){
   state.config=await api('/api/config');$('#gasPrice').value=state.config.defaultGasPrice;const p=state.config.providers;
-  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.24 · 도시핫플 · 연계코스');
+  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.42 · 도시핫플 · 연계코스');
 }
 async function useLocation(goNext=false){
   if(!navigator.geolocation){toast('브라우저 위치 기능을 사용할 수 없습니다. 출발지를 검색해주세요.');return}
@@ -887,7 +933,14 @@ async function selectPlace(i,goCourse=false){
   const base={origin:state.origin,destination:state.selected,gasPrice:Number($('#gasPrice').value||1700)};
   try{const [sum,c]=await Promise.all([api('/api/trip-summary',{method:'POST',body:JSON.stringify(base)}),api('/api/courses',{method:'POST',body:JSON.stringify({...base,categories:state.categories,departure:$('#departTime').value,returnTime:$('#returnTime').value})})]);renderSummary(sum);renderCourses(c);drawRoute(sum.outbound.coords);setText('#mapStatus',`${state.selected.name} · 왕복 ${sum.total.distanceKm.toFixed(1)}km`)}catch(e){$('#tripSummary').innerHTML=`<span class="error">${esc(e.message)}</span>`;$('#courseList').innerHTML=`<span class="error">${esc(e.message)}</span>`}finally{loading(false);if(goCourse)setStep(5)}
 }
-function renderSummary(s){const src=s.outbound.source==='osrm'?'실제 도로 경로':s.outbound.source==='tmap'?'실시간 경로 데이터':'경로 API 실패 · 근사 경로';$('#tripSummary').className='summary-box';$('#tripSummary').innerHTML=`<div class="metric-grid"><div class="metric"><span>왕복 거리</span><strong>${fmtKm(s.total.distanceKm)}</strong></div><div class="metric"><span>운전 시간</span><strong>${fmtMin(s.total.drivingMin)}</strong></div><div class="metric"><span>통행료</span><strong>${fmtWon(s.total.toll)}</strong></div><div class="metric"><span>예상 연료</span><strong>${s.total.fuelLiters.toFixed(1)}L</strong></div><div class="metric"><span>기름값</span><strong>${fmtWon(s.total.fuelCost)}</strong></div><div class="metric"><span>교통비 합계</span><strong>${fmtWon(s.total.tripCost)}</strong></div></div><div class="source-note">${src} · 캐스퍼 연비 11km/L 기준 · 식비/주차비/입장료 제외</div>`}
+function renderSummary(s){
+  const src=s.outbound.source==='osrm'?'실제 도로 경로':s.outbound.source==='tmap'?'실시간 경로 데이터':'경로 API 실패 · 근사 경로';
+  const t=s.total||{},unit=t.energyUnit||'L',amount=Number(t.energyAmount??t.fuelLiters)||0,cost=Number(t.energyCost??t.fuelCost)||0;
+  const energyLabel=t.energyLabel||'예상 연료',costLabel=t.costLabel||'연료비';
+  const vehicle=t.vehicleLabel||'캐스퍼',fuel=t.fuelLabel||'휘발유',eff=Number(t.efficiency||s.fuelEconomyKmL||11),effUnit=t.efficiencyUnit||'km/L';
+  $('#tripSummary').className='summary-box';
+  $('#tripSummary').innerHTML=`<div class="metric-grid"><div class="metric"><span>왕복 거리</span><strong>${fmtKm(t.distanceKm)}</strong></div><div class="metric"><span>운전 시간</span><strong>${fmtMin(t.drivingMin)}</strong></div><div class="metric"><span>예상 통행료</span><strong>${fmtWon(t.toll)}</strong></div><div class="metric"><span>${esc(energyLabel)}</span><strong>${amount.toFixed(1)}${unit}</strong></div><div class="metric"><span>${esc(costLabel)}</span><strong>${fmtWon(cost)}</strong></div><div class="metric"><span>교통비 합계</span><strong>${fmtWon(t.tripCost)}</strong></div></div><div class="source-note">${src} · ${esc(vehicle)} · ${esc(fuel)} ${eff.toFixed(1)}${esc(effUnit)} 기준 · 통행료는 예상치 · 식비/주차비/입장료 제외</div>`;
+}
 function renderCourses(j){
   const w=j.weather;
   const courses=Array.isArray(j.courses)?j.courses:[];
@@ -1107,5 +1160,5 @@ if(typeof window!=='undefined'){
   });
 }
 async function boot(){initTimes();initMap();validateUIRuntime();bindChoices();bindActions();initPWA();syncDistanceUI();syncDirectionUI();syncCategoriesUI();setStep(1);showMainLanding();try{await loadConfig()}catch{setText('#providerNow','설정 확인 필요')}setInterval(refreshLive,10*60*1000)}
-globalThis.__TQ_TEST__={localAI,localRecommend,coursePack,approxRoute,normalizedDistanceRange,refineRoadDistanceResults,roadRoute};
+globalThis.__TQ_TEST__={localAI,localRecommend,coursePack,approxRoute,normalizedDistanceRange,refineRoadDistanceResults,roadRoute,activeVehicleProfile,estimateRoundTripToll};
 if(typeof document!=='undefined')boot();

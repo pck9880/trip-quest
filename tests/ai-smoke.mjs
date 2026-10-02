@@ -1,8 +1,14 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 await import('../site-src/app.js');
-const {localAI,localRecommend,coursePack}=globalThis.__TQ_TEST__;
-assert.ok(localAI&&localRecommend&&coursePack,'test hooks missing');
+const {localAI,localRecommend,coursePack,activeVehicleProfile,estimateRoundTripToll}=globalThis.__TQ_TEST__;
+assert.ok(localAI&&localRecommend&&coursePack&&activeVehicleProfile&&estimateRoundTripToll,'test hooks missing');
+const defaultVehicle=activeVehicleProfile({gasPrice:1858});
+assert.equal(defaultVehicle.vehicleLabel,'캐스퍼');
+assert.equal(defaultVehicle.efficiency,11);
+assert.equal(defaultVehicle.fuel,'gasoline');
+assert.equal(estimateRoundTripToll(20,false),0);
+assert.ok(estimateRoundTripToll(200,false)>0,'long round trip should have estimated toll');
 
 const context={
   origin:{lat:35.1796,lng:129.0756,name:'부산 테스트'},
@@ -42,4 +48,4 @@ assert.ok(source.includes("'daegu-dongseong'"),'Daegu route preset required');
 assert.ok(source.includes("'gwangju-dongmyeong'"),'Gwangju route preset required');
 assert.ok(source.includes("'suwon-haengni'"),'Suwon route preset required');
 assert.ok(source.includes("const all=s=>Array.from(document.querySelectorAll(s))"),'plural selector stability helper required');
-console.log('TRIP QUEST v0.24 urban hotspot and linked-course tests passed');
+console.log('TRIP QUEST v0.42 urban hotspot, route, and vehicle tests passed');
