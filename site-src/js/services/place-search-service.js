@@ -2,9 +2,9 @@ import { localGeocode } from './geocoding.js';
 import { geoKm } from '../domain/geo.js';
 
 export const SEARCH_MODE_CONFIGS={
-  travel:{id:'travel',code:'TRIP',label:'여행지',categoryCode:'AT4',placeholder:'예: 조용한 바다, 힙한 동네, 전시 보러 가고 싶어',button:'TRIP SEARCH',distance:{min:10,max:400,step:10,default:100}},
-  cafe:{id:'cafe',code:'CAFE',label:'카페',categoryCode:'CE7',placeholder:'예: 로스터리, 디저트 카페, 작업하기 좋은 카페',button:'CAFE SEARCH',distance:{min:.5,max:20,step:.5,default:2}},
-  food:{id:'food',code:'FOOD',label:'맛집',categoryCode:'FD6',placeholder:'예: 돼지국밥, 파스타, 혼밥, 고기집',button:'FOOD SEARCH',distance:{min:.5,max:20,step:.5,default:2}}
+  travel:{id:'travel',code:'TRIP',label:'여행지',categoryCode:'AT4',placeholder:'예: 부산에서 바다 보이는 카페, 조용한 바다, 힙한 동네',button:'TRIP SEARCH',distance:{min:0,max:400,step:50,defaultMin:0,defaultMax:100}},
+  cafe:{id:'cafe',code:'CAFE',label:'카페',categoryCode:'CE7',placeholder:'예: 로스터리, 디저트 카페, 작업하기 좋은 카페',button:'CAFE SEARCH',distance:{min:0,max:20,step:.5,defaultMin:0,defaultMax:2}},
+  food:{id:'food',code:'FOOD',label:'맛집',categoryCode:'FD6',placeholder:'예: 돼지국밥, 파스타, 혼밥, 고기집',button:'FOOD SEARCH',distance:{min:0,max:20,step:.5,defaultMin:0,defaultMax:2}}
 };
 
 export const MOOD_OPTIONS={
@@ -108,7 +108,7 @@ export function createPlaceSearchService({fetchRef=globalThis.fetch}={}){
     })).filter(item=>Number.isFinite(item.lat)&&Number.isFinite(item.lng));
   }
 
-  async function searchPlaces({mode='travel',query='',region=null,radiusKm=2,moods=[]}={}){
+  async function searchPlaces({mode='travel',query='',region=null,radiusMinKm=0,radiusKm=2,moods=[]}={}){
     const selected=safeMode(mode);
     if(selected==='travel')return {items:[],source:'TRIP QUEST recommendation engine',providerPlan:providerPlan(selected)};
     const cfg=modeConfig(selected),center=region;
@@ -144,7 +144,11 @@ export function createPlaceSearchService({fetchRef=globalThis.fetch}={}){
 
     const items=dedupe((rows||[]).map(row=>normalizePlace(row,selected,center)))
       .filter(item=>Number.isFinite(item.lat)&&Number.isFinite(item.lng))
-      .filter(item=>!Number.isFinite(item.distanceKm)||item.distanceKm<=Math.max(1,Number(radiusKm)||2)*1.35)
+      .filter(item=>{
+        if(!Number.isFinite(item.distanceKm))return true;
+        const min=Math.max(0,Number(radiusMinKm)||0),max=Math.max(.5,Number(radiusKm)||2);
+        return item.distanceKm>=Math.max(0,min*.9)&&item.distanceKm<=max*1.35;
+      })
       .map(item=>rankPlace(item,{query:userQuery,moods,radiusKm}))
       .sort((a,b)=>b.popularityScore-a.popularityScore||(a.distanceKm??999)-(b.distanceKm??999))
       .slice(0,15);
