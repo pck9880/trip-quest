@@ -86,6 +86,7 @@ assert.ok(vehicleService.includes('function activeVehicleProfile'),'vehicle prof
 assert.ok(tripCost.includes('function estimateRoundTripToll'),'toll estimation missing');
 const travelServiceSource=read('js/services/travel-service.js');
 const tripStoreSource=read('js/store/trip-store.js');
+const searchControllerSource=read('js/controllers/search-controller.js');
 assert.ok(travelServiceSource.includes("costLabel:vehicle.fuel==='electric'?'충전비':'연료비'"),'energy cost labels missing');
 assert.ok(!app.includes('async function api('),'internal fake API router must be removed');
 assert.ok(app.includes('createTravelService()'),'travel service facade must be composed in app.js');
@@ -103,7 +104,6 @@ assert.ok(html.includes('현재 위치에서 취향에 맞는 여행지를 빠�
 const wizardSource=read('js/ui/wizard.js');
 const appControllerSource=read('js/controllers/app-controller.js');
 const resultsSource=read('js/ui/results.js');
-const searchControllerSource=read('js/controllers/search-controller.js');
 assert.ok(wizardSource.includes('document.body.dataset.tripStep=String(n)'),'step-aware simple search visibility missing');
 assert.ok(!html.includes('quickDistanceChoices'),'quick distance buttons must be removed');
 assert.ok(!html.includes('quickThemeChoices'),'quick mood buttons must be removed');
