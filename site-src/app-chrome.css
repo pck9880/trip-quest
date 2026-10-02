@@ -491,56 +491,53 @@ body.tq-modal-open{overflow:hidden}.tq-setup-overlay[hidden]{display:none!import
 }
 
 
-/* v0.38 — resilient photo cover: fallback UI first, photo mode after successful load */
-.main-landing{background:#070b10!important;overflow:hidden!important}
+/* v0.39 — static approved cover, no motion */
+.main-landing{background:#06101b!important;overflow:hidden!important}
 .main-landing-bg{
   position:absolute!important;inset:0!important;
   left:0!important;top:0!important;width:100%!important;height:100%!important;
-  transform:none!important;background:#070b10!important;z-index:0!important;overflow:hidden!important;
+  transform:none!important;background:#06101b!important;z-index:0!important;overflow:hidden!important;
 }
-.main-landing-bg:after{
-  display:block!important;
-  content:""!important;position:absolute!important;inset:0!important;
-  background:
-    radial-gradient(circle at 50% 28%,rgba(201,255,69,.08),transparent 34%),
-    linear-gradient(180deg,rgba(4,8,13,.06),rgba(4,8,13,.34))!important;
-  z-index:2!important;pointer-events:none!important;
-}
-.tq-cover-photo{
-  position:absolute;inset:0;width:100%;height:100%;
-  object-fit:cover;object-position:center center;
-  opacity:0;transition:opacity .22s ease;
-  z-index:1;display:block;
-}
-.main-landing.tq-photo-ready .tq-cover-photo{opacity:1}
-.tq-drive-scene,.tq-cinematic-scene{display:none!important}
+.main-landing-bg:after{display:none!important}
+.tq-drive-scene,.tq-cinematic-scene,.tq-photo-cover-fx{display:none!important}
 
-/* Safe fallback: normal HTML cover remains visible until the photo has loaded. */
+.tq-cover-photo{
+  position:absolute!important;inset:0!important;
+  width:100%!important;height:100%!important;
+  display:block!important;object-fit:cover!important;object-position:center center!important;
+  opacity:1!important;z-index:1!important;
+  animation:none!important;transition:none!important;transform:none!important;
+}
+
+/* Until the image successfully loads, keep the normal HTML landing usable. */
 .main-landing-inner{
-  position:relative!important;left:auto!important;top:auto!important;
-  transform:none!important;width:min(560px,calc(100% - 40px))!important;
-  height:auto!important;min-height:min(780px,calc(100dvh - 28px))!important;
+  position:relative!important;left:auto!important;top:auto!important;transform:none!important;
+  width:min(560px,calc(100% - 40px))!important;height:auto!important;
+  min-height:min(780px,calc(100dvh - 28px))!important;
   margin:0 auto!important;padding:30px 2px calc(20px + env(safe-area-inset-bottom,0px))!important;
   display:flex!important;z-index:20!important;pointer-events:auto!important;
 }
-.main-cover-brand,.main-cover-copy,.tq-cover-points,.tq-cover-trust,#mainLocationStatus{display:initial}
 .main-cover-brand{display:flex!important}
 .main-cover-copy{display:block!important}
 .tq-cover-points{display:flex!important}
 .tq-cover-trust{display:flex!important}
 #mainLocationStatus{display:block!important}
-.main-cover-action{position:relative!important;inset:auto!important;display:grid!important;pointer-events:auto!important;margin:0!important}
+.main-cover-action{
+  position:relative!important;inset:auto!important;display:grid!important;
+  pointer-events:auto!important;margin:0!important;
+}
 #mainLocateBtn,#mainManualBtn{
   position:relative!important;left:auto!important;top:auto!important;transform:none!important;
   width:100%!important;height:auto!important;min-height:56px!important;
   opacity:1!important;pointer-events:auto!important;
 }
 
-/* When the approved artwork is confirmed loaded, use its embedded typography/buttons exactly. */
+/* Photo mode: use the artwork's visible UI and place real hit areas over its two buttons. */
 .main-landing.tq-photo-ready .main-landing-inner{
-  position:absolute!important;inset:0!important;left:0!important;top:0!important;
-  width:100%!important;height:100%!important;min-height:0!important;
-  margin:0!important;padding:0!important;display:block!important;pointer-events:none!important;
+  position:absolute!important;inset:0!important;
+  left:0!important;top:0!important;width:100%!important;height:100%!important;
+  min-height:0!important;margin:0!important;padding:0!important;
+  display:block!important;pointer-events:none!important;
 }
 .main-landing.tq-photo-ready .main-cover-brand,
 .main-landing.tq-photo-ready .main-cover-copy,
@@ -552,42 +549,38 @@ body.tq-modal-open{overflow:hidden}.tq-setup-overlay[hidden]{display:none!import
 }
 .main-landing.tq-photo-ready #mainLocateBtn,
 .main-landing.tq-photo-ready #mainManualBtn{
-  position:absolute!important;left:50%!important;transform:translateX(-50%)!important;
-  width:64%!important;height:7.1%!important;min-height:48px!important;
-  padding:0!important;margin:0!important;border:0!important;border-radius:999px!important;
-  background:transparent!important;box-shadow:none!important;color:transparent!important;
-  font-size:0!important;text-shadow:none!important;opacity:.001!important;
-  pointer-events:auto!important;cursor:pointer!important;touch-action:manipulation!important;
+  position:absolute!important;
+  left:50%!important;transform:translateX(-50%)!important;
+  width:82vw!important;max-width:none!important;
+  height:6.9dvh!important;min-height:52px!important;
+  padding:0!important;margin:0!important;
+  border:0!important;border-radius:999px!important;
+  background:transparent!important;box-shadow:none!important;
+  color:transparent!important;font-size:0!important;text-shadow:none!important;
+  opacity:.001!important;pointer-events:auto!important;cursor:pointer!important;
+  touch-action:manipulation!important;-webkit-tap-highlight-color:transparent!important;
 }
-.main-landing.tq-photo-ready #mainLocateBtn{top:76.5%!important}
-.main-landing.tq-photo-ready #mainManualBtn{top:84.8%!important}
+.main-landing.tq-photo-ready #mainLocateBtn{top:76.35%!important}
+.main-landing.tq-photo-ready #mainManualBtn{top:84.75%!important}
 .main-landing.tq-photo-ready #mainLocateBtn:before,
 .main-landing.tq-photo-ready #mainLocateBtn:after,
 .main-landing.tq-photo-ready #mainManualBtn:before,
 .main-landing.tq-photo-ready #mainManualBtn:after,
 .main-landing.tq-photo-ready #mainLocateBtn svg,
 .main-landing.tq-photo-ready #mainManualBtn svg{display:none!important}
-
-/* If loading fails, make failure obvious but keep the app usable. */
-.main-landing.tq-photo-error .main-landing-bg:after{
-  background:
-    radial-gradient(circle at 50% 24%,rgba(201,255,69,.12),transparent 33%),
-    linear-gradient(160deg,#10171f 0%,#070b10 60%,#0b1117 100%)!important;
+.main-landing.tq-photo-ready #mainLocateBtn:focus-visible,
+.main-landing.tq-photo-ready #mainManualBtn:focus-visible{
+  opacity:1!important;
+  outline:3px solid rgba(201,255,69,.95)!important;
+  outline-offset:2px!important;
 }
 
-.tq-photo-cover-fx{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:3}
-.tq-cover-light{
-  position:absolute;left:-35%;top:65%;width:42%;height:2px;border-radius:999px;
-  background:linear-gradient(90deg,transparent,rgba(201,255,69,.28),transparent);
-  filter:blur(.4px);opacity:.22;animation:tqPhotoRoadLight 5.2s linear infinite;
-}
-.tq-cover-light.l2{top:70%;animation-delay:-2.6s;background:linear-gradient(90deg,transparent,rgba(121,207,255,.20),transparent)}
-@keyframes tqPhotoRoadLight{
-  0%{transform:translateX(0) rotate(-4deg);opacity:0}
-  18%{opacity:.24}
-  82%{opacity:.16}
-  100%{transform:translateX(440%) rotate(-4deg);opacity:0}
-}
+/* Explicitly disable every legacy cover animation. */
+.main-landing .tq-geo-scene,
+.main-landing .tq-moving-car,
+.main-landing .tq-road-speed,
+.main-landing .tq-cover-light{display:none!important;animation:none!important}
+
 @media(max-width:680px){
   .main-landing-inner{
     width:100%!important;min-height:100dvh!important;
@@ -595,4 +588,7 @@ body.tq-modal-open{overflow:hidden}.tq-setup-overlay[hidden]{display:none!import
   }
   .main-landing.tq-photo-ready .main-landing-inner{padding:0!important}
 }
-@media(prefers-reduced-motion:reduce){.tq-cover-light{animation:none!important;display:none!important}}
+@media(max-height:700px){
+  .main-landing.tq-photo-ready #mainLocateBtn{top:76.1%!important}
+  .main-landing.tq-photo-ready #mainManualBtn{top:84.5%!important}
+}
