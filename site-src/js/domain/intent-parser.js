@@ -7,8 +7,13 @@ function unique(values){return [...new Set(values.filter(Boolean))]}
 export function localAI(message,context={}){
   const m=String(message||'').trim(),compact=m.replace(/\s+/g,''),patch={};
   const sliderRange=normalizedDistanceRange(context);
-  const distance={min:sliderRange.min,max:sliderRange.max,km:sliderRange.max,mode:'range',fromSlider:true};
   const queryPlan=planTravelQuery(m,context);
+  if(queryPlan.distanceMention){
+    patch.minKm=queryPlan.distanceMention.min;
+    patch.targetKm=queryPlan.distanceMention.max;
+  }
+  const effectiveRange=queryPlan.distanceMention||sliderRange;
+  const distance={min:effectiveRange.min,max:effectiveRange.max,km:effectiveRange.max,mode:'range',fromSlider:!queryPlan.distanceMention};
   const dir=['북동','남동','남서','북서','북','동','남','서'].find(d=>m.includes(d));
   if(dir)patch.direction=dir;
 
@@ -77,13 +82,13 @@ export function localAI(message,context={}){
     return {mode:'local',intent:'clarify',message:'지역, 원하는 장소나 분위기 중 한 가지를 더 입력해주세요.',patch:{},focusQuery:'',analysisKeywords:[],choices:[{label:'검색어 다시 입력',action:'focus'}]};
   }
 
-  const planned=queryPlanKeywords(queryPlan,sliderRange);
+  const planned=queryPlanKeywords(queryPlan,effectiveRange);
   const semantic=matches.filter(x=>x.kind!=='amenity').map(x=>x.label);
   const amenity=[];
   if(profile.flags.wantsCafe)amenity.push('CAFE 연계');
   if(profile.flags.wantsFood)amenity.push('FOOD 연계');
   const analysisKeywords=unique([...planned,...semantic,...amenity]).slice(0,7);
-  if(!analysisKeywords.some(x=>/km$/.test(x)))analysisKeywords.push(Math.round(sliderRange.min)+'~'+Math.round(sliderRange.max)+'km');
+  if(!analysisKeywords.some(x=>/km$/.test(x)))analysisKeywords.push(Math.round(effectiveRange.min)+'~'+Math.round(effectiveRange.max)+'km');
 
   const regionText=profile.regionConstraint?profile.regionConstraint+' 지역 · ':'';
   const categoryText=hardCategories.length?hardCategories.join(' · ')+' 중심 · ':'';
