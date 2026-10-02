@@ -16,7 +16,8 @@ const INITIAL_SECTIONS={
     localMinRadiusKm:0,
     localRadiusKm:2,
     moodKeywords:[],
-    placeResults:[]
+    placeResults:[],
+    exploreTarget:null
   },
   selection:{
     selected:null,
@@ -50,6 +51,7 @@ const FIELD_MAP={
   localRadiusKm:['search','localRadiusKm'],
   moodKeywords:['search','moodKeywords'],
   placeResults:['search','placeResults'],
+  exploreTarget:['search','exploreTarget'],
   selected:['selection','selected'],
   selectedCourse:['selection','selectedCourse'],
   selectedCourseData:['selection','selectedCourseData'],
@@ -117,6 +119,7 @@ export function createTripStore(seed={}){
       localRadiusKm:INITIAL_SECTIONS.search.localRadiusKm,
       moodKeywords:[],
       placeResults:[],
+      exploreTarget:null,
       selected:null,
       selectedCourse:null,
       selectedCourseData:null,
