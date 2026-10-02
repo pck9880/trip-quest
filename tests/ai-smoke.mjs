@@ -63,4 +63,4 @@ assert.ok(!appSource.includes('function localRecommend('),'recommendation engine
 assert.ok(!appSource.includes('function localAI('),'intent parser must not remain embedded in app.js');
 assert.ok(coursePlannerSource.includes('export async function coursePack('),'course planner module missing');
 assert.ok(!appSource.includes('function coursePack('),'course planner must not remain embedded in app.js');
-console.log('TRIP QUEST v0.51 course planner, recommendation, route, and vehicle tests passed');
+console.log('TRIP QUEST v0.52 UI/controller, course planner, recommendation, route, and vehicle tests passed');
