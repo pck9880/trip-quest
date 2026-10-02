@@ -4,6 +4,20 @@ import { planTravelQuery, queryPlanKeywords } from './query-planner.js';
 
 function unique(values){return [...new Set(values.filter(Boolean))]}
 
+function extractDirection(text){
+  const rules=[
+    ['북동',/북동쪽|북동으로|동북쪽|동북으로/],
+    ['남동',/남동쪽|남동으로|동남쪽|동남으로/],
+    ['남서',/남서쪽|남서로|서남쪽|서남으로/],
+    ['북서',/북서쪽|북서로|서북쪽|서북으로/],
+    ['북',/북쪽|북으로|북부/],
+    ['동',/동쪽|동으로|동부/],
+    ['남',/남쪽|남으로|남부/],
+    ['서',/서쪽|서쪽으로|서부/]
+  ];
+  return rules.find(([,re])=>re.test(text))?.[0]||'';
+}
+
 export function localAI(message,context={}){
   const m=String(message||'').trim(),compact=m.replace(/\s+/g,''),patch={};
   const sliderRange=normalizedDistanceRange(context);
@@ -14,7 +28,7 @@ export function localAI(message,context={}){
   }
   const effectiveRange=queryPlan.distanceMention||sliderRange;
   const distance={min:effectiveRange.min,max:effectiveRange.max,km:effectiveRange.max,mode:'range',fromSlider:!queryPlan.distanceMention};
-  const dir=['북동','남동','남서','북서','북','동','남','서'].find(d=>m.includes(d));
+  const dir=extractDirection(m);
   if(dir)patch.direction=dir;
 
   const matches=INTENT_RULES.filter(r=>r.re.test(compact));
