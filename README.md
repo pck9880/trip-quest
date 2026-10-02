@@ -1,11 +1,11 @@
-# TRIP QUEST · v0.53
+# TRIP QUEST · v0.54
 
 국내여행 AI 플래너의 GitHub Pages/PWA 배포 저장소입니다.
 
 - Live: https://pck9880.github.io/trip-quest/
 - 실제 배포 원본: `site-src/`
 - 배포 워크플로: `.github/workflows/pages.yml`
-- 테스트: `tests/ai-smoke.mjs`, `tests/ui-smoke.mjs`
+- 테스트: `tests/ai-smoke.mjs`, `tests/ui-smoke.mjs`, `tests/style-smoke.mjs`
 
 > 루트의 과거 정적 파일과 `site/` 폴더는 배포 원본이 아닙니다. 기능 수정은 `site-src/`를 기준으로 진행합니다.
 
@@ -69,3 +69,13 @@
 - `js/services/travel-service.js`: config/geocode/bootstrap/recommend/tripSummary/courses/aiSearch 명시적 서비스 API 제공
 - 프론트 내부의 가상 `/api/*` 라우터 제거
 - 검색/출발지 Controller는 URL 문자열 대신 named service method에 의존
+
+## v0.54 스타일 시스템 정리
+
+- `css/base.css`: 앱 공통 레이아웃/컴포넌트
+- `css/product.css`: 앱 크롬, 차량 설정, 랜딩 fallback
+- `css/landing.css`: 현재 표지와 터치 lifecycle
+- `css/search.css`: 검색 페이지, 거리 슬라이더, 직접입력 drawer
+- 버전 번호 기반 CSS 패치 주석 제거 및 의미 기반 섹션명으로 교체
+- 사용하지 않는 자동차 모션/빠른선택 CSS 제거
+- 최종 cascade 파일에서 불필요한 `!important`를 제거하고 style budget 테스트 추가
