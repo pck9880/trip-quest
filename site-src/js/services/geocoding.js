@@ -11,7 +11,7 @@ const TYPE_LABELS={
   park:'공원',garden:'공원',theme_park:'놀이공원',attraction:'관광시설',museum:'뮤지엄',
   arts_centre:'문화시설',mall:'쇼핑몰',department_store:'백화점',supermarket:'쇼핑',
   marketplace:'시장',market:'시장',station:'교통시설',beach:'해변',viewpoint:'전망대',
-  retail:'상업시설',commercial:'상권',pedestrian:'거리',square:'광장'
+  retail:'상업시설',outlet:'아울렛',commercial:'상권',pedestrian:'거리',square:'광장'
 };
 
 function clean(value){return String(value||'').replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim()}
@@ -19,6 +19,10 @@ function aliasFor(query){const q=clean(query);return PLACE_ALIASES.find(x=>x.re.
 function classify(row={}){
   const type=String(row.type||row.addresstype||'').toLowerCase();
   const cls=String(row.class||row.category||'').toLowerCase();
+  const display=clean(row.display_name||row.name||'');
+  if(/아울렛|outlet/i.test(display))return {type:'outlet',label:'아울렛'};
+  if(/백화점/.test(display))return {type:'department_store',label:'백화점'};
+  if(/놀이공원|테마파크/.test(display))return {type:'theme_park',label:'놀이공원'};
   if(type==='theme_park'||/theme.?park/.test(type))return {type:'theme_park',label:'놀이공원'};
   if(type==='department_store')return {type:'department_store',label:'백화점'};
   if(type==='mall'||type==='retail'||cls==='shop')return {type:type||'retail',label:TYPE_LABELS[type]||'쇼핑시설'};
