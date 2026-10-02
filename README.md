@@ -1,4 +1,4 @@
-# TRIP QUEST · v0.50
+# TRIP QUEST · v0.51
 
 국내여행 AI 플래너의 GitHub Pages/PWA 배포 저장소입니다.
 
@@ -39,3 +39,11 @@
 - `js/data/intent-rules.js`: 자연어 규칙 데이터
 
 이 단계까지 `app.js`는 UI orchestration 중심으로 축소되며 추천/의도 로직은 독립 테스트 가능한 모듈이 됩니다.
+
+## v0.51 코스/지도 분리
+
+- `js/domain/course-planner.js`: A/B 코스 후보 구성, 근거리 연결, 코스 비용 계산
+- `js/ui/main-map.js`: 추천 지도/경로/포커스 관리
+- `js/ui/course-map.js`: 선택 코스 지도와 마커 관리
+- Leaflet 인스턴스는 앱 전역 state에서 제거하고 각 지도 모듈 내부에 캡슐화
+- 핫스팟 메타데이터는 여행지 데이터 생성 시점에 결합
