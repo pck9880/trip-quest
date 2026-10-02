@@ -80,6 +80,8 @@ export function localRecommend(body){
   const hardCats=profile?.hardCategories||[];
   const preferredCats=profile?.preferredCategories||[];
   const regionConstraint=profile?.regionConstraint||profile?.queryPlan?.regionConstraint?.name||'';
+  const exploreTarget=body.exploreTarget&&Number.isFinite(Number(body.exploreTarget.lat))&&Number.isFinite(Number(body.exploreTarget.lng))
+    ?body.exploreTarget:null;
   const band=body.distanceBand&&Number.isFinite(Number(body.distanceBand.min))&&Number.isFinite(Number(body.distanceBand.max))
     ?{min:Math.max(0,Number(body.distanceBand.min)),max:Math.min(450,Number(body.distanceBand.max))}
     :null;
@@ -100,6 +102,9 @@ export function localRecommend(body){
 
   if(regionConstraint){
     arr=arr.filter(p=>matchesRegion(p,regionConstraint));
+  }else if(exploreTarget){
+    const targetPool=arr.filter(p=>geoKm(exploreTarget,p)<=95);
+    if(targetPool.length>=4)arr=targetPool;
   }
 
   if(profile&&!focus){
@@ -132,6 +137,8 @@ export function localRecommend(body){
     const urbanBoost=profile?.flags?.trendy&&URBAN_CATEGORIES.includes(p.category)?Math.min(30,Math.round((p.urbanScore||placePopularity(p))/4)):0;
     const oceanBoost=profile?.flags?.oceanView&&p.category==='바다'?18:0;
     const regionBonus=regionConstraint&&matchesRegion(p,regionConstraint)?20:0;
+    const exploreKm=exploreTarget?geoKm(exploreTarget,p):null;
+    const exploreBonus=Number.isFinite(exploreKm)?Math.max(0,42-exploreKm*.48):0;
     const cat=(!cats.length||cats.includes(p.category))?8:0;
     const dist=Math.max(0,24-Math.abs(p.geoDistanceKm-center)/span*18);
     const time=avail==null?8:(round<=avail?18:Math.max(0,18-(round-avail)/15));
@@ -152,13 +159,15 @@ export function localRecommend(body){
     if(profile?.flags?.localHidden&&['체험마을','전통시장','공원','관광지'].includes(p.category))why.push('로컬·숨은 장소 취향 반영');
     if(profile?.flags?.wantsCafe)why.push('여행지 선택 후 CAFE 연계');
     if(profile?.flags?.wantsFood)why.push('여행지 선택 후 FOOD 연계');
+    if(Number.isFinite(exploreKm))why.push('지도 탐색 포인트 '+Math.round(exploreKm)+'km');
     why.push(Math.round(activeMin)+'~'+Math.round(activeMax)+'km 검색 범위');
 
     return {...p,routePreview:route,roundTripDriveMin:round,availableMin:avail,feasible,
       aiReason:why.slice(0,3).join(' · '),relaxedResult:!!p.relaxed,
       semanticIntent:(profile?.keywords||[]).join(','),
       queryRegion:regionConstraint,
-      score:Math.min(99,Math.max(1,Math.round(18+hardFit+preferredFit+semantic+urbanBoost+oceanBoost+regionBonus+cat+dist+time+focusBonus+quietPenalty+genericPenalty+relaxedPenalty)))}
+      exploreDistanceKm:Number.isFinite(exploreKm)?exploreKm:null,
+      score:Math.min(99,Math.max(1,Math.round(18+hardFit+preferredFit+semantic+urbanBoost+oceanBoost+regionBonus+exploreBonus+cat+dist+time+focusBonus+quietPenalty+genericPenalty+relaxedPenalty)))}
   }).sort((a,b)=>b.score-a.score||a.geoDistanceKm-b.geoDistanceKm);
 
   return diversifyRecommendations(ranked,14);

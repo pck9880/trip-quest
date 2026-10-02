@@ -7,3 +7,21 @@ export function geoKm(a,b){const R=6371,dLat=rad(b.lat-a.lat),dLng=rad(b.lng-a.l
 export function geoBearing(a,b){const p1=rad(a.lat),p2=rad(b.lat),dl=rad(b.lng-a.lng),y=Math.sin(dl)*Math.cos(p2),x=Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl);return (Math.atan2(y,x)*180/Math.PI+360)%360}
 
 export function degDiff(a,b){return Math.abs(((a-b+540)%360)-180)}
+
+
+export function destinationPoint(origin,distanceKm,bearingDeg){
+  const R=6371;
+  const d=Math.max(0,Number(distanceKm)||0)/R;
+  const br=rad(Number(bearingDeg)||0);
+  const p1=rad(Number(origin?.lat)||0);
+  const l1=rad(Number(origin?.lng)||0);
+  const p2=Math.asin(Math.sin(p1)*Math.cos(d)+Math.cos(p1)*Math.sin(d)*Math.cos(br));
+  const l2=l1+Math.atan2(Math.sin(br)*Math.sin(d)*Math.cos(p1),Math.cos(d)-Math.sin(p1)*Math.sin(p2));
+  return {lat:p2*180/Math.PI,lng:((l2*180/Math.PI+540)%360)-180};
+}
+
+export function bearingLabel8(bearing){
+  const b=((Number(bearing)||0)%360+360)%360;
+  const labels=['북','북동','동','남동','남','남서','서','북서'];
+  return labels[Math.round(b/45)%8];
+}

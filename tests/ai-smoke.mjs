@@ -7,14 +7,16 @@ import { activeVehicleProfile } from '../site-src/js/services/vehicle-settings.j
 import { estimateRoundTripToll } from '../site-src/js/domain/trip-cost.js';
 import { createTripStore } from '../site-src/js/store/trip-store.js';
 import { createTravelService } from '../site-src/js/services/travel-service.js';
+import { destinationPoint, geoKm, geoBearing } from '../site-src/js/domain/geo.js';
 
 const store=createTripStore();
 assert.equal(store.state.step,1);
 assert.equal(store.sections.search.targetKm,100);
-store.update({minKm:40,targetKm:120,selected:{name:'테스트'}});
+store.update({minKm:40,targetKm:120,exploreTarget:{lat:35.8,lng:129.2,name:'탐색점'},selected:{name:'테스트'}});
 store.resetJourney();
 assert.equal(store.state.minKm,0);
 assert.equal(store.state.targetKm,100);
+assert.equal(store.state.exploreTarget,null);
 assert.equal(store.state.selected,null);
 const travelService=createTravelService();
 assert.equal(typeof travelService.recommend,'function');
@@ -31,6 +33,15 @@ const context={
   minKm:0,targetKm:200,direction:'전체',categories:['관광지'],
   departure:'',returnTime:'',gasPrice:1700
 };
+
+const east100=destinationPoint(context.origin,100,90);
+assert.ok(Math.abs(geoKm(context.origin,east100)-100)<.5,'GEO CANVAS destination projection must preserve distance');
+assert.ok(Math.abs(geoBearing(context.origin,east100)-90)<.8,'GEO CANVAS destination projection must preserve bearing');
+
+const geoTarget={lat:35.8387,lng:129.2093,name:'경주 탐색점'};
+const geoTargetItems=localRecommend({...context,minKm:30,targetKm:150,categories:[],exploreTarget:geoTarget});
+assert.ok(geoTargetItems.length>0,'dragged GEO target should still return recommendations');
+assert.ok(Number.isFinite(geoTargetItems[0].exploreDistanceKm),'recommendations must expose distance from GEO target');
 
 const oceanCafe=localAI('부산에서 바다보이는 카페',context);
 assert.equal(oceanCafe.intent,'travel_search');
@@ -109,4 +120,4 @@ assert.ok(!appSource.includes('function localRecommend('),'recommendation engine
 assert.ok(!appSource.includes('function localAI('),'intent parser must not remain embedded in app.js');
 assert.ok(coursePlannerSource.includes('export async function coursePack('),'course planner module missing');
 assert.ok(!appSource.includes('function coursePack('),'course planner must not remain embedded in app.js');
-console.log('TRIP QUEST v1.8 query planner, recommendation, course, route, and vehicle tests passed');
+console.log('TRIP QUEST v1.10 GEO target, query planner, recommendation, course, route, and vehicle tests passed');
