@@ -1,4 +1,4 @@
-# TRIP QUEST · v0.46
+# TRIP QUEST · v0.47
 
 국내여행 AI 플래너의 GitHub Pages/PWA 배포 저장소입니다.
 

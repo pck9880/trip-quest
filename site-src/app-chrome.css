@@ -1086,3 +1086,167 @@ body[data-trip-step="2"].tq-advanced-open .wizard{
   .tq-distance-chips{grid-template-columns:repeat(2,1fr)}
   .tq-search-head h1{font-size:25px!important}
 }
+
+
+/* v0.47 — restore drag distance UX + bottom manual-input drawer */
+.tq-search-page .tq-distance-primary.ai-distance-control{
+  margin-top:12px;
+  padding:14px 15px 13px;
+  border:1px solid rgba(70,85,100,.52);
+  border-radius:16px;
+  background:#0d141b;
+}
+.tq-search-page .tq-distance-primary .ai-distance-head{
+  align-items:end;
+}
+.tq-search-page .tq-distance-primary .ai-distance-head span{
+  color:#8b98a4;
+  font-size:9px;
+}
+.tq-search-page .tq-distance-primary .ai-distance-head strong{
+  margin-top:4px;
+  font-size:18px;
+}
+.tq-search-page .tq-distance-primary .ai-distance-head strong b{
+  color:var(--accent);
+  font-size:24px;
+}
+.tq-search-page .tq-distance-primary .dual-distance-range{
+  margin-top:8px;
+}
+.tq-search-page .tq-distance-primary>p{
+  margin:8px 0 0;
+  color:#6f7c87;
+  font-size:9px;
+  line-height:1.45;
+}
+.tq-search-page .tq-distance-primary .distance-labels{
+  margin-top:-1px;
+}
+
+.tq-manual-input-bar{
+  width:100%;
+  min-height:58px;
+  margin-top:12px;
+  padding:0 16px;
+  border:1px solid rgba(72,87,101,.56);
+  border-radius:15px;
+  background:linear-gradient(180deg,#111922,#0d141b);
+  color:#edf3f6;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  text-align:left;
+  cursor:pointer;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+  transition:border-color .14s ease,background .14s ease,transform .1s ease;
+}
+.tq-manual-input-bar:hover{
+  border-color:#566675;
+  background:linear-gradient(180deg,#151f2a,#101821);
+}
+.tq-manual-input-bar:active{transform:scale(.992)}
+.tq-manual-input-bar>span{min-width:0}
+.tq-manual-input-bar b,
+.tq-manual-input-bar small{display:block}
+.tq-manual-input-bar b{
+  font-size:12px;
+  font-weight:850;
+  letter-spacing:-.01em;
+}
+.tq-manual-input-bar small{
+  margin-top:4px;
+  color:#82909c;
+  font-size:9px;
+}
+.tq-manual-input-bar i{
+  flex:0 0 32px;
+  width:32px;
+  height:32px;
+  border-radius:10px;
+  display:grid;
+  place-items:center;
+  background:#19232d;
+  color:#9aa8b3;
+  font-style:normal;
+  font-size:18px;
+  transition:transform .18s ease,background .14s ease,color .14s ease;
+}
+.tq-manual-input-bar.open{
+  border-color:rgba(201,255,69,.42);
+  background:linear-gradient(180deg,rgba(24,34,27,.96),rgba(13,21,17,.96));
+}
+.tq-manual-input-bar.open i{
+  transform:rotate(180deg);
+  background:rgba(201,255,69,.1);
+  color:#dfff8f;
+}
+
+/* The drawer expands directly below the search panel. */
+body[data-trip-step="2"].tq-advanced-open .progress,
+body[data-trip-step="2"].tq-advanced-open .wizard{
+  animation:tqManualDrawerIn .2s cubic-bezier(.2,.8,.2,1);
+}
+body[data-trip-step="2"].tq-advanced-open .wizard .manual-search-intro{
+  display:none!important;
+}
+body[data-trip-step="2"].tq-advanced-open .wizard #manualOptions{
+  display:block!important;
+  margin-top:0!important;
+}
+@keyframes tqManualDrawerIn{
+  from{opacity:0;transform:translateY(-8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+@media(max-width:680px){
+  .tq-search-page .tq-distance-primary.ai-distance-control{
+    margin-top:9px;
+    padding:12px 11px 11px;
+    border-radius:14px;
+  }
+  .tq-search-page .tq-distance-primary .ai-distance-head{
+    align-items:center;
+  }
+  .tq-search-page .tq-distance-primary .ai-distance-head strong{
+    font-size:15px;
+  }
+  .tq-search-page .tq-distance-primary .ai-distance-head strong b{
+    font-size:22px;
+  }
+  .tq-search-page .tq-distance-primary>p{
+    margin-top:6px;
+    font-size:8px;
+  }
+  .tq-manual-input-bar{
+    min-height:56px;
+    margin-top:9px;
+    padding:0 13px;
+    border-radius:14px;
+  }
+  .tq-manual-input-bar b{font-size:11px}
+  .tq-manual-input-bar small{font-size:8px}
+  .tq-manual-input-bar i{
+    width:30px;
+    height:30px;
+    flex-basis:30px;
+  }
+  body[data-trip-step="2"].tq-advanced-open .progress{
+    margin-top:8px!important;
+  }
+  body[data-trip-step="2"].tq-advanced-open .wizard{
+    margin-top:8px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .tq-manual-input-bar,
+  .tq-manual-input-bar i,
+  body[data-trip-step="2"].tq-advanced-open .progress,
+  body[data-trip-step="2"].tq-advanced-open .wizard{
+    transition:none!important;
+    animation:none!important;
+  }
+}
