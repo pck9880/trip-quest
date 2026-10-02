@@ -114,3 +114,40 @@ body.tq-modal-open{overflow:hidden}.tq-setup-overlay[hidden]{display:none!import
   .tq-setup-head{grid-template-columns:42px 1fr auto}.tq-setup-head-icon{width:42px;height:42px}
   .tq-choice-grid{grid-template-columns:repeat(3,1fr)}.tq-choice-grid button{min-height:64px;padding:8px 5px}
 }
+
+
+/* v0.33 — unified rounded SVG icon system */
+.tq-icon{display:block;width:20px;height:20px;flex:0 0 auto;color:currentColor;overflow:visible}
+.tq-icon *{vector-effect:non-scaling-stroke}
+.tq-icon-lg{width:24px;height:24px}.tq-icon-md{width:19px;height:19px}
+.tq-button-icon{width:21px;height:21px}
+.tq-nav-icon{width:21px;height:21px}
+.tq-field-icon{width:15px;height:15px}
+.tq-location-icon{width:25px;height:25px}
+.tq-vehicle-card-icon{width:25px;height:25px;color:#7d8994}
+
+/* bottom navigation */
+.tq-bottom-nav button i{width:24px;height:24px;display:grid;place-items:center;font:inherit}
+.tq-bottom-nav button .tq-nav-icon{transition:transform .16s ease,color .16s ease}
+.tq-bottom-nav button.active .tq-nav-icon{color:var(--accent);transform:translateY(-1px)}
+.tq-bottom-nav button:active .tq-nav-icon{transform:scale(.92)}
+.tq-bottom-nav button span{margin-top:1px}
+
+/* start/location */
+.main-locate-btn:before{display:none!important}
+.main-locate-btn .tq-button-icon{color:#071006}
+.location-card .location-icon{color:var(--accent);font-size:0}
+.location-card .location-icon .tq-icon{margin:auto}
+.tq-field-label-icon{display:flex!important;align-items:center;gap:7px}
+.tq-field-label-icon .tq-field-icon{color:#82909c}
+
+/* vehicle & energy */
+.tq-setup-head-icon{display:grid;place-items:center;color:#c9ff45}
+.tq-setup-head-icon:before{display:none!important}
+.tq-choice-grid button i{display:none!important}
+.tq-choice-grid button .tq-vehicle-card-icon{transition:color .15s ease,transform .15s ease}
+.tq-choice-grid button.selected .tq-vehicle-card-icon{color:#c9ff45;transform:translateY(-1px)}
+.tq-choice-grid button[data-vehicle="ev"] .tq-vehicle-card-icon{color:#79cfff}
+.tq-choice-grid button[data-vehicle="ev"].selected .tq-vehicle-card-icon{color:#c9ff45}
+.tq-energy-icon{display:grid;place-items:center;color:#c9ff45}
+.tq-energy-icon:before{display:none!important}

@@ -2,6 +2,20 @@
   'use strict';
   const $=s=>document.querySelector(s);
   const el=(tag,cls,html='')=>{const n=document.createElement(tag);if(cls)n.className=cls;if(html)n.innerHTML=html;return n};
+  const ICON_PATHS={
+    home:'<path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V21h13V9.5"/><path d="M9.5 21v-6h5v6"/>',
+    ai:'<path d="M12 3l1.2 3.3L16.5 7.5l-3.3 1.2L12 12l-1.2-3.3-3.3-1.2 3.3-1.2L12 3Z"/><path d="m18.5 13 .8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z"/><path d="m5 14 .7 1.8 1.8.7-1.8.7L5 19l-.7-1.8-1.8-.7 1.8-.7L5 14Z"/>',
+    route:'<circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M7.8 17.1c2.6-1.1 1.8-4.3 4.4-5.4 1.5-.7 2.9-.2 4.1-1.8"/><path d="M7.7 6.3h4.7"/><path d="m10.5 4.2 2.1 2.1-2.1 2.1"/>',
+    settings:'<path d="M4 6h10"/><path d="M18 6h2"/><circle cx="16" cy="6" r="2"/><path d="M4 12h2"/><path d="M10 12h10"/><circle cx="8" cy="12" r="2"/><path d="M4 18h8"/><path d="M16 18h4"/><circle cx="14" cy="18" r="2"/>',
+    location:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><path d="M5.6 5.6 7.7 7.7M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/>',
+    car:'<path d="M5 17h14"/><path d="m6 17-1-4 2-5h10l2 5-1 4"/><path d="M7 12h10"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/>',
+    fuel:'<path d="M6 21V4h9v17"/><path d="M5 21h11"/><path d="M8.5 7h4"/><path d="M15 8h2.2l2.3 2.5V17a1.5 1.5 0 0 0 3 0v-5.5l-2.2-2.2"/><path d="M19.5 7.5 21 6"/>',
+    time:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/>'
+  };
+  function iconSvg(name,cls='tq-icon'){
+    const body=ICON_PATHS[name]||ICON_PATHS.location;
+    return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${body}</svg>`;
+  }
 
   const VEHICLE_KEY='tq_vehicle_settings_v1';
   const VEHICLES={
@@ -29,7 +43,7 @@
       <div class="tq-setup-card" role="dialog" aria-modal="true" aria-labelledby="tqSetupTitle">
         <div class="tq-sheet-handle" aria-hidden="true"></div>
         <header class="tq-setup-head">
-          <div class="tq-setup-head-icon" aria-hidden="true"></div>
+          <div class="tq-setup-head-icon" aria-hidden="true">${iconSvg('car','tq-icon tq-icon-lg')}</div>
           <div class="tq-setup-head-copy">
             <div class="tq-setup-kicker">TRIP SETTINGS</div>
             <h2 id="tqSetupTitle">내 차 기준으로 계산할게요.</h2>
@@ -40,7 +54,7 @@
         <section class="tq-setup-section">
           <div class="tq-field-title"><span>차량 종류</span><small>가장 가까운 차급을 선택하세요</small></div>
           <div id="tqVehicleTypes" class="tq-choice-grid">
-            ${Object.entries(VEHICLES).map(([k,v])=>`<button type="button" data-vehicle="${k}"><i aria-hidden="true"></i><span>${v.label}</span></button>`).join('')}
+            ${Object.entries(VEHICLES).map(([k,v])=>`<button type="button" data-vehicle="${k}">${iconSvg('car','tq-icon tq-vehicle-card-icon')}<span>${v.label}</span></button>`).join('')}
           </div>
         </section>
         <section class="tq-setup-section tq-setup-details">
@@ -49,7 +63,7 @@
             <label><span id="tqEffLabel">연비</span><div class="tq-unit-input"><input id="tqEfficiency" type="number" min="1" max="30" step="0.1" inputmode="decimal"><b id="tqEffUnit">km/L</b></div></label>
           </div>
           <div class="tq-setup-info">
-            <div class="tq-energy-icon" aria-hidden="true"></div>
+            <div class="tq-energy-icon" aria-hidden="true">${iconSvg('fuel','tq-icon tq-icon-md')}</div>
             <div><span>자동 에너지 가격</span><strong id="tqEnergyPrice">전국 평균 확인 중</strong><small>최신 평균 기준값을 비용 계산에 자동 적용합니다.</small></div>
           </div>
           <label class="tq-switch-row">
@@ -86,7 +100,26 @@
     if(action&&!action.querySelector('.tq-cover-trust'))action.insertAdjacentHTML('beforeend','<div class="tq-cover-trust"><i aria-hidden="true"></i><span>위치는 여행 계산에만 사용합니다.</span></div>');
   }
 
-  function addBottomNav(){if($('.tq-bottom-nav'))return;const nav=el('nav','tq-bottom-nav');nav.setAttribute('aria-label','앱 하단 메뉴');nav.innerHTML='<button type="button" data-tab="home" class="active"><i>⌂</i><span>홈</span></button><button type="button" data-tab="ai"><i>✦</i><span>AI 찾기</span></button><button type="button" data-tab="plan"><i>⌖</i><span>여행</span></button><button type="button" data-tab="settings"><i>⚙</i><span>설정</span></button>';document.body.appendChild(nav);const setActive=tab=>nav.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));nav.onclick=e=>{const b=e.target.closest('button');if(!b)return;const tab=b.dataset.tab;if(tab==='home'){setActive('home');showCover()}else if(tab==='ai'){setActive('ai');scrollToTarget('.ai-hero');$('#aiInput')?.focus({preventScroll:true})}else if(tab==='plan'){setActive('plan');scrollToTarget('#progress')}else if(tab==='settings'){setActive('settings');openVehicleSetup()}}}
+  function applyUnifiedIcons(){
+    const mainLocate=$('#mainLocateBtn');
+    if(mainLocate&&!mainLocate.querySelector('svg')){
+      mainLocate.querySelector('.loc-dot')?.remove();
+      mainLocate.insertAdjacentHTML('afterbegin',iconSvg('location','tq-icon tq-button-icon'));
+    }
+    const locationIcon=$('.location-card .location-icon');
+    if(locationIcon){locationIcon.innerHTML=iconSvg('location','tq-icon tq-location-icon')}
+
+    const timeCards=[...document.querySelectorAll('.time-cards .field-card')];
+    timeCards.forEach((card,index)=>{
+      const label=card.querySelector(':scope > span');
+      if(!label||label.querySelector('svg'))return;
+      const iconName=index<2?'time':'fuel';
+      label.classList.add('tq-field-label-icon');
+      label.insertAdjacentHTML('afterbegin',iconSvg(iconName,'tq-icon tq-field-icon'));
+    });
+  }
+
+  function addBottomNav(){if($('.tq-bottom-nav'))return;const nav=el('nav','tq-bottom-nav');nav.setAttribute('aria-label','앱 하단 메뉴');nav.innerHTML=`<button type="button" data-tab="home" class="active"><i>${iconSvg('home','tq-icon tq-nav-icon')}</i><span>홈</span></button><button type="button" data-tab="ai"><i>${iconSvg('ai','tq-icon tq-nav-icon')}</i><span>AI 찾기</span></button><button type="button" data-tab="plan"><i>${iconSvg('route','tq-icon tq-nav-icon')}</i><span>여행</span></button><button type="button" data-tab="settings"><i>${iconSvg('settings','tq-icon tq-nav-icon')}</i><span>설정</span></button>`;document.body.appendChild(nav);const setActive=tab=>nav.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));nav.onclick=e=>{const b=e.target.closest('button');if(!b)return;const tab=b.dataset.tab;if(tab==='home'){setActive('home');showCover()}else if(tab==='ai'){setActive('ai');scrollToTarget('.ai-hero');$('#aiInput')?.focus({preventScroll:true})}else if(tab==='plan'){setActive('plan');scrollToTarget('#progress')}else if(tab==='settings'){setActive('settings');openVehicleSetup()}}}
   function enhanceTopbar(){const top=$('.topbar');if(!top||top.querySelector('.tq-top-label'))return;top.classList.add('tq-appbar');const label=el('div','tq-top-label','<small>TRIP QUEST</small><strong>여행 플래너</strong>');$('.brand')?.after(label);const share=$('#topShareBtn');if(share){share.setAttribute('aria-label','여행 공유');share.textContent='↗';share.classList.add('tq-icon-btn')}}
   function observeLanding(){const landing=$('#mainLanding'),nav=$('.tq-bottom-nav');if(!landing)return;const sync=()=>nav?.classList.toggle('cover-open',!landing.hidden);new MutationObserver(sync).observe(landing,{attributes:true,attributeFilter:['hidden','class']});sync()}
   function enforceCourseDetailOrder(){const panel=$('#courseDetailPanel'),map=panel?.querySelector('.course-route-map-card'),actions=panel?.querySelector('#courseActionButtons');if(panel&&map&&actions&&map.nextElementSibling!==actions)map.insertAdjacentElement('afterend',actions)}
@@ -98,6 +131,6 @@
   function enhanceTripSummaryToll(){const summary=$('#tripSummary');if(!summary||!summary.querySelector('.metric-grid'))return;const metrics=[...summary.querySelectorAll('.metric')],find=l=>metrics.find(m=>m.querySelector('span')?.textContent.trim()===l),dm=find('왕복 거리'),tm=find('통행료')||find('예상 통행료'),total=find('교통비 합계'),fuel=find('기름값');if(!dm||!tm)return;const distance=parseKm(dm.querySelector('strong')?.textContent),estimated=estimateToll(distance),label=tm.querySelector('span'),value=tm.querySelector('strong');if(label)label.textContent='예상 통행료';if(value)value.textContent=estimated?`약 ${fmtWon(estimated)}`:'0원';if(total){const f=parseWon(fuel?.querySelector('strong')?.textContent);total.querySelector('strong').textContent=fmtWon(f+estimated)}}
   function observeTripSummary(){const summary=$('#tripSummary');if(!summary)return;new MutationObserver(()=>requestAnimationFrame(enhanceTripSummaryToll)).observe(summary,{childList:true,subtree:true,characterData:true});enhanceTripSummaryToll()}
   function runtimeHealthCheck(){document.querySelectorAll('#categoryChoices button,#directionChoices button,.progress-step').forEach(b=>b.type='button')}
-  function bootChrome(){enhanceLandingSurface();addCoverMotion();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();addManualSearchButton();observeTripSummary();createVehicleSetup();watchFirstLocation();applyVehicleSettings();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.32';document.documentElement.classList.add('tq-chrome-ready')}
+  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();addManualSearchButton();observeTripSummary();createVehicleSetup();watchFirstLocation();applyVehicleSettings();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.33';document.documentElement.classList.add('tq-chrome-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootChrome,{once:true});else bootChrome();
 })();

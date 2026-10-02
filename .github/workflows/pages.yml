@@ -30,6 +30,7 @@ jobs:
           mkdir -p _site/icons
           cp -a site-src/. _site/
           node --check _site/app.js
+          node --check _site/app-chrome.js
           node tests/ai-smoke.mjs
           python3 - <<'PY'
           import struct, zlib, json, re, urllib.request
