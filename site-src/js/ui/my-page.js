@@ -305,6 +305,11 @@ export function initMyPage({onOpenHistoryCourse}={}){
 
   overlay.addEventListener('click',e=>{if(e.target===overlay||e.target.closest('.tq-my-close'))close()});
   window.addEventListener('tripquest:open-my',open);
+  window.addEventListener('tripquest:open-gps-settings',async()=>{
+    overlay.hidden=false;
+    document.body.classList.add('tq-my-open');
+    await renderLocationConsent();
+  });
   window.addEventListener('tripquest:close-my',close);
   window.addEventListener('tripquest:keep-change',()=>{if(!overlay.hidden&&!body.querySelector('.tq-my-subpage'))renderHome()});
   window.addEventListener('tripquest:history-change',()=>{if(!overlay.hidden&&!body.querySelector('.tq-my-subpage'))renderHome()});

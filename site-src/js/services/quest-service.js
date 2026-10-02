@@ -30,7 +30,8 @@ export function createQuestService(storage=defaultStorage(),clock=()=>new Date()
     return {xp:Number(data.xp)||0,level:Math.max(1,Math.floor((Number(data.xp)||0)/500)+1),completedCount:data.completed.length,themeCounts,unlockedTitles:[...(data.unlockedTitles||[])],equippedTitle:data.equippedTitle||null};
   }
   function refreshTitles(data){
-    const stats=statsFrom(data),newlyUnlocked=[];
+    const eligible={...data,completed:(data.completed||[]).filter(item=>item.rewardStatus!=='pending')};
+    const stats=statsFrom(eligible),newlyUnlocked=[];
     for(const title of QUEST_TITLES){
       if(title.condition(stats)&&!data.unlockedTitles.includes(title.id)){data.unlockedTitles.push(title.id);newlyUnlocked.push(title)}
     }
