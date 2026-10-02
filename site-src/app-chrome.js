@@ -29,36 +29,17 @@
 
   function readVehicle(){try{return JSON.parse(localStorage.getItem(VEHICLE_KEY)||'null')}catch{return null}}
   function writeVehicle(v){localStorage.setItem(VEHICLE_KEY,JSON.stringify(v))}
-  function forceVisibleMotion(scene){return scene}
+  function forceVisibleMotion(){return}
   function addCoverMotion(){
     const landing=$('#mainLanding');
-    const bg=$('.main-landing-bg');
-    if(!landing||!bg)return;
-
-    bg.querySelectorAll('.tq-geo-scene,.tq-photo-cover-fx,.tq-cover-photo').forEach(n=>n.remove());
+    if(!landing)return;
     landing.classList.remove('tq-photo-ready','tq-photo-error');
-
-    const img=new Image();
-    img.className='tq-cover-photo';
-    img.alt='';
-    img.decoding='async';
-    img.loading='eager';
-    img.src='./assets/tq-cover-main-v040.webp';
-
-    const ready=()=>{
-      if(!img.naturalWidth)return;
-      landing.classList.add('tq-photo-ready');
-      landing.classList.remove('tq-photo-error');
-    };
-    const failed=()=>{
-      landing.classList.remove('tq-photo-ready');
-      landing.classList.add('tq-photo-error');
-    };
-
-    img.addEventListener('load',ready,{once:true});
-    img.addEventListener('error',failed,{once:true});
-    bg.appendChild(img);
-    if(img.complete)ready();
+    const probe=new Image();
+    probe.decoding='async';
+    probe.onload=()=>{landing.classList.add('tq-photo-ready');landing.classList.remove('tq-photo-error')};
+    probe.onerror=()=>{landing.classList.remove('tq-photo-ready');landing.classList.add('tq-photo-error')};
+    probe.src='./assets/tq-cover-main-v040.webp';
+    if(probe.complete&&probe.naturalWidth)probe.onload();
   }
   function showCover(){const landing=$('#mainLanding');if(!landing)return;landing.hidden=false;landing.classList.remove('leaving');document.body.classList.add('landing-open');addCoverMotion();window.scrollTo({top:0,behavior:'smooth'})}
   function scrollToTarget(s){$(s)?.scrollIntoView({behavior:'smooth',block:'start'})}
