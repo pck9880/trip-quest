@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.2 — AI map reference + KEEP course shortcut
+
+- Removed the stale direct `drawMap()` call from `app.js`; AI recommendation presentation now goes through the search controller
+- Added a modular-reference regression test to catch calls to extracted functions that are neither local nor imported
+- Changed KEEP detail action from external map search to the in-app Step 5 course page
+- Added saved-course hydration so KEEP can reopen the stored destination/course, selected route map, and nearby-place actions
+- Bumped PWA cache/static versions
+
+
 ## 1.1.1 — AI patch + KEEP detail hotfix
 
 - Restored the missing AI `applyPatch()` runtime handler that caused Step 4 recommendation errors

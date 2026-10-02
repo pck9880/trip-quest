@@ -46,4 +46,4 @@ assert.equal(result.saved,false);
 assert.equal(restored.count(),0);
 assert.equal(restored.has(item.id),false);
 
-console.log('TRIP QUEST v1.1.1 KEEP persistence/toggle tests passed');
+console.log('TRIP QUEST v1.1.2 KEEP persistence/toggle tests passed');
