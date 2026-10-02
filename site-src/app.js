@@ -79,7 +79,7 @@ function initPWA(){
 
 async function loadConfig(){
   state.config=await travelService.getConfig();$('#gasPrice').value=state.config.defaultGasPrice;
-  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.53 · Store·서비스 파사드 · 기존 기능 유지');
+  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v1.0 · 제품 구조 안정화');
 }
 
 

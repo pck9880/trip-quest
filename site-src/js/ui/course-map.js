@@ -9,7 +9,7 @@ export function initCourseMap(){
   if(courseMap||typeof L==='undefined')return;
   const el=$('#courseMap');if(!el)return;
   courseMap=L.map('courseMap',{zoomControl:true,attributionControl:true}).setView([35.6,128.0],8);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors',className:'dark-map-tiles'}).addTo(courseMap);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>',className:'dark-map-tiles'}).addTo(courseMap);
 }
 export function clearCourseMap(){
   if(!courseMap)return;
@@ -49,6 +49,6 @@ export function drawCourseRoute(course){
     courseMap.setView([stops[0].lat,stops[0].lng],15);
   }
   setTimeout(()=>courseMap.invalidateSize(),120);
-  const routeType=course.mode==='walk'?'도보 근거리':course.route?.source==='osrm'?'실제 도로 드라이브':'드라이브 · 일부 근사';
+  const routeType=course.mode==='walk'?'도보 근거리':course.route?.source==='osrm'?'OSRM 도로 드라이브':'드라이브 · 일부 근사';
   setText('#courseMapStatus',`${course.id}코스 · ${routeType} · 지역 내 ${stops.length}개 지점`);
 }

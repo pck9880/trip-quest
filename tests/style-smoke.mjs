@@ -21,4 +21,4 @@ for(const oldFile of ['styles.css','app-chrome.css','landing-touch-fix.css']){
 }
 assert.ok(read('css/landing.css').includes('@keyframes tqLandingButtonRelease'),'landing release animation missing');
 assert.ok(read('css/search.css').includes('@keyframes tqManualDrawerIn'),'manual drawer animation missing');
-console.log('TRIP QUEST v0.54 semantic CSS and style-budget tests passed');
+console.log('TRIP QUEST v1.0 semantic CSS and style-budget tests passed');
