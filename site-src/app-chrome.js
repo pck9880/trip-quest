@@ -313,7 +313,7 @@
       const tab=b.dataset.tab;
       if(tab==='explore'){
         closePanels('explore');setActive('explore');
-        scrollToTarget('.ai-hero');$('#aiInput')?.focus({preventScroll:true});
+        document.body.classList.add('tq-search-ready');scrollToTarget('#tripExplorer');$('#aiInput')?.focus({preventScroll:true});
       }else if(tab==='quest'){
         closePanels('quest');window.dispatchEvent(new CustomEvent('tripquest:open-quest'));setActive('quest');
       }else if(tab==='keep'){
@@ -335,6 +335,6 @@
   function enforceCourseDetailOrder(){const panel=$('#courseDetailPanel'),map=panel?.querySelector('.course-route-map-card'),actions=panel?.querySelector('#courseActionButtons');if(panel&&map&&actions&&map.nextElementSibling!==actions)map.insertAdjacentElement('afterend',actions)}
   function observeCourseDetailOrder(){const panel=$('#courseDetailPanel');if(!panel)return;enforceCourseDetailOrder();new MutationObserver(()=>requestAnimationFrame(enforceCourseDetailOrder)).observe(panel,{childList:true,subtree:false})}
   function runtimeHealthCheck(){document.querySelectorAll('#categoryChoices button,#directionChoices button,.progress-step').forEach(b=>b.type='button')}
-  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();bindLandingPressFeedback();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();createVehicleSetup();window.addEventListener('tripquest:open-vehicle-settings',openVehicleSetup);watchFirstLocation();applyVehicleSettings();refreshEnergyPrices();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v1.9.0';document.documentElement.classList.add('tq-chrome-ready')}
+  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();bindLandingPressFeedback();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();createVehicleSetup();window.addEventListener('tripquest:open-vehicle-settings',openVehicleSetup);watchFirstLocation();applyVehicleSettings();refreshEnergyPrices();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v1.10.0';document.documentElement.classList.add('tq-chrome-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootChrome,{once:true});else bootChrome();
 })();
