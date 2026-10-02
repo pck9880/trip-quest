@@ -76,5 +76,6 @@ assert.ok(html.includes('class="tq-manual-input-bar"'),'bottom manual-input bar 
 assert.ok(app.includes("const openAdvanced=$('#openAdvancedSearch')"),'manual drawer binding missing');
 assert.ok(app.includes("openAdvanced.classList.add('open')"),'manual drawer open state missing');
 assert.ok(app.includes("openAdvanced.classList.remove('open')"),'manual drawer close state missing');
+assert.ok(app.includes("if(n!==2){document.body.classList.remove('tq-advanced-open')"),'manual drawer must collapse when leaving step two');
 assert.ok(chromeCss.includes('body[data-trip-step="2"]:not(.tq-advanced-open) .wizard'),'simple search must hide advanced wizard at step two');
 console.log('TRIP QUEST v0.47 UI/runtime smoke tests passed');
