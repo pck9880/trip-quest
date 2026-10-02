@@ -127,7 +127,7 @@ export function initSearchFlow({state,travelService,setOrigin,hideMainLanding,sh
   function setMode(next,{resetFilters=true}={}){
     state.searchMode=SEARCH_MODE_CONFIGS[next]?next:'travel';
     state.placeResults=[];
-    if(resetFilters)state.moodKeywords=[];
+    if(resetFilters){state.moodKeywords=[];const input=$('#aiInput');if(input)input.value=''}
     if(state.searchMode==='travel'){
       state.minKm=0;
       if(!Number.isFinite(Number(state.targetKm))||Number(state.targetKm)<10)state.targetKm=100;
