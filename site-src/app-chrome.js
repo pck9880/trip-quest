@@ -55,7 +55,7 @@
     probe.decoding='async';
     probe.onload=()=>{landing.classList.add('tq-photo-ready');landing.classList.remove('tq-photo-error')};
     probe.onerror=()=>{landing.classList.remove('tq-photo-ready');landing.classList.add('tq-photo-error')};
-    probe.src='./assets/tq-cover-main-v041.webp';
+    probe.src='./assets/tq-cover-main-v043.webp';
     if(probe.complete&&probe.naturalWidth)probe.onload();
   }
   function showCover(){const landing=$('#mainLanding');if(!landing)return;landing.hidden=false;landing.classList.remove('leaving');document.body.classList.add('landing-open');addCoverMotion();window.scrollTo({top:0,behavior:'smooth'})}
@@ -144,6 +144,7 @@
     const copy=$('.main-cover-copy');
     if(copy&&!copy.querySelector('.tq-cover-points'))copy.insertAdjacentHTML('beforeend','<div class="tq-cover-points" aria-label="주요 기능"><span>실시간 위치</span><span>AI 추천</span><span>비용 계산</span></div>');
     const action=$('.main-cover-action');
+    if(action&&!action.querySelector('.tq-cover-action-head'))action.insertAdjacentHTML('afterbegin','<div class="tq-cover-action-head"><span>START TRIP</span><strong>출발 방법을 선택하세요</strong></div>');
     if(action&&!action.querySelector('.tq-cover-trust'))action.insertAdjacentHTML('beforeend','<div class="tq-cover-trust"><i aria-hidden="true"></i><span>위치는 여행 계산에만 사용합니다.</span></div>');
   }
 
@@ -174,29 +175,6 @@
   function selectedManualCount(){return document.querySelectorAll('#categoryChoices button.selected').length}
   function addManualSearchButton(){const options=$('#manualOptions');if(!options||$('#manualSearchNow'))return;const wrap=el('div','manual-search-now');wrap.style.cssText='margin-top:18px;display:grid;gap:8px';wrap.innerHTML='<button id="manualSearchNow" class="btn primary" type="button" style="width:100%;min-height:56px">선택한 조건으로 검색하기 →</button><small id="manualSearchHint" style="color:#8e99a8;text-align:center"></small>';options.appendChild(wrap);const btn=$('#manualSearchNow'),hint=$('#manualSearchHint');const sync=()=>{const count=selectedManualCount();btn.disabled=count===0;hint.textContent=count?`취향 ${count}개 선택 · 현재 거리/방향 조건으로 검색`:'여행 취향을 1개 이상 선택하세요.'};options.addEventListener('click',()=>setTimeout(sync,0));sync();btn.onclick=async()=>{if(btn.disabled)return;const next=$('#nextBtn');if(!next)return;btn.disabled=true;btn.textContent='추천 조건 준비 중…';try{next.click();await new Promise(r=>setTimeout(r,120));btn.textContent='추천지 검색 중…';$('#nextBtn')?.click()}finally{setTimeout(()=>{btn.disabled=selectedManualCount()===0;btn.textContent='선택한 조건으로 검색하기 →'},900)}}}
   function runtimeHealthCheck(){document.querySelectorAll('#categoryChoices button,#directionChoices button,.progress-step').forEach(b=>b.type='button')}
-  function bindLandingFallback(){
-    const landing=$('#mainLanding');
-    if(!landing||landing.dataset.hitFallback)return;
-    landing.dataset.hitFallback='1';
-    const activate=(clientY,target)=>{
-      if(!landing.classList.contains('tq-photo-ready')||document.body.classList.contains('tq-modal-open'))return;
-      if(target?.closest?.('#mainLocateBtn,#mainManualBtn'))return;
-      const rect=landing.getBoundingClientRect();
-      if(!rect.height)return;
-      const y=(clientY-rect.top)/rect.height;
-      if(y>=.72&&y<.835){
-        $('#mainLocateBtn')?.click();
-      }else if(y>=.835&&y<=.94){
-        $('#mainManualBtn')?.click();
-      }
-    };
-    if('PointerEvent' in window){
-      landing.addEventListener('pointerup',e=>activate(e.clientY,e.target),{passive:true});
-    }else{
-      landing.addEventListener('touchend',e=>{const t=e.changedTouches?.[0];if(t)activate(t.clientY,e.target)},{passive:true});
-    }
-  }
-
-  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();enhanceTopbar();addBottomNav();observeLanding();bindLandingFallback();observeCourseDetailOrder();addManualSearchButton();createVehicleSetup();watchFirstLocation();applyVehicleSettings();refreshEnergyPrices();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.42';document.documentElement.classList.add('tq-chrome-ready')}
+  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();addManualSearchButton();createVehicleSetup();watchFirstLocation();applyVehicleSettings();refreshEnergyPrices();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.43';document.documentElement.classList.add('tq-chrome-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootChrome,{once:true});else bootChrome();
 })();

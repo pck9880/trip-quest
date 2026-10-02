@@ -60,9 +60,6 @@ jobs:
           tag = '<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">'
           if 'name="robots"' not in html:
               html = html.replace("<head>", "<head>\n  " + tag, 1)
-          # cache-bust chrome script on every build
-          stamp = datetime.now(timezone.utc).strftime('%Y%m%d%H%M')
-          html = re.sub(r'app-chrome\.js\?v=[^"\']+', 'app-chrome.js?v='+stamp, html)
           p.write_text(html, encoding="utf-8")
           Path("_site/robots.txt").write_text("User-agent: *\nDisallow: /\n", encoding="utf-8")
           Path("_site/.nojekyll").touch()
