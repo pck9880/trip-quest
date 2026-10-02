@@ -35,3 +35,17 @@
 @supports (-webkit-touch-callout:none){
   #mainLocateBtn,#mainManualBtn{transform:translateZ(0);}
 }
+
+/* Course detail layout: route map -> cafe/restaurant recommendations */
+#courseDetailPanel.course-detail-panel{
+  display:flex;
+  flex-direction:column;
+}
+#courseDetailPanel[hidden]{display:none !important;}
+#courseDetailPanel .course-detail-head{order:1;}
+#courseDetailPanel .course-route-map-card{order:2;}
+#courseDetailPanel .nearby-head{
+  order:3;
+  margin-top:18px;
+}
+#courseDetailPanel #nearbyPlaces{order:4;}
