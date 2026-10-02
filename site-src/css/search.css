@@ -404,7 +404,7 @@ body.tq-local-search-mode .ai-hero{margin-bottom:calc(90px + env(safe-area-inset
 .tq-search-page .tq-distance-primary .ai-distance-range::-webkit-slider-thumb{transition:box-shadow .14s ease,transform .14s ease}
 .tq-search-page .tq-distance-primary .ai-distance-range.is-snapping::-webkit-slider-thumb{box-shadow:0 0 0 6px rgba(201,255,69,.16),0 0 0 2px #607a31,0 4px 14px #0008;transform:scale(1.08)}
 .tq-search-page .tq-distance-primary .ai-distance-range.is-snapping::-moz-range-thumb{box-shadow:0 0 0 6px rgba(201,255,69,.16),0 0 0 2px #607a31;transform:scale(1.08)}
-.tq-search-page .tq-distance-primary .distance-ruler{grid-template-columns:repeat(9,1fr);padding:0 10px}
+.tq-search-page .tq-distance-primary .distance-ruler{grid-template-columns:repeat(10,1fr);padding:0 10px}
 .tq-search-page .tq-distance-primary .distance-labels{font-size:9px;margin-top:1px}
 .tq-search-page .tq-distance-primary>p{margin-top:8px}
 @media(max-width:720px){
@@ -412,3 +412,6 @@ body.tq-local-search-mode .ai-hero{margin-bottom:calc(90px + env(safe-area-inset
   .tq-search-page .tq-distance-primary .ai-distance-head{align-items:flex-start;flex-direction:column;gap:4px}
   .tq-search-page .tq-distance-primary .ai-distance-head small{text-align:left}
 }
+
+/* v1.9 TRIP-only search */
+.tq-search-mode-context,.tq-category-screen{display:none}

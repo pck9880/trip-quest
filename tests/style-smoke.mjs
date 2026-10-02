@@ -26,7 +26,8 @@ assert.ok(fs.existsSync(new URL('./assets/tq-cover-main-v044.webp',root)),'activ
 assert.ok(read('css/search.css').includes('.tq-category-screen'),'category screen styles missing');
 assert.ok(read('css/base.css').includes('.dual-distance-range'),'dual distance base styles missing');
 assert.ok(read('css/search.css').includes('.ai-distance-range.is-snapping'),'magnetic snap feedback styles missing');
-console.log('TRIP QUEST v1.8.0 semantic CSS and style-budget tests passed');
+assert.ok(read('css/product.css').includes('.tq-linked-place-overlay'),'course-linked place sheet styles missing');
+console.log('TRIP QUEST v1.9.0 semantic CSS and style-budget tests passed');
 
 assert.ok(read('css/base.css').includes('.course-keep-toggle'),'course KEEP star styles missing');
 assert.ok(read('css/product.css').includes('.tq-keep-overlay'),'KEEP bottom sheet styles missing');

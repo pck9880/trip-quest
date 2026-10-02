@@ -45,11 +45,11 @@ export function diversifyRecommendations(items,limit=10){
 }
 
 export function normalizedDistanceRange(body={}){
-  let min=Math.max(0,Math.min(400,Math.round(Number(body.minKm??0)/10)*10));
-  let max=Math.max(0,Math.min(400,Math.round(Number(body.targetKm??100)/10)*10));
+  let min=Math.max(0,Math.min(450,Math.round(Number(body.minKm??0)/10)*10));
+  let max=Math.max(0,Math.min(450,Math.round(Number(body.targetKm??100)/10)*10));
   if(max<min)[min,max]=[max,min];
   if(max-min<10){
-    if(max<400)max=Math.min(400,min+10);
+    if(max<450)max=Math.min(450,min+10);
     else min=Math.max(0,max-10);
   }
   return {min,max};
@@ -81,7 +81,7 @@ export function localRecommend(body){
   const preferredCats=profile?.preferredCategories||[];
   const regionConstraint=profile?.regionConstraint||profile?.queryPlan?.regionConstraint?.name||'';
   const band=body.distanceBand&&Number.isFinite(Number(body.distanceBand.min))&&Number.isFinite(Number(body.distanceBand.max))
-    ?{min:Math.max(0,Number(body.distanceBand.min)),max:Math.min(400,Number(body.distanceBand.max))}
+    ?{min:Math.max(0,Number(body.distanceBand.min)),max:Math.min(450,Number(body.distanceBand.max))}
     :null;
   const activeMin=band?band.min:minKm,activeMax=band?band.max:maxKm;
 

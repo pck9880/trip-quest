@@ -2,7 +2,7 @@ import { localGeocode } from './geocoding.js';
 import { geoKm } from '../domain/geo.js';
 
 export const SEARCH_MODE_CONFIGS={
-  travel:{id:'travel',code:'TRIP',label:'여행지',categoryCode:'AT4',placeholder:'예: 부산에서 바다 보이는 카페, 조용한 바다, 힙한 동네',button:'TRIP SEARCH',distance:{min:0,max:400,step:50,defaultMin:0,defaultMax:100}},
+  travel:{id:'travel',code:'TRIP',label:'여행지',categoryCode:'AT4',placeholder:'예: 부산에서 바다 보이는 카페, 조용한 바다, 힙한 동네',button:'TRIP SEARCH',distance:{min:0,max:450,step:50,defaultMin:0,defaultMax:100}},
   cafe:{id:'cafe',code:'CAFE',label:'카페',categoryCode:'CE7',placeholder:'예: 로스터리, 디저트 카페, 작업하기 좋은 카페',button:'CAFE SEARCH',distance:{min:0,max:20,step:.5,defaultMin:0,defaultMax:2}},
   food:{id:'food',code:'FOOD',label:'맛집',categoryCode:'FD6',placeholder:'예: 돼지국밥, 파스타, 혼밥, 고기집',button:'FOOD SEARCH',distance:{min:0,max:20,step:.5,defaultMin:0,defaultMax:2}}
 };

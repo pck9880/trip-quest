@@ -15,9 +15,9 @@
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="./css/base.css?v=110" />
-  <link rel="stylesheet" href="./css/product.css?v=151" />
+  <link rel="stylesheet" href="./css/product.css?v=190" />
   <link rel="stylesheet" href="./css/landing.css?v=101" />
-  <link rel="stylesheet" href="./css/search.css?v=180" />
+  <link rel="stylesheet" href="./css/search.css?v=190" />
   <link rel="preload" as="image" href="./assets/tq-cover-main-v044.webp" fetchpriority="high" />
 </head>
 <body>
@@ -28,42 +28,13 @@
       <div class="main-cover-copy">
         <p class="main-cover-eyebrow">TRIP QUEST</p>
         <h1 id="mainLandingTitle">오늘 어디를<br>찾아볼까요?</h1>
-        <p>위치만 정하고 시작하세요. 다음 화면에서 TRIP · CAFE · FOOD를 선택합니다.</p>
+        <p>내 위치나 원하는 장소를 기준으로 바로 여행지를 검색하세요.</p>
       </div>
       <div class="main-cover-action">
         <button id="mainLocateBtn" class="main-locate-btn" type="button"><span class="loc-dot"></span>내 위치에서 시작</button>
-        <p id="mainLocationStatus">카테고리는 다음 화면에서 선택합니다.</p>
-        <button id="mainManualBtn" class="main-manual-btn" type="button">지역으로 시작</button>
+        <p id="mainLocationStatus">GPS 위치는 실제 지역명으로 자동 확인합니다.</p>
+        <button id="mainManualBtn" class="main-manual-btn" type="button">장소로 시작</button>
       </div>
-    </div>
-  </section>
-  <section id="categorySelect" class="tq-category-screen" hidden aria-labelledby="categorySelectTitle">
-    <div class="tq-category-inner">
-      <button id="categoryBackBtn" class="tq-category-back" type="button" aria-label="메인으로 돌아가기">←</button>
-      <div class="tq-category-brand"><span>TQ</span><b>TRIP QUEST</b></div>
-      <div class="tq-category-copy">
-        <small>SELECT CATEGORY</small>
-        <h2 id="categorySelectTitle">무엇을 찾고 있나요?</h2>
-        <p>카테고리에 따라 검색 기준과 추천 알고리즘이 자동으로 바뀝니다.</p>
-      </div>
-      <div class="tq-category-grid">
-        <button type="button" data-search-mode="travel">
-          <span class="tq-category-code">TRIP</span>
-          <strong>여행지 찾기</strong>
-          <small>여행지 · 코스 · QUEST · CAFE/FOOD 연계</small>
-        </button>
-        <button type="button" data-search-mode="cafe">
-          <span class="tq-category-code">CAFE</span>
-          <strong>카페 찾기</strong>
-          <small>거리 · 장소 키워드 · 무드 최대 2개 · 인기 적합순</small>
-        </button>
-        <button type="button" data-search-mode="food">
-          <span class="tq-category-code">FOOD</span>
-          <strong>맛집 찾기</strong>
-          <small>거리 · 음식 키워드 · 무드 최대 2개 · 인기 적합순</small>
-        </button>
-      </div>
-      <p class="tq-category-foot">선택하면 검색 화면으로 이동합니다.</p>
     </div>
   </section>
   <div class="app-shell">
@@ -81,16 +52,11 @@
           <p>거리와 장소 키워드를 바탕으로 여행지를 찾고, 선택 후 코스를 추천합니다.</p>
         </div>
 
-        <button id="changeSearchMode" class="tq-search-mode-context" type="button">
-          <span><small>SEARCH MODE</small><strong id="activeSearchMode">TRIP</strong></span>
-          <b>변경</b>
-        </button>
-
         <section id="searchRegionPanel" class="tq-search-region-panel">
-          <div class="tq-search-region-head"><span>검색 지역</span><strong id="searchRegionLabel">내 위치 또는 지역을 선택하세요.</strong></div>
+          <div class="tq-search-region-head"><span>검색 기준 장소</span><strong id="searchRegionLabel">내 위치 또는 원하는 장소를 선택하세요.</strong></div>
           <div class="tq-search-region-row">
-            <input id="searchRegionInput" type="search" placeholder="예: 부산진구 가야동, 전포동, 광안리" autocomplete="off" />
-            <button id="searchRegionBtn" class="btn secondary" type="button">지역 찾기</button>
+            <input id="searchRegionInput" type="search" placeholder="예: 가야공원, 사상 번화가, 백화점, 아울렛, 놀이공원" autocomplete="off" />
+            <button id="searchRegionBtn" class="btn secondary" type="button">장소 찾기</button>
             <button id="searchUseCurrentBtn" class="btn ghost" type="button">내 위치</button>
           </div>
           <div id="searchRegionResults" class="tq-search-region-results" hidden></div>
@@ -102,15 +68,6 @@
           <button id="aiSend" class="btn primary ai-send" type="button">여행지 찾기</button>
         </div>
 
-        <section id="moodKeywordPanel" class="tq-mood-panel" hidden>
-          <div class="tq-mood-head">
-            <div><small>MOOD</small><strong>원하는 무드를 골라주세요.</strong></div>
-            <span id="moodKeywordCount">0 / 2</span>
-          </div>
-          <div id="moodKeywordChoices" class="tq-mood-choices"></div>
-          <p>최대 2개까지 선택할 수 있습니다.</p>
-        </section>
-
         <div id="advancedDistanceControl" class="ai-distance-control tq-distance-primary">
           <div class="ai-distance-head">
             <div><span id="distanceTitle">검색 거리</span><strong><b id="distanceMinValue">0</b> ~ <b id="distanceMaxValue">100</b> km</strong></div>
@@ -118,15 +75,13 @@
           </div>
           <div id="distanceSlider" class="dual-distance-range">
             <div class="dual-distance-track"><i id="distanceRangeFill"></i></div>
-            <input id="distanceMinRange" class="ai-distance-range min" type="range" min="0" max="400" step="50" value="0" aria-label="최소 검색 거리" />
-            <input id="distanceMaxRange" class="ai-distance-range max" type="range" min="0" max="400" step="50" value="100" aria-label="최대 검색 거리" />
+            <input id="distanceMinRange" class="ai-distance-range min" type="range" min="0" max="450" step="50" value="0" aria-label="최소 검색 거리" />
+            <input id="distanceMaxRange" class="ai-distance-range max" type="range" min="0" max="450" step="50" value="100" aria-label="최대 검색 거리" />
           </div>
           <div id="distanceRuler" class="distance-ruler" aria-hidden="true"></div>
-          <div id="distanceLabels" class="distance-labels"><span>0</span><span>100</span><span>200</span><span>300</span><span>400km</span></div>
+          <div id="distanceLabels" class="distance-labels"><span>0</span><span>100</span><span>200</span><span>300</span><span>400</span><span>450km</span></div>
           <p id="distanceHelp">양쪽 핸들을 드래그하면 50km마다 자석처럼 맞춰집니다.</p>
         </div>
-        <div id="placeSearchResults" class="tq-place-results" hidden></div>
-
         <div id="aiSearchStatus" class="ai-search-status" role="status" aria-live="polite" hidden></div>
         <div id="aiProgress" class="ai-progress" hidden><div class="ai-progress-top"><span>스마트 추천 검색</span><b id="aiProgressText">0%</b></div><div class="ai-progress-track"><i id="aiProgressFill"></i></div><small id="aiEta">예상 1~3초</small></div>
         <div id="aiConversation" class="ai-conversation" hidden><div class="ai-answer-row"><span class="ai-avatar">TQ</span><div><div class="ai-mode" id="aiMode">SEARCH ANALYSIS</div><p id="aiReply"></p><div id="aiAnalysisTags" class="ai-analysis-tags" hidden></div><div id="aiChoices" class="ai-choices"></div></div></div></div>
@@ -143,11 +98,11 @@
       </section>
     </main>
   </div>
-  <footer class="app-version-footer">TRIP QUEST · v1.8.0</footer>
+  <footer class="app-version-footer">TRIP QUEST · v1.9.0</footer>
   <div id="iosInstallTip" class="install-sheet" hidden><div class="install-card"><button id="closeInstallTip" class="install-close" aria-label="닫기">×</button><b>iPhone / iPad에 설치</b><p>Safari 하단의 공유 버튼을 누른 뒤 <strong>홈 화면에 추가</strong>를 선택하세요.</p></div></div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script type="module" src="./app.js?v=20261002-v180"></script>
-  <script src="./app-chrome.js?v=180" defer></script>
+  <script type="module" src="./app.js?v=20261002-v190"></script>
+  <script src="./app-chrome.js?v=190" defer></script>
 </body>
 </html>

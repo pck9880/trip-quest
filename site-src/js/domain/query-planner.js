@@ -42,7 +42,7 @@ function unique(values){return [...new Set(values.filter(Boolean))]}
 function snapTripKm(value){
   const n=Number(value);
   if(!Number.isFinite(n))return null;
-  return Math.max(0,Math.min(400,Math.round(n/50)*50));
+  return Math.max(0,Math.min(450,Math.round(n/50)*50));
 }
 
 function extractDistanceMention(text){
@@ -60,7 +60,7 @@ function extractDistanceMention(text){
   const lower=m.match(/(\d{1,3})\s*(?:km|키로)\s*(?:이상|밖|넘게)/i);
   if(lower){
     const min=snapTripKm(lower[1]);
-    if(min!=null)return {min,max:400,source:'text-min'};
+    if(min!=null)return {min,max:450,source:'text-min'};
   }
   return null;
 }

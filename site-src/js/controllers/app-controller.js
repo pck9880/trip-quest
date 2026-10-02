@@ -1,8 +1,8 @@
 import { $, all } from '../core/dom.js';
 
-export function bindAppActions({state,setStep,sortRecommendations,useLocation,searchOrigin,updateSchedulePreview,resetTrip,recommend,searchSimilarDistance,primarySearch,openCategorySelect}){
-  const mainLocate=$('#mainLocateBtn');if(mainLocate)mainLocate.onclick=()=>openCategorySelect?.('gps');
-  const mainManual=$('#mainManualBtn');if(mainManual)mainManual.onclick=()=>openCategorySelect?.('manual');
+export function bindAppActions({state,setStep,sortRecommendations,useLocation,searchOrigin,updateSchedulePreview,resetTrip,recommend,searchSimilarDistance,primarySearch,startTripSearch}){
+  const mainLocate=$('#mainLocateBtn');if(mainLocate)mainLocate.onclick=()=>startTripSearch?.('gps');
+  const mainManual=$('#mainManualBtn');if(mainManual)mainManual.onclick=()=>startTripSearch?.('manual');
   const resultSort=$('#resultSort');if(resultSort)resultSort.onclick=e=>{const b=e.target.closest('button[data-sort]');if(!b)return;sortRecommendations(b.dataset.sort,true)};
   $('#locateBtn')?.addEventListener('click',()=>useLocation(false));
   $('#searchOriginBtn')?.addEventListener('click',searchOrigin);
