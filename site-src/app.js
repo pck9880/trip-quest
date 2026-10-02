@@ -1129,6 +1129,11 @@ async function searchSimilarDistance(){
 }
 function handleAIChoice(c){if(!c)return;if(c.action==='search'){if(c.patch)applyPatch(c.patch);recommend(c.focusQuery?{focusQuery:c.focusQuery}:{})}else if(c.action==='goto'){setStep(c.step||2)}else if(c.action==='ai_prompt'){const m=c.message||'';$('#aiInput').value=m;askAI(m)}else if(c.action==='focus'){$('#aiInput').focus()}else if(c.action==='reset'){resetTrip()}}
 
+function currentAISearchMessage(){
+  const input=$('#aiInput'),text=input?.value.trim()||'',quick=input?.dataset.quickPrompt||'';
+  if(text&&quick&&text!==quick&&!text.includes(quick))return `${text}. ${quick}`;
+  return text||quick||'오늘 가기 좋은 여행지를 추천해줘';
+}
 function bindActions(){
   const quickDistance=$('#quickDistanceChoices');
   if(quickDistance)quickDistance.onclick=e=>{
@@ -1165,7 +1170,7 @@ function bindActions(){
   $('#backBtn').onclick=()=>{const target=state.step-1;if(target===2)document.body.classList.add('tq-advanced-open');setStep(target)};$('#nextBtn').onclick=async()=>{if(state.step===1){document.body.classList.add('tq-advanced-open');if(state.origin)setStep(2);else await useLocation(true)}else if(state.step===2)setStep(3);else if(state.step===3)await recommend();else if(state.step===4){if(state.selected)setStep(5)}else resetTrip()};
   all('.progress-step').forEach(b=>b.onclick=()=>{const n=Number(b.dataset.step);if(n<=state.step||n<=3){if(n===2)document.body.classList.add('tq-advanced-open');setStep(n)}});$('#editConditionsBtn').onclick=()=>{document.body.classList.add('tq-advanced-open');setStep(2);const box=$('#manualOptions'),toggle=$('#manualToggle');if(box)box.hidden=false;if(toggle){toggle.setAttribute('aria-expanded','true');toggle.textContent='직접 선택 접기 ↑'}};$('#changePlaceBtn').onclick=()=>setStep(4);
   $('#noMatchActions').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.noMatch==='similar')searchSimilarDistance();else if(b.dataset.noMatch==='refine'){document.querySelector('.ai-hero')?.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>$('#aiInput')?.focus(),180)}};
-  $('#aiSend').onclick=()=>askAI($('#aiInput').value);$('#aiInput').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')askAI($('#aiInput').value)});
+  $('#aiSend').onclick=()=>askAI(currentAISearchMessage());$('#aiInput').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')askAI(currentAISearchMessage())});
 }
 
 function showSafeRuntimeError(){
