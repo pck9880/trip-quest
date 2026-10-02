@@ -62,3 +62,11 @@ When adding destinations:
 4. add hotspot metadata only when justified
 5. connect course stops intentionally
 6. run `npm test`
+
+## GPS QUEST data
+
+GPS QUEST definitions live in `site-src/js/data/quest-data.js`. Each quest contains region/theme metadata, XP reward, verification thresholds, and named checkpoint coordinates.
+
+During an active QUEST, live latitude/longitude values are processed in memory for checkpoint verification. The persisted session stores only the quest ID, checkpoint progress, verified checkpoint IDs, verification time, and reported accuracy. It intentionally does **not** persist a continuous route or raw live coordinate history.
+
+QUEST progress (XP, completions, unlocked/equipped titles) is stored separately in `tq_quest_progress_v1`. App-level location consent is device-specific and is not transferred by backup/restore.

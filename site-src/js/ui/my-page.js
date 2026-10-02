@@ -5,6 +5,8 @@ import { profileService, getProfileAvatar, saveProfileAvatar, removeProfileAvata
 import { attendanceService } from '../services/attendance-service.js';
 import { historyService } from '../services/history-service.js';
 import { userDataService } from '../services/user-data-service.js';
+import { questService } from '../services/quest-service.js';
+import { locationConsentService } from '../services/location-consent-service.js';
 
 function dateLabel(value){
   const d=new Date(value);
@@ -74,13 +76,14 @@ export function initMyPage({onOpenHistoryCourse}={}){
   }
 
   async function renderHome(){
-    const profile=profileService.get(),attendance=attendanceService.getSummary(),stats=historyService.stats(),history=historyService.list(),avatar=await avatarMarkup();
+    const profile=profileService.get(),attendance=attendanceService.getSummary(),stats=historyService.stats(),history=historyService.list(),questStats=questService.getStats(),avatar=await avatarMarkup();
     body.innerHTML=`
       <section class="tq-profile-card">
         <button class="tq-profile-photo-button" type="button" data-my-action="edit-profile" aria-label="프로필 수정">${avatar}</button>
         <div class="tq-profile-copy">
           <small>LOCAL TRAVELER</small><h3>${esc(profile.nickname)}</h3>
           <p><b>${esc(profile.temporaryId)}</b> · 임시 여행자 ID</p>
+          <div class="tq-profile-title">《${esc(questStats.equippedTitleInfo?.name||'칭호 없음')}》</div>
           <em>로그인 기능 추가 후 계정에 연결할 수 있습니다.</em>
         </div>
         <button class="tq-profile-edit" type="button" data-my-action="edit-profile">프로필 수정</button>
@@ -93,6 +96,7 @@ export function initMyPage({onOpenHistoryCourse}={}){
         <div><span>코스 누적</span><strong>${stats.totalCourseKm.toFixed(1)}<small>km</small></strong></div>
       </section>
       <div class="tq-month-trip-strip"><span>이번 달</span><strong>${stats.monthTrips}회 여행 · 코스 ${stats.monthCourseKm.toFixed(1)}km</strong></div>
+      <section class="tq-my-quest-summary"><div><small>QUEST STATUS</small><strong>LV.${questStats.level} · ${questStats.xp} XP</strong><span>${questStats.completedCount}회 완료</span></div><button type="button" data-my-action="titles">칭호 관리 →</button></section>
 
       <section class="tq-attendance-card">
         <div class="tq-my-section-head"><div><small>DAILY CHECK</small><h3>출석 캘린더</h3></div><span>${esc(todayLabel())}</span></div>
@@ -114,6 +118,8 @@ export function initMyPage({onOpenHistoryCourse}={}){
         <div class="tq-my-section-head"><div><small>SETTINGS</small><h3>설정</h3></div></div>
         <button type="button" data-my-action="vehicle"><span><b>차량 및 연비</b><small>예상 연료비·통행료 계산 기준</small></span><i>›</i></button>
         <button type="button" data-my-action="profile"><span><b>프로필</b><small>닉네임·프로필 이미지·임시 ID</small></span><i>›</i></button>
+        <button type="button" data-my-action="titles"><span><b>칭호</b><small>QUEST로 획득한 대표 칭호 선택</small></span><i>›</i></button>
+        <button type="button" data-my-action="location-consent"><span><b>QUEST 위치 사용</b><small>${locationConsentService.isAgreed()?'앱 내 위치 사용 동의됨':'위치 사용 동의 전'}</small></span><i>›</i></button>
         <button type="button" data-my-action="data"><span><b>데이터 관리</b><small>백업·복원·기기 데이터 초기화</small></span><i>›</i></button>
         <button type="button" data-my-action="app-info"><span><b>앱 정보</b><small>버전·저장 방식·서비스 안내</small></span><i>›</i></button>
         <div class="tq-my-local-note"><b>LOCAL PROFILE</b><span>프로필·KEEP·출석·여행 기록은 현재 이 기기에 저장됩니다.</span></div>
@@ -185,13 +191,44 @@ export function initMyPage({onOpenHistoryCourse}={}){
       </div>`;
   }
 
+  function renderTitles(){
+    const stats=questService.getStats(),titles=questService.listTitles();
+    body.innerHTML=`
+      <div class="tq-my-subpage">
+        <button class="tq-my-back" type="button" data-my-action="home">← MY PAGE</button>
+        <section class="tq-title-page">
+          <small>TITLES</small><h3>내 칭호</h3>
+          <p>QUEST를 실제 GPS 인증으로 완료하면 새로운 칭호 조건이 누적됩니다.</p>
+          <div class="tq-title-current"><span>현재 칭호</span><strong>《${esc(stats.equippedTitleInfo?.name||'칭호 없음')}》</strong><small>LV.${stats.level} · ${stats.xp} XP</small></div>
+          <div class="tq-title-list">${titles.map(title=>`<button type="button" data-equip-title="${esc(title.id)}" ${title.unlocked?'':'disabled'} class="${title.equipped?'equipped':''}"><span><b>《${esc(title.name)}》</b><small>${esc(title.description)}</small></span><i>${title.equipped?'장착 중':title.unlocked?'장착':'LOCKED'}</i></button>`).join('')}</div>
+        </section>
+      </div>`;
+  }
+
+  function renderLocationConsent(){
+    const status=locationConsentService.status();
+    body.innerHTML=`
+      <div class="tq-my-subpage">
+        <button class="tq-my-back" type="button" data-my-action="home">← MY PAGE</button>
+        <section class="tq-location-settings">
+          <small>QUEST LOCATION</small><h3>QUEST 위치 사용</h3>
+          <p>GPS QUEST 시작 시 별도 안내 화면에서 동의를 확인하고 브라우저/기기의 위치 권한을 요청합니다.</p>
+          <div><span>앱 내 동의</span><strong>${status.agreed?'동의됨':'동의 안 함'}</strong></div>
+          <div><span>동의 버전</span><strong>${esc(status.version||'-')}</strong></div>
+          <p class="tq-location-privacy">TRIP QUEST는 GPS QUEST 인증을 위해 전체 이동 경로를 저장하지 않습니다. 인증된 체크포인트·시각·정확도만 로컬에 남깁니다.</p>
+          ${status.agreed?'<button type="button" class="danger" data-location-action="revoke">앱 내 위치 사용 동의 철회</button>':''}
+          <small class="tq-location-os-note">브라우저/OS 위치 권한 자체는 여기서 변경할 수 없습니다. 기기 설정에서 별도로 관리해야 합니다.</small>
+        </section>
+      </div>`;
+  }
+
   function renderAppInfo(){
     body.innerHTML=`
       <div class="tq-my-subpage">
         <button class="tq-my-back" type="button" data-my-action="home">← MY PAGE</button>
         <section class="tq-app-info-page">
           <small>ABOUT</small><h3>TRIP QUEST</h3>
-          <div><span>버전</span><strong>v1.3.0</strong></div>
+          <div><span>버전</span><strong>v1.4.0</strong></div>
           <div><span>프로필</span><strong>로컬 기기 저장</strong></div>
           <div><span>로그인</span><strong>추후 계정 연결 예정</strong></div>
           <p>현재 사용자 데이터는 서버 계정이 아닌 이 브라우저에 저장됩니다. 데이터 관리에서 백업 파일을 만들어 보관할 수 있습니다.</p>
@@ -219,9 +256,16 @@ export function initMyPage({onOpenHistoryCourse}={}){
     if(dataAction==='restore'){$('#tqBackupInput')?.click();return}
     if(dataAction==='reset'){if(confirm('프로필·KEEP·출석·여행 기록·차량 설정을 모두 초기화할까요? 이 작업은 되돌릴 수 없습니다.')){await userDataService.reset();toast('로컬 데이터를 초기화했습니다.');await renderHome()}return}
 
+    const titleButton=e.target.closest('[data-equip-title]');
+    if(titleButton){if(questService.equipTitle(titleButton.dataset.equipTitle)){toast('대표 칭호를 변경했습니다.');renderTitles()}return}
+    const locationAction=e.target.closest('[data-location-action]')?.dataset.locationAction;
+    if(locationAction==='revoke'){locationConsentService.revoke();toast('앱 내 QUEST 위치 사용 동의를 철회했습니다.');renderLocationConsent();return}
+
     const action=e.target.closest('[data-my-action]')?.dataset.myAction;
     if(action==='home'){await renderHome();return}
     if(action==='edit-profile'||action==='profile'){await renderProfileEdit();return}
+    if(action==='titles'){renderTitles();return}
+    if(action==='location-consent'){renderLocationConsent();return}
     if(action==='data'){await renderDataManagement();return}
     if(action==='app-info'){renderAppInfo();return}
     if(action==='vehicle'){window.dispatchEvent(new CustomEvent('tripquest:open-vehicle-settings'));return}
@@ -241,6 +285,7 @@ export function initMyPage({onOpenHistoryCourse}={}){
   window.addEventListener('tripquest:profile-change',()=>{if(!overlay.hidden&&!body.querySelector('.tq-my-subpage'))renderHome()});
   window.addEventListener('tripquest:profile-avatar-change',()=>{if(!overlay.hidden&&!body.querySelector('.tq-my-subpage'))renderHome()});
   window.addEventListener('tripquest:attendance-change',()=>{if(!overlay.hidden&&!body.querySelector('.tq-my-subpage'))renderHome()});
+  window.addEventListener('tripquest:quest-change',()=>{if(!overlay.hidden&&!body.querySelector('.tq-my-subpage'))renderHome()});
   window.addEventListener('tripquest:user-data-restored',()=>{if(!overlay.hidden)renderHome()});
   window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!overlay.hidden)close()});
   profileService.get();

@@ -129,7 +129,7 @@ assert.ok(!app.includes("const openAdvanced=$('#openAdvancedSearch')"),'event im
 assert.ok(resultsSource.includes('function renderCourses('),'course result rendering module missing');
 assert.ok(searchControllerSource.includes('function sortRecommendations('),'search controller sorting missing');
 assert.ok(chromeCss.includes('body[data-trip-step="2"]:not(.tq-advanced-open) .wizard'),'simple search must hide advanced wizard at step two');
-console.log('TRIP QUEST v1.3.0 UI/runtime smoke tests passed');
+console.log('TRIP QUEST v1.4.0 UI/runtime smoke tests passed');
 
 const mainMapSource=read('js/ui/main-map.js');
 const courseMapSource=read('js/ui/course-map.js');
@@ -141,8 +141,8 @@ assert.ok(originControllerSource.includes('OpenStreetMap / Nominatim'),'geocoder
 assert.ok(originControllerSource.includes('Open-Meteo'),'weather attribution required');
 assert.ok(resultsSource.includes('OSRM 도로 경로'),'routing provider disclosure required');
 
-assert.ok(html.includes('TRIP QUEST · v1.3.0'),'v1.0.0 footer/version marker missing');
-assert.ok(chromeJs.includes("footer.textContent='TRIP QUEST · v1.3.0'"),'chrome footer version missing');
+assert.ok(html.includes('TRIP QUEST · v1.4.0'),'v1.0.0 footer/version marker missing');
+assert.ok(chromeJs.includes("footer.textContent='TRIP QUEST · v1.4.0'"),'chrome footer version missing');
 
 const keepServiceSource=read('js/services/keep-service.js');
 const keepPanelSource=read('js/ui/keep-panel.js');
@@ -211,3 +211,33 @@ assert.ok(app.includes('initMyPage({onOpenHistoryCourse:openHistoryCourse})'),'M
 assert.ok(userDataSource.includes("const BACKUP_FORMAT='trip-quest-user-backup'"),'backup format marker missing');
 assert.ok(userDataSource.includes('exportUserData'),'user-data export missing');
 assert.ok(userDataSource.includes('importUserData'),'user-data import missing');
+
+const questPanelSource=read('js/ui/quest-panel.js');
+const questDataSource=read('js/data/quest-data.js');
+const gpsSource=read('js/services/gps-service.js');
+const consentSource=read('js/services/location-consent-service.js');
+const questServiceSource=read('js/services/quest-service.js');
+const questSessionSource=read('js/services/quest-session-service.js');
+const questVerificationSource=read('js/domain/quest-verification.js');
+assert.ok(chromeJs.includes('data-tab="quest"'),'QUEST bottom tab missing');
+assert.ok(chromeJs.includes("tripquest:open-quest"),'QUEST tab open event missing');
+assert.ok(app.includes('initQuestPanel();'),'QUEST panel must initialize at app boot');
+assert.ok(questPanelSource.includes('QUEST 위치정보 사용 안내'),'location consent screen missing');
+assert.ok(questPanelSource.includes('전체 이동 경로와 실시간 좌표 기록은 저장하지 않습니다.'),'GPS storage disclosure missing');
+assert.ok(questPanelSource.includes('위치 사용 동의 후 QUEST 시작'),'consent-first quest start missing');
+assert.ok(questPanelSource.includes('GPS 인증 재개'),'GPS resume control missing');
+assert.ok(questPanelSource.includes('visibilitychange'),'background GPS pause handling missing');
+assert.ok(gpsSource.includes('permission_denied'),'GPS permission denial mapping missing');
+assert.ok(gpsSource.includes('position_unavailable'),'GPS unavailable mapping missing');
+assert.ok(gpsSource.includes("type:'insecure'"),'secure-context GPS guard missing');
+assert.ok(consentSource.includes("purpose:'quest-gps-checkpoint-verification'"),'location consent purpose missing');
+assert.ok(questVerificationSource.includes("status:'jump'"),'GPS jump rejection missing');
+assert.ok(questVerificationSource.includes("status:'weak'"),'GPS accuracy rejection missing');
+assert.ok(questSessionSource.includes('checkpointId:item.checkpointId'),'quest session must persist checkpoint results only');
+assert.ok(!questSessionSource.includes('latitude:'),'quest session must not persist raw latitude');
+assert.ok(questServiceSource.includes('QUEST_TITLES'),'title system missing');
+assert.ok(questServiceSource.includes('completeQuest'),'QUEST XP completion missing');
+assert.ok(questDataSource.includes('busan-jeonpo-city'),'initial GPS QUEST catalog missing');
+assert.ok(myPageSource.includes('칭호 관리'),'MY title management missing');
+assert.ok(myPageSource.includes('QUEST 위치 사용'),'MY location consent management missing');
+assert.ok(userDataSource.includes('quests:questService.exportData()'),'QUEST progress backup missing');

@@ -1,10 +1,10 @@
 {
   "name": "trip-quest",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/ai-smoke.mjs && node tests/keep-smoke.mjs && node tests/user-smoke.mjs && node tests/reference-smoke.mjs && node tests/ui-smoke.mjs && node tests/style-smoke.mjs && node tests/sale-readiness.mjs",
+    "test": "node tests/ai-smoke.mjs && node tests/keep-smoke.mjs && node tests/user-smoke.mjs && node tests/quest-smoke.mjs && node tests/reference-smoke.mjs && node tests/ui-smoke.mjs && node tests/style-smoke.mjs && node tests/sale-readiness.mjs",
     "verify:sale": "npm test"
   }
 }
