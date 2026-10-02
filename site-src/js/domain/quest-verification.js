@@ -12,7 +12,7 @@ export function createCheckpointVerifier(checkpoint,config={}){
     radiusM:Math.max(20,Number(config.radiusM)||120),
     maxAccuracyM:Math.max(10,Number(config.maxAccuracyM)||60),
     requiredHits:Math.max(1,Number(config.requiredHits)||3),
-    dwellMs:Math.max(0,Number(config.dwellMs)||20000),
+    dwellMs:Number.isFinite(Number(config.dwellMs))?Math.max(0,Number(config.dwellMs)):20000,
     maxAgeMs:Math.max(1000,Number(config.maxAgeMs)||30000),
     maxJumpSpeedKmh:Math.max(30,Number(config.maxJumpSpeedKmh)||180)
   };
