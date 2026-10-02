@@ -80,7 +80,7 @@ function initPWA(){
 
 async function loadConfig(){
   state.config=await travelService.getConfig();$('#gasPrice').value=state.config.defaultGasPrice;
-  setText('#providerNow','PLACE RESOLVER 준비');setText('#updatedAt','v1.9.0 · TRIP ONLY / PLACE RESOLVER');
+  setText('#providerNow','GEO CANVAS 준비');setText('#updatedAt','v1.10.0 · GEO CANVAS / AI SEARCH');
 }
 
 
@@ -150,36 +150,20 @@ function showAI(result){
     tags.hidden=!kws.length;
   }
   const choices=result.choices||[];
-  $('#aiChoices').innerHTML=choices.map((c,i)=>`<button data-i="${i}">${esc(c.label)}</button>`).join('');
+  $('#aiChoices').innerHTML=choices.map((choice,i)=>`<button data-i="${i}">${esc(choice.label)}</button>`).join('');
   $('#aiChoices').onclick=e=>{const b=e.target.closest('button');if(!b)return;handleAIChoice(choices[Number(b.dataset.i)])};
   if(result.patch)applyPatch(result.patch);
   if(Array.isArray(result.items)){
     presentRecommendations(result.items);
-    setText('#resultCaption',`AI 요청 반영 · ${state.minKm}~${state.targetKm}km`);
-    setStep(4);
-    setTimeout(()=>document.querySelector('#step4')?.scrollIntoView({behavior:'smooth',block:'start'}),180);
+    searchUI?.renderRecommendations?.(result.items);
+    const target=state.exploreTarget?.name?state.exploreTarget.name+' 주변 · ':'';
+    searchUI?.renderSearchState?.(target+(result.analysisKeywords||[]).join(' · '));
   }
 }
 function ensureAIOrigin(){
   if(state.origin)return Promise.resolve(state.origin);
-  return new Promise((resolve,reject)=>{
-    if(!navigator.geolocation){reject(new Error('현재 위치를 사용할 수 없습니다. 출발지를 먼저 설정해주세요.'));return}
-    setText('#resultCaption','추천 · 현재 위치 확인 중');
-    $('#ranking').className='ranking empty-state';
-    $('#ranking').innerHTML='추천지를 계산하기 위해 현재 위치를 확인하고 있습니다…';
-    navigator.geolocation.getCurrentPosition(async pos=>{
-      try{
-        const lat=pos.coords.latitude,lng=pos.coords.longitude;
-        let place=null;
-        try{place=await travelService.reverseGeocode(lat,lng)}catch{}
-        const current=place||{lat,lng,name:'현재 위치',address:'현재 위치',placeTypeLabel:'현재 위치'};
-        state.searchRegion=current;
-        await setOrigin({...current,name:current.name||'현재 위치'});
-        searchUI?.syncPlaceLabel?.();
-        resolve(state.origin);
-      }catch(e){reject(e)}
-    },()=>reject(new Error('위치 권한이 필요합니다. 위치를 허용하거나 출발지를 직접 설정해주세요.')),{enableHighAccuracy:true,timeout:8000});
-  });
+  searchUI?.openStartPicker?.();
+  return Promise.reject(new Error('시작 위치를 먼저 설정해주세요.'));
 }
 
 async function askAI(message,options={}){
@@ -188,63 +172,43 @@ async function askAI(message,options={}){
   state.aiBusy=true;
   const btn=$('#aiSend'),status=$('#aiSearchStatus'),finishGauge=startAIProgressGauge();
   $('#aiConversation').hidden=false;$('#aiChoices').innerHTML='';
-  setText('#aiMode','SEARCH ANALYSIS');setText('#aiReply','지역·목적지 유형·연계 조건을 분리하고 있습니다…');
-  if(status){status.hidden=false;status.className='ai-search-status working';status.textContent='1/2 · 지역과 검색 의도 분석 중…'}
+  setText('#aiMode','SEARCH ANALYSIS');
+  setText('#aiReply',state.exploreTarget?'지도 탐색 위치와 여행 조건을 함께 분석하고 있습니다…':'여행 조건을 분석하고 있습니다…');
+  if(status){status.hidden=false;status.className='ai-search-status working';status.textContent='1/2 · 탐색 위치와 여행 의도 분석 중…'}
   btn.disabled=true;btn.classList.remove('ai-done','ai-error');btn.textContent='분석 중…';
-
-  // AI 검색은 즉시 추천지 페이지로 전환한다.
   state.selected=null;
-  setStep(4);
-  $('#ranking').className='ranking empty-state';
-  $('#ranking').innerHTML='검색 조건을 구조화하고 추천지를 찾고 있습니다…';
-  setText('#resultCaption','검색 조건 분석 중 · 잠시만 기다려주세요');
-  setText('#mapStatus','추천 준비 중');
-  setTimeout(()=>document.querySelector('#step4')?.scrollIntoView({behavior:'smooth',block:'start'}),80);
+  searchUI?.clearCandidates?.();
+  searchUI?.setSheetState?.('mid',true);
+  searchUI?.renderSearchState?.(state.exploreTarget?.name?(state.exploreTarget.name+' 주변 분석 중…'):'여행 조건 분석 중…');
 
   try{
     await ensureAIOrigin();
-    await new Promise(r=>setTimeout(r,520));
+    await new Promise(r=>setTimeout(r,360));
     btn.textContent='추천지 찾는 중…';
-    if(status)status.textContent='2/2 · 지역·목적지·거리 조건으로 추천지 계산 중…';
+    if(status)status.textContent='2/2 · 지도 좌표와 취향으로 추천지 계산 중…';
 
     const result=await travelService.aiSearch(message.trim(),{...currentPayload(),distanceBand:state.activeDistanceBand});
-    await new Promise(r=>setTimeout(r,520));
-
+    await new Promise(r=>setTimeout(r,360));
     showAI(result);
+
     const count=Array.isArray(result.items)?result.items.length:0;
-    const keys=(result.analysisKeywords||[]).join(' · ');
-    if(Array.isArray(result.items)){
-      setText('#resultCaption',state.activeDistanceBand?`검색 분석 · 비슷한 거리 ${Math.round(state.activeDistanceBand.min)}~${Math.round(state.activeDistanceBand.max)}km · 추천지 ${count}곳`:keys?`검색 분석: ${keys} · ${state.minKm}~${state.targetKm}km · 추천지 ${count}곳`:`추천지 ${count}곳`);
-      setText('#mapStatus',`검색 분석 기반 후보 ${count}곳`);
-      setStep(4);
-      setTimeout(()=>document.querySelector('#step4')?.scrollIntoView({behavior:'smooth',block:'start'}),100);
-    } else {
-      $('#ranking').className='ranking empty-state';
+    if(!Array.isArray(result.items)||!count){
       const needsMore=result.intent==='clarify'||result.intent==='off_topic';
-      $('#ranking').innerHTML=needsMore
-        ? '<div><strong>검색 분석 완료</strong><br><br>여행 조건을 조금 더 알려주면 추천 정확도가 올라갑니다.<br><small>예: “가야공원에서 출발해서 100km 안에 바다”</small><br><br><button id="aiRefineBtn" class="btn primary" type="button">검색 다시 입력</button></div>'
-        : '<div><strong>검색 분석 완료</strong><br><br>현재 조건으로 추천 가능한 장소가 부족합니다.<br>거리나 상황을 조금 넓혀 다시 검색해보세요.<br><br><button id="aiRefineBtn" class="btn primary" type="button">검색 조건 다시 입력</button></div>';
-      setText('#resultCaption',needsMore?'검색 분석 완료 · 조건 보완 필요':'검색 분석 완료 · 추천 조건 조정 필요');
-      setText('#mapStatus','검색 분석 완료');
-      setStep(4);
-      setTimeout(()=>{
-        const refine=$('#aiRefineBtn');
-        if(refine)refine.onclick=()=>{document.querySelector('.ai-hero')?.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>$('#aiInput')?.focus(),180)};
-      },0);
+      searchUI?.renderEmpty?.(needsMore
+        ?'원하는 분위기나 장소 유형을 조금 더 입력해주세요.'
+        :'현재 탐색 위치에서 추천 가능한 장소가 부족합니다. 포인트를 옮기거나 조건을 바꿔보세요.');
     }
 
     btn.classList.add('ai-done');
     btn.textContent=count?`추천 완료 ✓ · ${count}곳`:'분석 완료 ✓';
-    if(status){status.className='ai-search-status done';status.textContent=count?`완료 · 검색 조건을 반영한 추천지 ${count}곳입니다.`:'완료 · 입력 내용을 분석했습니다.'}
+    if(status){status.className='ai-search-status done';status.textContent=count?`완료 · GEO CANVAS에 추천지 ${count}곳을 표시했습니다.`:'완료 · 조건을 다시 조정해보세요.'}
     finishGauge(true);
     setTimeout(()=>{if(!state.aiBusy){btn.classList.remove('ai-done');btn.textContent='여행지 찾기'}},1800);
   }catch(e){
-    btn.classList.add('ai-error');btn.textContent='검색 실패 · 다시 시도';
-    if(status){status.className='ai-search-status error';status.textContent=e.message||'검색 중 문제가 생겼습니다.'}
-    $('#ranking').className='ranking empty-state';
-    $('#ranking').innerHTML=`<span class="error">${esc(e.message||'AI 추천을 진행하지 못했습니다.')}</span>`;
-    setText('#resultCaption','추천을 진행하려면 출발지 또는 위치 권한이 필요합니다.');
-    finishGauge(false);showAI({mode:'local',message:e.message||'AI 요청을 처리하지 못했습니다.',analysisKeywords:[],choices:[{label:'출발지 설정하기',action:'goto',step:1},{label:'다시 입력하기',action:'focus'}]});
+    btn.classList.add('ai-error');btn.textContent='검색 준비 필요';
+    if(status){status.className='ai-search-status error';status.textContent=e.message||'검색을 시작할 수 없습니다.'}
+    searchUI?.renderEmpty?.(e.message||'시작 위치를 설정해주세요.');
+    finishGauge(false);
   }finally{
     state.aiBusy=false;btn.disabled=false;
   }
@@ -296,5 +260,5 @@ if(typeof window!=='undefined'){
     if(state.step===4)showSafeRuntimeError();
   });
 }
-async function boot(){initTimes();initMap();initKeepPanel({onOpenCourse:openKeptCourse});initQuestPanel();initQuestIsland();initMyPage({onOpenHistoryCourse:openHistoryCourse});searchUI=initSearchFlow({state,travelService,setOrigin,hideMainLanding,showMainLanding});initLinkedPlaceSearch({travelService});validateUIRuntime();bindChoices();bindActions();initPWA();syncDistanceUI();syncDirectionUI();syncCategoriesUI();setStep(1);showMainLanding();try{await loadConfig()}catch{setText('#providerNow','설정 확인 필요')}setInterval(refreshLive,10*60*1000)}
+async function boot(){initTimes();initMap();initKeepPanel({onOpenCourse:openKeptCourse});initQuestPanel();initQuestIsland();initMyPage({onOpenHistoryCourse:openHistoryCourse});searchUI=initSearchFlow({state,travelService,setOrigin,hideMainLanding,showMainLanding,onSearch:()=>primarySearch(),onSelect:i=>{document.body.classList.remove('tq-search-ready');selectPlace(i,true)}});initLinkedPlaceSearch({travelService});validateUIRuntime();bindChoices();bindActions();initPWA();syncDistanceUI();syncDirectionUI();syncCategoriesUI();setStep(1);showMainLanding();try{await loadConfig()}catch{setText('#providerNow','설정 확인 필요')}setInterval(refreshLive,10*60*1000)}
 if(typeof document!=='undefined')boot();
