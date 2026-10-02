@@ -14,7 +14,7 @@ const productCss=read('css/product.css');
 const landingCss=read('css/landing.css');
 const searchCss=read('css/search.css');
 const chromeCss=productCss+landingCss+searchCss;
-const moduleFiles=['js/core/dom.js','js/core/format.js','js/data/places.js','js/data/recommendation-data.js','js/data/course-data.js','js/data/ui-options.js','js/domain/geo.js','js/domain/schedule.js','js/domain/trip-cost.js','js/services/vehicle-settings.js','js/services/routing.js','js/services/weather.js','js/services/geocoding.js','js/data/intent-rules.js','js/domain/recommendation.js','js/domain/intent-parser.js','js/domain/query-planner.js','js/usecases/search-destinations.js','js/domain/course-planner.js','js/ui/main-map.js','js/ui/course-map.js','js/ui/time-controls.js','js/ui/course-actions.js','js/ui/landing.js','js/ui/wizard.js','js/ui/results.js','js/ui/search-flow.js','js/ui/linked-place-search.js','js/services/place-search-service.js','js/controllers/search-controller.js','js/controllers/origin-controller.js','js/controllers/app-controller.js','js/store/trip-store.js','js/services/travel-service.js','js/services/keep-service.js','js/ui/keep-panel.js'];
+const moduleFiles=['js/core/dom.js','js/core/format.js','js/data/places.js','js/data/recommendation-data.js','js/data/course-data.js','js/data/ui-options.js','js/domain/geo.js','js/domain/schedule.js','js/domain/trip-cost.js','js/services/vehicle-settings.js','js/services/routing.js','js/services/weather.js','js/services/geocoding.js','js/data/intent-rules.js','js/domain/recommendation.js','js/domain/intent-parser.js','js/domain/query-planner.js','js/usecases/search-destinations.js','js/domain/course-planner.js','js/ui/main-map.js','js/ui/course-map.js','js/ui/time-controls.js','js/ui/course-actions.js','js/ui/landing.js','js/ui/wizard.js','js/ui/results.js','js/ui/search-flow.js','js/ui/geo-explorer.js','js/ui/linked-place-search.js','js/services/place-search-service.js','js/controllers/search-controller.js','js/controllers/origin-controller.js','js/controllers/app-controller.js','js/store/trip-store.js','js/services/travel-service.js','js/services/keep-service.js','js/ui/keep-panel.js'];
 for(const file of moduleFiles)assert.ok(fs.existsSync(new URL(file,root)),'missing extracted module: '+file);
 assert.ok(app.includes("from './js/core/dom.js'"),'app.js must use core DOM module');
 const recommendationModule=read('js/domain/recommendation.js');
@@ -42,7 +42,7 @@ assert.equal((html.match(/\\n/g)||[]).length,0,'index.html must not contain lite
 
 const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);
 assert.equal(new Set(ids).size,ids.length,'HTML ids must be unique');
-for(const id of ['mainLanding','mainLocateBtn','mainManualBtn','searchRegionPanel','searchRegionInput','searchRegionBtn','searchUseCurrentBtn','searchRegionLabel','aiInput','aiSend','advancedDistanceControl','distanceMinRange','distanceMaxRange','distanceRangeFill','originSearch','ranking','map','courseList','courseMap','toast']){
+for(const id of ['mainLanding','mainLocateBtn','mainManualBtn','tripExplorer','geoCanvas','geoTarget','geoVector','geoLocationPopup','geoPopupTitle','geoPopupUse','geoSearchSheet','geoSheetHandle','geoStartLabel','geoStartQuickGps','geoStartChange','aiInput','aiSend','geoResults','originSearch','ranking','map','courseList','courseMap','toast']){
   assert.ok(ids.includes(id),'required UI id missing: '+id);
 }
 
@@ -67,6 +67,7 @@ assert.ok(searchCss.includes('Search page hierarchy'),'simplified search CSS mis
 assert.ok(searchCss.includes('v1.7 category gate + simplified search'),'category/search CSS missing');
 assert.ok(searchCss.includes('v1.8 magnetic dual distance range'),'magnetic dual distance CSS missing');
 assert.ok(searchCss.includes('v1.9 TRIP-only search'),'TRIP-only search CSS missing');
+assert.ok(searchCss.includes('v1.10 TRIP GEO CANVAS'),'GEO CANVAS CSS missing');
 assert.ok(landingCss.includes('background-image:url("../assets/tq-cover-main-v044.webp")'),'landing stylesheet must resolve cover relative to /css');
 assert.ok(html.includes('id="mainLanding" class="main-landing tq-photo-ready"'),'landing must start photo-ready to prevent fallback flash');
 assert.ok(!chromeJs.includes("landing.classList.remove('tq-photo-ready','tq-photo-error')"),'cover probe must not clear photo-ready before load');
@@ -95,6 +96,7 @@ assert.ok(tripCost.includes('function estimateRoundTripToll'),'toll estimation m
 const travelServiceSource=read('js/services/travel-service.js');
 const geocodingSource=read('js/services/geocoding.js');
 const linkedPlaceSource=read('js/ui/linked-place-search.js');
+const geoExplorerSource=read('js/ui/geo-explorer.js');
 const tripStoreSource=read('js/store/trip-store.js');
 const searchControllerSource=read('js/controllers/search-controller.js');
 assert.ok(travelServiceSource.includes("costLabel:vehicle.fuel==='electric'?'충전비':'연료비'"),'energy cost labels missing');
@@ -102,6 +104,11 @@ assert.ok(travelServiceSource.includes('reverseGeocode'),'reverse geocoder facad
 assert.ok(geocodingSource.includes('export async function reverseGeocode'),'GPS reverse geocoder missing');
 assert.ok(geocodingSource.includes('PLACE_ALIASES'),'place alias resolver missing');
 assert.ok(linkedPlaceSource.includes('initLinkedPlaceSearch'),'course-level CAFE/FOOD search missing');
+assert.ok(geoExplorerSource.includes('initGeoExplorer'),'GEO CANVAS controller missing');
+assert.ok(geoExplorerSource.includes('destinationPoint'),'drag target coordinate projection missing');
+assert.ok(geoExplorerSource.includes('travelService.reverseGeocode'),'drag-end place analysis missing');
+assert.ok(geoExplorerSource.includes('setPointerCapture'),'drag pointer capture missing');
+assert.ok(!geoExplorerSource.includes('L.map('),'primary GEO CANVAS must not use Leaflet map tiles');
 assert.ok(!app.includes('async function api('),'internal fake API router must be removed');
 assert.ok(app.includes('createTravelService()'),'travel service facade must be composed in app.js');
 assert.ok(!app.includes('const state={'),'flat global state declaration must be removed');
@@ -114,20 +121,21 @@ const boot=(chromeJs.match(/function bootChrome\(\)\{([^}]*)\}/)||[])[1]||'';
 assert.ok(!boot.includes('observeTripSummary()'),'legacy DOM toll patch must not run');
 
 assert.ok(!html.includes('id="categorySelect"'),'top-level category gate must be removed');
-assert.ok(!html.includes('id="changeSearchMode"'),'search-mode switcher must be removed');
-assert.ok(!html.includes('id="moodKeywordPanel"'),'top-level CAFE/FOOD mood panel must be removed');
-assert.ok(html.includes('검색 기준 장소'),'place-first search label missing');
-assert.ok(html.includes('가야공원')&&html.includes('사상 번화가')&&html.includes('놀이공원'),'arbitrary place examples missing');
+assert.ok(!html.includes('id="searchRegionPanel"'),'inline place resolver must move into start-position sheet');
+assert.ok(!html.includes('id="advancedDistanceControl"'),'primary distance slider must be replaced by GEO CANVAS');
+assert.ok(html.includes('TRIP GEO'),'GEO CANVAS heading missing');
+assert.ok(html.includes('EXPLORE VECTOR'),'GEO CANVAS vector label missing');
+assert.ok(html.includes('id="geoTarget"'),'draggable exploration target missing');
+assert.ok(html.includes('id="geoSearchSheet"'),'draggable AI bottom sheet missing');
+assert.ok(html.includes('현재 위치')&&html.includes('직접 입력'),'start position choices missing');
 assert.ok(html.includes('어디로 떠나고 싶나요?'),'TRIP search title missing');
 const wizardSource=read('js/ui/wizard.js');
 const appControllerSource=read('js/controllers/app-controller.js');
 const resultsSource=read('js/ui/results.js');
 assert.ok(wizardSource.includes('document.body.dataset.tripStep=String(n)'),'step-aware simple search visibility missing');
 assert.ok(!html.includes('id="openAdvancedSearch"'),'direct-selection drawer must be removed');
-assert.ok(html.includes('id="advancedDistanceControl"'),'dual distance control missing');
-assert.ok(html.includes('id="distanceMinRange"'),'minimum distance handle missing');
-assert.ok(html.includes('id="distanceMaxRange"'),'maximum distance handle missing');
-assert.ok(html.includes('max="450" step="50" value="100" aria-label="최대 검색 거리"'),'TRIP distance slider must snap at 50km up to 450km');
+assert.ok(!html.includes('id="distanceMinRange"'),'legacy minimum distance handle must not remain in primary search');
+assert.ok(!html.includes('id="distanceMaxRange"'),'legacy maximum distance handle must not remain in primary search');
 assert.ok(appControllerSource.includes("startTripSearch?.('gps')"),'cover GPS must route directly into TRIP search');
 assert.ok(appControllerSource.includes("startTripSearch?.('manual')"),'cover place entry must route directly into TRIP search');
 assert.ok(!app.includes('function renderRanking('),'results rendering must be outside app.js');
@@ -136,8 +144,8 @@ assert.ok(!app.includes('async function searchOrigin('),'origin controller must 
 assert.ok(!app.includes("const openAdvanced=$('#openAdvancedSearch')"),'event implementation must be outside app.js');
 assert.ok(resultsSource.includes('function renderCourses('),'course result rendering module missing');
 assert.ok(searchControllerSource.includes('function sortRecommendations('),'search controller sorting missing');
-assert.ok(chromeCss.includes('body[data-trip-step="1"] .wizard'),'pre-result wizard must stay hidden');
-console.log('TRIP QUEST v1.9.0 UI/runtime smoke tests passed');
+assert.ok(searchCss.includes('body.tq-search-ready #progress'),'legacy wizard must stay hidden during GEO exploration');
+console.log('TRIP QUEST v1.10.0 GEO CANVAS UI/runtime smoke tests passed');
 
 const mainMapSource=read('js/ui/main-map.js');
 const courseMapSource=read('js/ui/course-map.js');
@@ -149,8 +157,8 @@ assert.ok(originControllerSource.includes('OpenStreetMap / Nominatim'),'geocoder
 assert.ok(originControllerSource.includes('Open-Meteo'),'weather attribution required');
 assert.ok(resultsSource.includes('OSRM 도로 경로'),'routing provider disclosure required');
 
-assert.ok(html.includes('TRIP QUEST · v1.9.0'),'v1.0.0 footer/version marker missing');
-assert.ok(chromeJs.includes("footer.textContent='TRIP QUEST · v1.9.0'"),'chrome footer version missing');
+assert.ok(html.includes('TRIP QUEST · v1.10.0'),'v1.0.0 footer/version marker missing');
+assert.ok(chromeJs.includes("footer.textContent='TRIP QUEST · v1.10.0'"),'chrome footer version missing');
 
 const keepServiceSource=read('js/services/keep-service.js');
 const keepPanelSource=read('js/ui/keep-panel.js');
