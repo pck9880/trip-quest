@@ -1,5 +1,5 @@
-const CACHE='trip-quest-v0.26-motion-20261002-0918';
-const SHELL=['./','./index.html','./styles.css?v=20261002-0838','./app.js?v=20261002-0838','./app-chrome.css?v=0260918','./app-chrome.js?v=0260918','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/apple-touch-icon.png'];
+const CACHE='trip-quest-v0.28-course-order-20261002-0945';
+const SHELL=['./','./index.html','./styles.css?v=20261002-0838','./app.js?v=20261002-0838','./app-chrome.css?v=0280945','./app-chrome.js?v=0280945','./landing-touch-fix.css?v=20261002-0945','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/apple-touch-icon.png'];
 
 self.addEventListener('install',e=>e.waitUntil(
   caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())
@@ -14,7 +14,7 @@ self.addEventListener('activate',e=>e.waitUntil((async()=>{
     try{
       const u=new URL(c.url);
       if(u.origin!==self.location.origin)return Promise.resolve();
-      u.searchParams.set('_tqv','0260918');
+      u.searchParams.set('_tqv','0280945');
       return c.navigate(u.href).catch(()=>{});
     }catch{return Promise.resolve()}
   }));
@@ -25,8 +25,11 @@ async function decorateNavigation(response){
   const type=response.headers.get('content-type')||'';
   if(!type.includes('text/html'))return response;
   let html=await response.text();
-  if(!html.includes('app-chrome.css'))html=html.replace('</head>','  <link rel="stylesheet" href="./app-chrome.css?v=0260918" />\n</head>');
-  if(!html.includes('app-chrome.js'))html=html.replace('</body>','  <script src="./app-chrome.js?v=0260918" defer></script>\n</body>');
+  html=html.replace(/\.\/app-chrome\.css\?v=[^"']+/g,'./app-chrome.css?v=0280945');
+  html=html.replace(/\.\/app-chrome\.js\?v=[^"']+/g,'./app-chrome.js?v=0280945');
+  html=html.replace(/\.\/landing-touch-fix\.css\?v=[^"']+/g,'./landing-touch-fix.css?v=20261002-0945');
+  if(!html.includes('app-chrome.css'))html=html.replace('</head>','  <link rel="stylesheet" href="./app-chrome.css?v=0280945" />\n</head>');
+  if(!html.includes('app-chrome.js'))html=html.replace('</body>','  <script src="./app-chrome.js?v=0280945" defer></script>\n</body>');
   return new Response(html,{status:response.status,statusText:response.statusText,headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store'}});
 }
 
