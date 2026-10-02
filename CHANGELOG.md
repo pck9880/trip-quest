@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.3.0 — MY PAGE detail and local data portability
+
+- Added 512px compressed square profile images before IndexedDB storage
+- Added monthly attendance calendar and longest attendance streak
+- Added richer MY PAGE travel statistics and current-month trip summary
+- Added completed-trip delete, KEEP toggle, and in-app course reopen actions
+- Added local user-data backup, restore, and full reset
+- Added profile temporary-ID copy and profile creation-date display
+- Added app information/data-management sections inside MY PAGE
+- Added history reopen wiring through the existing Step 5 course page
+
+
 ## 1.2.0 — MY PAGE foundation
 
 - Replaced the bottom Settings tab with MY PAGE

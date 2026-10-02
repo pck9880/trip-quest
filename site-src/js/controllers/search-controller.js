@@ -3,6 +3,7 @@ import { placePopularity } from '../domain/recommendation.js';
 import { drawMap, drawRoute } from '../ui/main-map.js';
 import { createResultsUI } from '../ui/results.js';
 import { keepService } from '../services/keep-service.js';
+import { historyService } from '../services/history-service.js';
 
 export function createSearchController({state,travelService,setStep}){
   const results=createResultsUI(state);
@@ -36,20 +37,15 @@ export function createSearchController({state,travelService,setStep}){
     const base={origin:state.origin,destination:state.selected,gasPrice:Number($('#gasPrice').value||1700)};
     try{const [sum,c]=await Promise.all([travelService.tripSummary(base),travelService.courses({...base,categories:state.categories,departure:$('#departTime').value,returnTime:$('#returnTime').value})]);results.renderSummary(sum);results.renderCourses(c);drawRoute(sum.outbound.coords);setText('#mapStatus',`${state.selected.name} · 왕복 ${sum.total.distanceKm.toFixed(1)}km`)}catch(e){$('#tripSummary').innerHTML=`<span class="error">${esc(e.message)}</span>`;$('#courseList').innerHTML=`<span class="error">${esc(e.message)}</span>`}finally{loading(false);if(goCourse)setStep(5)}
   }
-  function openKeptCourse(id){
-    const item=keepService.get(id);
-    const course=item?.course;
-    if(!item||!course){toast('저장한 코스 정보를 찾지 못했습니다.');return false}
-    state.selected={...(item.destination||{})};
-    state.selectedCourse=course.id||'KEEP';
-    state.selectedCourseData=course;
-    setStep(5);
-    const opened=results.renderSavedCourse(item);
-    if(!opened){toast('저장한 코스를 열지 못했습니다.');return false}
-    setTimeout(()=>document.querySelector('[data-step-view="5"]')?.scrollIntoView({behavior:'smooth',block:'start'}),80);
-    return true;
+  function openStoredCourse(item,missingMessage){
+    const course=item?.course;if(!item||!course){toast(missingMessage);return false}
+    state.selected={...(item.destination||{})};state.selectedCourse=course.id||'KEEP';state.selectedCourseData=course;setStep(5);
+    const opened=results.renderSavedCourse(item);if(!opened){toast('저장된 코스를 열지 못했습니다.');return false}
+    setTimeout(()=>document.querySelector('[data-step-view="5"]')?.scrollIntoView({behavior:'smooth',block:'start'}),80);return true;
   }
+  function openKeptCourse(id){return openStoredCourse(keepService.get(id),'저장한 코스 정보를 찾지 못했습니다.')}
+  function openHistoryCourse(id){return openStoredCourse(historyService.get(id),'여행 기록을 찾지 못했습니다.')}
 
   results.setSelectPlaceHandler(selectPlace);
-  return {sortRecommendations,currentPayload,recommend,selectPlace,renderRanking:results.renderRanking,presentRecommendations,openKeptCourse};
+  return {sortRecommendations,currentPayload,recommend,selectPlace,renderRanking:results.renderRanking,presentRecommendations,openKeptCourse,openHistoryCourse};
 }

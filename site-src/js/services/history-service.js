@@ -79,7 +79,18 @@ export function createHistoryService(storage=defaultStorage()){
     }
     return {item,created,count:items.length,uniquePlaceCount:uniquePlaceCount()};
   }
-  return {list,get,has,complete,count:()=>read().length,uniquePlaceCount,key:HISTORY_KEY};
+  function remove(id){
+    const items=read(),existing=items.find(item=>item.id===id)||null,next=items.filter(item=>item.id!==id);write(next);
+    if(existing&&typeof window!=='undefined')window.dispatchEvent(new CustomEvent('tripquest:history-change',{detail:{removed:true,item:existing,count:next.length,uniquePlaceCount:uniquePlaceCount()}}));
+    return existing;
+  }
+  function stats(now=new Date()){
+    const items=read(),prefix=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-`,distance=item=>Math.max(0,Number(item.course?.route?.distanceKm)||0),monthItems=items.filter(item=>String(item.completedDay||'').startsWith(prefix));
+    return {totalTrips:items.length,uniquePlaces:new Set(items.map(item=>item.destination?.name).filter(Boolean)).size,totalCourseKm:items.reduce((sum,item)=>sum+distance(item),0),monthTrips:monthItems.length,monthCourseKm:monthItems.reduce((sum,item)=>sum+distance(item),0)};
+  }
+  function importData(items=[]){const clean=(Array.isArray(items)?items:[]).filter(item=>item?.id&&item.type==='completed-trip');write(clean);if(typeof window!=='undefined')window.dispatchEvent(new CustomEvent('tripquest:history-change',{detail:{imported:true,count:clean.length,uniquePlaceCount:uniquePlaceCount()}}));return clean}
+  function clear(){write([]);return []}
+  return {list,get,has,complete,remove,stats,importData,clear,exportData:list,count:()=>read().length,uniquePlaceCount,key:HISTORY_KEY};
 }
 
 export const historyService=createHistoryService();

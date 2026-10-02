@@ -129,7 +129,7 @@ assert.ok(!app.includes("const openAdvanced=$('#openAdvancedSearch')"),'event im
 assert.ok(resultsSource.includes('function renderCourses('),'course result rendering module missing');
 assert.ok(searchControllerSource.includes('function sortRecommendations('),'search controller sorting missing');
 assert.ok(chromeCss.includes('body[data-trip-step="2"]:not(.tq-advanced-open) .wizard'),'simple search must hide advanced wizard at step two');
-console.log('TRIP QUEST v1.2.0 UI/runtime smoke tests passed');
+console.log('TRIP QUEST v1.3.0 UI/runtime smoke tests passed');
 
 const mainMapSource=read('js/ui/main-map.js');
 const courseMapSource=read('js/ui/course-map.js');
@@ -141,8 +141,8 @@ assert.ok(originControllerSource.includes('OpenStreetMap / Nominatim'),'geocoder
 assert.ok(originControllerSource.includes('Open-Meteo'),'weather attribution required');
 assert.ok(resultsSource.includes('OSRM 도로 경로'),'routing provider disclosure required');
 
-assert.ok(html.includes('TRIP QUEST · v1.2.0'),'v1.0.0 footer/version marker missing');
-assert.ok(chromeJs.includes("footer.textContent='TRIP QUEST · v1.2.0'"),'chrome footer version missing');
+assert.ok(html.includes('TRIP QUEST · v1.3.0'),'v1.0.0 footer/version marker missing');
+assert.ok(chromeJs.includes("footer.textContent='TRIP QUEST · v1.3.0'"),'chrome footer version missing');
 
 const keepServiceSource=read('js/services/keep-service.js');
 const keepPanelSource=read('js/ui/keep-panel.js');
@@ -182,7 +182,7 @@ assert.ok(!chromeJs.includes('data-tab="settings"'),'settings must move inside M
 assert.ok(myPageSource.includes('MY PAGE'),'MY page heading missing');
 assert.ok(myPageSource.includes('임시 여행자 ID'),'temporary traveler ID disclosure missing');
 assert.ok(myPageSource.includes('type="file" accept="image/*"'),'profile image picker missing');
-assert.ok(myPageSource.includes('오늘의 출석'),'attendance card missing');
+assert.ok(myPageSource.includes('출석 캘린더'),'attendance card missing');
 assert.ok(myPageSource.includes('내가 다녀온 곳'),'travel history section missing');
 assert.ok(myPageSource.includes("tripquest:open-vehicle-settings"),'vehicle settings must be nested inside MY');
 assert.ok(profileSource.includes("indexedDB.open(AVATAR_DB,1)"),'profile avatar must use IndexedDB');
@@ -190,4 +190,24 @@ assert.ok(attendanceSource.includes("const ATTENDANCE_KEY='tq_attendance_v1'"),'
 assert.ok(historySource.includes("const HISTORY_KEY='tq_travel_history_v1'"),'travel-history persistence missing');
 assert.ok(resultsSource.includes('id=\'tripCompletionCard\'')||resultsSource.includes("card.id='tripCompletionCard'"),'travel completion card missing');
 assert.ok(resultsSource.includes("historyService.complete(state.selected||{},course)"),'travel completion action missing');
-assert.ok(app.includes('initMyPage();'),'MY page must initialize during boot');
+assert.ok(app.includes('initMyPage({onOpenHistoryCourse:openHistoryCourse})'),'MY page must initialize with history course handler');
+
+const userDataSource=read('js/services/user-data-service.js');
+assert.ok(myPageSource.includes('출석 캘린더'),'attendance calendar UI missing');
+assert.ok(myPageSource.includes('최장'),'longest attendance streak missing');
+assert.ok(myPageSource.includes('코스 다시보기 →'),'travel-history course reopen missing');
+assert.ok(myPageSource.includes('기록 삭제'),'travel-history delete action missing');
+assert.ok(myPageSource.includes('백업 파일 만들기'),'user-data backup UI missing');
+assert.ok(myPageSource.includes('백업 불러오기'),'user-data restore UI missing');
+assert.ok(myPageSource.includes('모든 로컬 데이터 초기화'),'user-data reset UI missing');
+assert.ok(profileSource.includes('compressProfileAvatar'),'profile image compression missing');
+assert.ok(profileSource.includes('canvas.toBlob'),'compressed avatar blob generation missing');
+assert.ok(attendanceSource.includes('function longestStreak()'),'attendance longest streak missing');
+assert.ok(attendanceSource.includes('function monthCalendar('),'attendance calendar service missing');
+assert.ok(historySource.includes('function remove(id)'),'history delete service missing');
+assert.ok(historySource.includes('function stats('),'history stats service missing');
+assert.ok(searchControllerSource.includes('function openHistoryCourse('),'history course reopen controller missing');
+assert.ok(app.includes('initMyPage({onOpenHistoryCourse:openHistoryCourse})'),'MY history reopen wiring missing');
+assert.ok(userDataSource.includes("const BACKUP_FORMAT='trip-quest-user-backup'"),'backup format marker missing');
+assert.ok(userDataSource.includes('exportUserData'),'user-data export missing');
+assert.ok(userDataSource.includes('importUserData'),'user-data import missing');

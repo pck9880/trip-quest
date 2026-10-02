@@ -30,6 +30,12 @@ assert.equal(attendance.checkIn().newCheckIn,false,'same-day attendance must not
 now=new Date(2026,9,3,9,0,0);
 assert.equal(attendance.checkIn().streak,2);
 assert.equal(attendance.monthCount(),2);
+assert.equal(attendance.longestStreak(),2);
+const calendar=attendance.monthCalendar(2026,10);
+assert.equal(calendar.checkedCount,2);
+assert.equal(calendar.days.find(day=>day.day===2).checked,true);
+attendance.importData(['2026-09-30','2026-10-01','2026-10-02','2026-10-05']);
+assert.equal(attendance.longestStreak(),3);
 
 const historyStorage=new FakeStorage();
 const history=createHistoryService(historyStorage);
@@ -45,5 +51,19 @@ assert.equal(history.count(),1);
 assert.equal(history.uniquePlaceCount(),1);
 history.complete({name:'황리단길'},course,new Date(2026,9,3,18,0,0));
 assert.equal(history.uniquePlaceCount(),2);
+const stats=history.stats(new Date(2026,9,3));
+assert.equal(stats.totalTrips,2);
+assert.equal(stats.uniquePlaces,2);
+assert.ok(stats.totalCourseKm>4);
+const firstTrip=history.list()[0];
+assert.ok(history.remove(firstTrip.id));
+assert.equal(history.count(),1);
+history.importData([item]);
+assert.equal(history.count(),1);
+const exportedProfile=profiles.exportData();
+const restoredProfileStorage=new FakeStorage();
+const restoredProfiles=createProfileService(restoredProfileStorage,random);
+restoredProfiles.importData(exportedProfile);
+assert.equal(restoredProfiles.get().temporaryId,first.temporaryId);
 
-console.log('TRIP QUEST v1.2 profile, attendance, and travel-history tests passed');
+console.log('TRIP QUEST v1.3 profile, attendance, history, and data tests passed');
