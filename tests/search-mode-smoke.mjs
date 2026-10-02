@@ -64,14 +64,15 @@ assert.match(result.source,/fallback/);
 const originalFetch=globalThis.fetch;
 let resolverUrls=[];
 globalThis.fetch=async url=>{
-  resolverUrls.push(String(url));
-  if(String(url).includes('/reverse?')){
+  const decoded=decodeURIComponent(String(url));
+  resolverUrls.push(decoded);
+  if(decoded.includes('/reverse?')){
     return {ok:true,async json(){return {display_name:'가야동, 부산진구, 부산광역시, 대한민국',address:{city:'부산광역시',borough:'부산진구',suburb:'가야동'}}}};
   }
-  if(String(url).includes('사상역')){
+  if(decoded.includes('사상역')){
     return {ok:true,async json(){return [{place_id:201,display_name:'사상역, 사상구, 부산광역시, 대한민국',lat:'35.1628',lon:'128.9846',type:'station',class:'railway',importance:.7}]}};
   }
-  if(String(url).includes('가야공원')){
+  if(decoded.includes('가야공원')){
     return {ok:true,async json(){return [{place_id:202,display_name:'가야공원, 부산진구, 부산광역시, 대한민국',lat:'35.151',lon:'129.022',type:'park',class:'leisure',importance:.6}]}};
   }
   return {ok:true,async json(){return [{place_id:203,display_name:'테스트 놀이공원, 부산광역시, 대한민국',lat:'35.19',lon:'129.21',type:'theme_park',class:'tourism',importance:.8}]}};
