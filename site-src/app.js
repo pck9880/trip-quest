@@ -80,7 +80,7 @@ function initPWA(){
 
 async function loadConfig(){
   state.config=await travelService.getConfig();$('#gasPrice').value=state.config.defaultGasPrice;
-  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v1.1 · KEEP 코스 보관함');
+  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v1.1.1 · AI/KEEP 안정화');
 }
 
 
@@ -122,6 +122,22 @@ function startAIProgressGauge(){
     setTimeout(()=>{wrap.hidden=true;wrap.classList.remove('done','error');fill.style.width='0%'},1700);
   };
 }
+function applyPatch(patch={}){
+  let distanceChanged=false;
+  if(Number.isFinite(Number(patch.minKm))){state.minKm=Math.max(0,Math.min(400,Number(patch.minKm)));distanceChanged=true}
+  if(Number.isFinite(Number(patch.targetKm))){state.targetKm=Math.max(0,Math.min(400,Number(patch.targetKm)));distanceChanged=true}
+  if(distanceChanged&&state.minKm>state.targetKm)[state.minKm,state.targetKm]=[state.targetKm,state.minKm];
+  if(typeof patch.direction==='string'&&patch.direction)state.direction=patch.direction;
+  if(Array.isArray(patch.categories))state.categories=[...new Set(patch.categories.filter(Boolean))];
+  const depart=$('#departTime'),returnTime=$('#returnTime');
+  if(typeof patch.departure==='string'&&depart)depart.value=patch.departure;
+  if(typeof patch.returnTime==='string'&&returnTime)returnTime.value=patch.returnTime;
+  if(distanceChanged)syncDistanceUI();
+  if(Object.hasOwn(patch,'direction'))syncDirectionUI();
+  if(Object.hasOwn(patch,'categories'))syncCategoriesUI();
+  if((patch.departure||patch.returnTime)&&depart&&returnTime)updateSchedulePreview();
+}
+
 function showAI(result){
   $('#aiConversation').hidden=false;
   setText('#aiMode','여행 전용 AI 가이드');

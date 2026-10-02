@@ -9,6 +9,17 @@ function savedDate(value){
 }
 
 function modeLabel(mode){return mode==='drive'?'차량':'도보'}
+function naverMapUrl(name){return 'https://map.naver.com/p/search/'+encodeURIComponent(name||'여행지')}
+function routeDistanceLabel(course){
+  const distance=Number(course?.route?.distanceKm)||0;
+  const stops=Array.isArray(course?.stops)?course.stops:[];
+  return distance>0.05?fmtKm(distance):(stops.length<=1?'단일 장소':'현지 이동');
+}
+function routeTimeLabel(course){
+  const time=Number(course?.route?.timeMin)||0;
+  const stops=Array.isArray(course?.stops)?course.stops:[];
+  return time>0.5?fmtMin(time):(stops.length<=1?'체류형':'현지 이동');
+}
 
 export function initKeepPanel(){
   if(typeof document==='undefined'||$('#tqKeepOverlay'))return;
@@ -77,7 +88,7 @@ export function initKeepPanel(){
               <span class="tq-keep-item-copy">
                 <strong>${esc(item.destination?.name||'여행지')} · ${esc(c.id||'')}코스</strong>
                 <small>${esc(stops.slice(0,3).join(' → ')||c.title||'저장한 코스')}</small>
-                <em>${esc(modeLabel(c.mode))} · ${fmtKm(route.distanceKm||0)} · ${fmtMin(route.timeMin||0)}</em>
+                <em>${esc(modeLabel(c.mode))} · ${esc(routeDistanceLabel(c))} · ${esc(routeTimeLabel(c))}</em>
               </span>
             </button>
             <button class="tq-keep-remove" type="button" aria-label="KEEP 해제" title="KEEP 해제">★</button>
@@ -91,18 +102,30 @@ export function initKeepPanel(){
     if(!item){renderList();return}
     const c=item.course||{},route=c.route||{},cost=c.estimatedCost||{};
     const stops=Array.isArray(c.stops)?c.stops:[];
+    const destination=item.destination||{};
+    const tripDistance=Number(destination.distanceKm)||Number(destination.routePreview?.distanceKm)||0;
+    const tripTime=Number(destination.routePreview?.timeMin)||0;
+    const coord=(Number(destination.lat)&&Number(destination.lng))?`${Number(destination.lat).toFixed(5)}, ${Number(destination.lng).toFixed(5)}`:'';
+    const placeMeta=[destination.address,coord].filter(Boolean).join(' · ');
     body.innerHTML=`
       <div class="tq-keep-detail">
-        <button class="tq-keep-back" type="button">← 목록</button>
+        <button class="tq-keep-back" type="button">← KEEP 목록</button>
         <div class="tq-keep-detail-title">
           <div><small>${esc(item.destination?.category||'여행 코스')}</small><h3>${esc(item.destination?.name||'여행지')} · ${esc(c.id||'')}코스</h3></div>
           <button class="tq-keep-detail-star" type="button" data-remove-id="${esc(item.id)}" aria-label="KEEP 해제">★</button>
         </div>
         <p class="tq-keep-detail-reason">${esc(c.reason||c.title||'저장한 여행 코스')}</p>
+        <div class="tq-keep-place-info">
+          <span>DESTINATION</span>
+          <strong>${esc(destination.name||'여행지')}</strong>
+          ${placeMeta?`<small>${esc(placeMeta)}</small>`:''}
+          ${destination.aiReason?`<p>${esc(destination.aiReason)}</p>`:''}
+          ${(tripDistance||tripTime)?`<div class="tq-keep-trip-context">${tripDistance?`<b>출발지 기준 ${fmtKm(tripDistance)}</b>`:''}${tripTime?`<b>편도 ${fmtMin(tripTime)}</b>`:''}</div>`:''}
+        </div>
         <div class="tq-keep-detail-metrics">
           <div><span>이동</span><strong>${esc(modeLabel(c.mode))}</strong></div>
-          <div><span>거리</span><strong>${fmtKm(route.distanceKm||0)}</strong></div>
-          <div><span>소요</span><strong>${fmtMin(route.timeMin||0)}</strong></div>
+          <div><span>코스 거리</span><strong>${esc(routeDistanceLabel(c))}</strong></div>
+          <div><span>코스 소요</span><strong>${esc(routeTimeLabel(c))}</strong></div>
           <div><span>예상 비용</span><strong>${fmtWon(cost.total||0)}</strong></div>
         </div>
         <div class="tq-keep-detail-stops">
@@ -111,7 +134,10 @@ export function initKeepPanel(){
         </div>
         ${c.localRule?`<div class="tq-keep-detail-rule">${esc(c.localRule)}</div>`:''}
         <div class="tq-keep-detail-meta">저장 ${esc(savedDate(item.savedAt))}</div>
-        <button class="tq-keep-detail-remove" type="button" data-remove-id="${esc(item.id)}">★ KEEP 해제</button>
+        <div class="tq-keep-detail-actions">
+          <a class="tq-keep-detail-go" href="${esc(naverMapUrl(destination.name||stops[0]?.name||'여행지'))}" target="_blank" rel="noopener">지도 바로가기 →</a>
+          <button class="tq-keep-detail-remove" type="button" data-remove-id="${esc(item.id)}">★ KEEP 해제</button>
+        </div>
       </div>`;
   }
 

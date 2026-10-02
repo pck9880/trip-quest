@@ -10,7 +10,7 @@ class FakeStorage{
 
 const storage=new FakeStorage();
 const service=createKeepService(storage);
-const destination={name:'부산 서면',category:'번화가',lat:35.15,lng:129.06};
+const destination={name:'부산 서면',category:'번화가',lat:35.15,lng:129.06,distanceKm:82.4,aiReason:'젊은 상권과 카페거리',routePreview:{distanceKm:83.1,timeMin:76,source:'osrm'}};
 const course={
   id:'A',
   title:'WALK · 도보 근거리',
@@ -24,6 +24,9 @@ const item=buildCourseKeep(destination,course);
 assert.ok(item.id.startsWith('course-'));
 assert.equal(item.destination.name,'부산 서면');
 assert.equal(item.course.stops.length,3);
+assert.equal(item.destination.distanceKm,82.4);
+assert.equal(item.destination.routePreview.timeMin,76);
+assert.equal(item.destination.aiReason,'젊은 상권과 카페거리');
 assert.equal(service.count(),0);
 
 let result=service.toggle(item);
@@ -43,4 +46,4 @@ assert.equal(result.saved,false);
 assert.equal(restored.count(),0);
 assert.equal(restored.has(item.id),false);
 
-console.log('TRIP QUEST v1.1 KEEP persistence/toggle tests passed');
+console.log('TRIP QUEST v1.1.1 KEEP persistence/toggle tests passed');

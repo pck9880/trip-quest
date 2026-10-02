@@ -57,7 +57,15 @@ export function buildCourseKeep(destination={},course={}){
     category:String(destination?.category||''),
     lat:Number(destination?.lat)||0,
     lng:Number(destination?.lng)||0,
-    address:String(destination?.address||'')
+    address:String(destination?.address||''),
+    distanceKm:Number(destination?.distanceKm)||0,
+    geoDistanceKm:Number(destination?.geoDistanceKm)||0,
+    aiReason:String(destination?.aiReason||''),
+    routePreview:{
+      distanceKm:Number(destination?.routePreview?.distanceKm)||0,
+      timeMin:Number(destination?.routePreview?.timeMin)||0,
+      source:String(destination?.routePreview?.source||'')
+    }
   };
   const signature=[destinationInfo.name,normalized.id,normalized.stops.map(x=>x.name).join('>')].join('|');
   return {
