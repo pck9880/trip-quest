@@ -51,6 +51,8 @@ assert.ok(chromeJs.includes("btn.dataset.pressState='start'"),'touch start state
 assert.ok(chromeJs.includes("btn.dataset.pressState='hold'"),'touch hold state marker missing');
 assert.ok(chromeJs.includes("btn.dataset.pressState='release'"),'touch release state marker missing');
 assert.ok(chromeJs.includes('setPointerCapture'),'pointer capture required for stable touch hold');
+assert.ok(chromeJs.includes('suppressClick'),'dragged-out taps must suppress accidental click');
+assert.ok(!chromeCss.includes('#mainLocateBtn:disabled{\n  cursor:wait!important;\n  opacity:.88!important;\n  transform:none!important;'),'disabled state must not cancel release rebound');
 assert.ok(!chromeJs.includes('tq-cover-action-head'),'extra landing action header must not be injected');
 assert.ok(chromeJs.includes("fetch('./fuel-prices.json'"),'runtime fuel-price refresh missing');
 assert.ok(app.includes('function activeVehicleProfile'),'vehicle profile calculation missing');
