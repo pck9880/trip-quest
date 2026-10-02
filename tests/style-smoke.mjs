@@ -19,6 +19,9 @@ for(const token of ['tq-drive-scene','tq-cinematic-scene','tq-moving-car','tq-ro
 for(const oldFile of ['styles.css','app-chrome.css','landing-touch-fix.css']){
   assert.ok(!fs.existsSync(new URL(oldFile,root)),'legacy stylesheet should be removed: '+oldFile);
 }
-assert.ok(read('css/landing.css').includes('@keyframes tqLandingButtonRelease'),'landing release animation missing');
+const landing=read('css/landing.css');
+assert.ok(landing.includes('@keyframes tqLandingButtonRelease'),'landing release animation missing');
+assert.ok(landing.includes('url("../assets/tq-cover-main-v044.webp")'),'cover path must resolve from css/landing.css');
+assert.ok(fs.existsSync(new URL('./assets/tq-cover-main-v044.webp',root)),'active cover asset missing');
 assert.ok(read('css/search.css').includes('@keyframes tqManualDrawerIn'),'manual drawer animation missing');
-console.log('TRIP QUEST v1.0 semantic CSS and style-budget tests passed');
+console.log('TRIP QUEST v1.0.1 semantic CSS and style-budget tests passed');
