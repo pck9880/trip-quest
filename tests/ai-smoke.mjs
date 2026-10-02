@@ -54,7 +54,7 @@ assert.ok(courseData.includes("'daegu-dongseong'"),'Daegu route preset required'
 assert.ok(courseData.includes("'gwangju-dongmyeong'"),'Gwangju route preset required');
 assert.ok(courseData.includes("'suwon-haengni'"),'Suwon route preset required');
 assert.ok(domSource.includes("export const all=s=>Array.from(document.querySelectorAll(s))"),'plural selector stability helper required');
-assert.ok(appSource.includes("from './js/data/course-data.js'"),'app entry must import extracted course data');
+assert.ok(coursePlannerSource.includes("from '../data/course-data.js'"),'course planner must import extracted course data');
 assert.ok(!appSource.includes("const CURATED_COURSES="),'course data must not remain embedded in app.js');
 assert.ok(recommendationSource.includes('export function localRecommend('),'recommendation engine module missing');
 assert.ok(intentSource.includes('export function localAI('),'intent parser module missing');
