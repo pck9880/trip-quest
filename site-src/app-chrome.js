@@ -180,6 +180,7 @@
       let holdTimer=0;
       let releaseTimer=0;
       let isDown=false;
+      let suppressClick=false;
 
       const clearTimers=()=>{
         clearTimeout(holdTimer);
@@ -192,6 +193,7 @@
         if(btn.disabled||isDown)return;
         clearTimers();
         isDown=true;
+        suppressClick=false;
         pointerId=id;
         btn.classList.remove('is-releasing','is-held');
         btn.classList.add('is-pressed');
@@ -216,6 +218,8 @@
         isDown=false;
         pointerId=null;
         btn.classList.remove('is-pressed','is-held');
+
+        if(cancelled)suppressClick=true;
 
         if(cancelled||reduceMotion){
           btn.classList.remove('is-releasing');
@@ -254,6 +258,12 @@
 
       btn.addEventListener('pointercancel',()=>finishPress(true),{passive:true});
       btn.addEventListener('lostpointercapture',()=>{if(isDown)finishPress(true)},{passive:true});
+      btn.addEventListener('click',e=>{
+        if(!suppressClick)return;
+        suppressClick=false;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      },{capture:true});
 
       btn.addEventListener('keydown',e=>{
         if(e.repeat)return;
