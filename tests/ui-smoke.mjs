@@ -34,8 +34,9 @@ assert.ok(geoExplorer.includes('jeju'),'Jeju map shape missing');
 assert.ok(geoExplorer.includes('geoToXY')&&geoExplorer.includes('xyToGeo'),'Korea coordinate projection missing');
 assert.ok(geoExplorer.includes('setPointerCapture'),'drag pointer capture missing');
 assert.ok(geoExplorer.includes('travelService.reverseGeocode'),'drag-end place analysis missing');
-assert.ok(geoExplorer.includes(".tq-geo-search-sheet{transform:none !important;transition:none !important}"),'AI search panel must be fixed');
-assert.ok(geoExplorer.includes('.tq-geo-sheet-handle,.tq-geo-sheet-expand{display:none !important}'),'search panel drag controls must be disabled');
+assert.ok(geoExplorer.includes('.tq-geo-search-sheet{position:relative!important'),'AI search panel must use static document flow');
+assert.ok(geoExplorer.includes('.tq-geo-sheet-handle,.tq-geo-sheet-expand{display:none!important}'),'search panel drag controls must be disabled');
+assert.ok(geoExplorer.includes("popup.classList.add('tq-location-result-bar')"),'location result must move outside the map overlay');
 assert.ok(!geoExplorer.includes('L.map('),'primary GEO canvas must not use Leaflet tiles');
 
 assert.ok(geocoding.includes('export async function reverseGeocode'),'reverse geocoder missing');
@@ -57,9 +58,9 @@ assert.ok(searchCss.includes('.tq-geo-explorer'),'GEO explorer styles missing');
 assert.ok(searchCss.includes('.tq-geo-target'),'GEO target styles missing');
 assert.ok(productCss.includes('.tq-bottom-nav'),'bottom navigation styles missing');
 assert.ok(landingCss.includes('.main-landing'),'landing styles missing');
-assert.ok(sw.includes("const CACHE='trip-quest-v1.10.0-geo-canvas-20261003'"),'service worker GEO cache version missing');
+assert.ok(sw.includes("const CACHE='trip-quest-v1.10.1-geo-layout-20261003'"),'service worker GEO cache version missing');
 assert.equal(manifest.display,'standalone','PWA display must be standalone');
 assert.ok(Array.isArray(manifest.icons)&&manifest.icons.length>=2,'PWA icons missing');
 assert.ok(chrome.includes("probe.src='./assets/tq-cover-main-v044.webp'"),'landing artwork preload missing');
 
-console.log('TRIP QUEST v1.10 South Korea GEO canvas, fixed AI search panel, and PWA smoke tests passed');
+console.log('TRIP QUEST v1.10.1 South Korea GEO canvas, static AI search panel, inline location result, and PWA smoke tests passed');
