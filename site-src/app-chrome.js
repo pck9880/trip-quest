@@ -28,7 +28,7 @@
   let setupWaitingForLocation=false;
 
   function readVehicle(){try{return JSON.parse(localStorage.getItem(VEHICLE_KEY)||'null')}catch{return null}}
-  function writeVehicle(v){localStorage.setItem(VEHICLE_KEY,JSON.stringify(v))}
+  function writeVehicle(v){try{localStorage.setItem(VEHICLE_KEY,JSON.stringify(v))}catch{}}
   async function refreshEnergyPrices(){
     try{
       const r=await fetch('./fuel-prices.json',{cache:'no-store'});
@@ -173,10 +173,6 @@
   function observeCourseDetailOrder(){const panel=$('#courseDetailPanel');if(!panel)return;enforceCourseDetailOrder();new MutationObserver(()=>requestAnimationFrame(enforceCourseDetailOrder)).observe(panel,{childList:true,subtree:false})}
   function selectedManualCount(){return document.querySelectorAll('#categoryChoices button.selected').length}
   function addManualSearchButton(){const options=$('#manualOptions');if(!options||$('#manualSearchNow'))return;const wrap=el('div','manual-search-now');wrap.style.cssText='margin-top:18px;display:grid;gap:8px';wrap.innerHTML='<button id="manualSearchNow" class="btn primary" type="button" style="width:100%;min-height:56px">선택한 조건으로 검색하기 →</button><small id="manualSearchHint" style="color:#8e99a8;text-align:center"></small>';options.appendChild(wrap);const btn=$('#manualSearchNow'),hint=$('#manualSearchHint');const sync=()=>{const count=selectedManualCount();btn.disabled=count===0;hint.textContent=count?`취향 ${count}개 선택 · 현재 거리/방향 조건으로 검색`:'여행 취향을 1개 이상 선택하세요.'};options.addEventListener('click',()=>setTimeout(sync,0));sync();btn.onclick=async()=>{if(btn.disabled)return;const next=$('#nextBtn');if(!next)return;btn.disabled=true;btn.textContent='추천 조건 준비 중…';try{next.click();await new Promise(r=>setTimeout(r,120));btn.textContent='추천지 검색 중…';$('#nextBtn')?.click()}finally{setTimeout(()=>{btn.disabled=selectedManualCount()===0;btn.textContent='선택한 조건으로 검색하기 →'},900)}}}
-  function parseWon(text){const n=Number(String(text||'').replace(/[^0-9.-]/g,''));return Number.isFinite(n)?n:0}function parseKm(text){const n=Number(String(text||'').replace(/[^0-9.]/g,''));return Number.isFinite(n)?n:0}function fmtWon(n){return `${Math.round(n||0).toLocaleString('ko-KR')}원`}
-  function estimateToll(km){const s=readVehicle();const one=Math.max(0,km/2);if(one<40)return 0;const base=(900+one*44.3)*2;return Math.max(0,Math.round((base*(s?.tollDiscount?.5:1))/100)*100)}
-  function enhanceTripSummaryToll(){const summary=$('#tripSummary');if(!summary||!summary.querySelector('.metric-grid'))return;const metrics=[...summary.querySelectorAll('.metric')],find=l=>metrics.find(m=>m.querySelector('span')?.textContent.trim()===l),dm=find('왕복 거리'),tm=find('통행료')||find('예상 통행료'),total=find('교통비 합계'),fuel=find('기름값');if(!dm||!tm)return;const distance=parseKm(dm.querySelector('strong')?.textContent),estimated=estimateToll(distance),label=tm.querySelector('span'),value=tm.querySelector('strong');if(label)label.textContent='예상 통행료';if(value)value.textContent=estimated?`약 ${fmtWon(estimated)}`:'0원';if(total){const f=parseWon(fuel?.querySelector('strong')?.textContent);total.querySelector('strong').textContent=fmtWon(f+estimated)}}
-  function observeTripSummary(){const summary=$('#tripSummary');if(!summary)return;new MutationObserver(()=>requestAnimationFrame(enhanceTripSummaryToll)).observe(summary,{childList:true,subtree:true,characterData:true});enhanceTripSummaryToll()}
   function runtimeHealthCheck(){document.querySelectorAll('#categoryChoices button,#directionChoices button,.progress-step').forEach(b=>b.type='button')}
   function bindLandingFallback(){
     const landing=$('#mainLanding');
