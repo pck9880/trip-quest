@@ -4,6 +4,7 @@ import { createPlaceSearchService, SEARCH_MODE_CONFIGS, MOOD_OPTIONS } from '../
 
 const store=createTripStore();
 assert.equal(store.state.searchMode,'travel');
+assert.equal(store.state.localMinRadiusKm,0);
 assert.equal(store.state.localRadiusKm,2);
 assert.deepEqual(store.state.moodKeywords,[]);
 store.state.searchMode='cafe';
@@ -17,6 +18,8 @@ assert.deepEqual(store.state.moodKeywords,[]);
 assert.equal(SEARCH_MODE_CONFIGS.cafe.categoryCode,'CE7');
 assert.equal(SEARCH_MODE_CONFIGS.food.categoryCode,'FD6');
 assert.equal(SEARCH_MODE_CONFIGS.travel.code,'TRIP');
+assert.equal(SEARCH_MODE_CONFIGS.travel.distance.step,50);
+assert.equal(SEARCH_MODE_CONFIGS.travel.distance.max,400);
 assert.ok(MOOD_OPTIONS.cafe.includes('조용한'));
 assert.ok(MOOD_OPTIONS.food.includes('로컬'));
 
@@ -43,6 +46,7 @@ const result=await service.searchPlaces({
   mode:'cafe',
   query:'로스터리',
   region:{name:'가야동',address:'부산광역시 부산진구 가야동',lat:35.151,lng:129.032},
+  radiusMinKm:0,
   radiusKm:2,
   moods:['조용한','감성']
 });
