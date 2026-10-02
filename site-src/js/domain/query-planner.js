@@ -39,6 +39,32 @@ const ATTRIBUTE_RULES=[
 function clean(value){return String(value||'').replace(/\s+/g,' ').trim()}
 function unique(values){return [...new Set(values.filter(Boolean))]}
 
+function snapTripKm(value){
+  const n=Number(value);
+  if(!Number.isFinite(n))return null;
+  return Math.max(0,Math.min(400,Math.round(n/50)*50));
+}
+
+function extractDistanceMention(text){
+  const m=clean(text);
+  const range=m.match(/(\d{1,3})\s*(?:~|〜|-|부터)\s*(\d{1,3})\s*(?:km|키로)/i);
+  if(range){
+    const a=snapTripKm(range[1]),b=snapTripKm(range[2]);
+    if(a!=null&&b!=null)return {min:Math.min(a,b),max:Math.max(a,b),source:'text-range'};
+  }
+  const upper=m.match(/(\d{1,3})\s*(?:km|키로)\s*(?:이내|안|까지|내)/i);
+  if(upper){
+    const max=snapTripKm(upper[1]);
+    if(max!=null)return {min:0,max:Math.max(50,max),source:'text-max'};
+  }
+  const lower=m.match(/(\d{1,3})\s*(?:km|키로)\s*(?:이상|밖|넘게)/i);
+  if(lower){
+    const min=snapTripKm(lower[1]);
+    if(min!=null)return {min,max:400,source:'text-min'};
+  }
+  return null;
+}
+
 function regionMentions(text){
   const m=clean(text);
   const hits=[];
@@ -92,6 +118,7 @@ export function planTravelQuery(message,context={}){
     destinationCategories,
     linkedModes:unique(linkedModes),
     attributes,
+    distanceMention:extractDistanceMention(text),
     hasExplicitDestination:destinationCategories.length>0
   };
 }
