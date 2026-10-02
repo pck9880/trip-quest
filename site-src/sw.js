@@ -1,5 +1,5 @@
-const CACHE='trip-quest-v0.54-style-system-20261002';
-const SHELL=['./','./index.html','./css/base.css?v=054','./css/product.css?v=054','./css/landing.css?v=054','./css/search.css?v=054','./app.js?v=20261002-refactor6','./app-chrome.js?v=047','./assets/tq-cover-main-v044.webp','./js/core/dom.js','./js/core/format.js','./js/data/ui-options.js','./js/data/places.js','./js/data/recommendation-data.js','./js/data/course-data.js','./js/data/intent-rules.js','./js/domain/geo.js','./js/domain/schedule.js','./js/domain/trip-cost.js','./js/domain/recommendation.js','./js/domain/intent-parser.js','./js/services/vehicle-settings.js','./js/services/routing.js','./js/services/weather.js','./js/services/geocoding.js','./js/usecases/search-destinations.js','./js/domain/course-planner.js','./js/ui/main-map.js','./js/ui/course-map.js','./js/ui/time-controls.js','./js/ui/course-actions.js','./js/ui/landing.js','./js/ui/wizard.js','./js/ui/results.js','./js/controllers/search-controller.js','./js/controllers/origin-controller.js','./js/controllers/app-controller.js','./js/store/trip-store.js','./js/services/travel-service.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/apple-touch-icon.png'];
+const CACHE='trip-quest-v1.0.0-sale-ready-20261002';
+const SHELL=['./','./index.html','./css/base.css?v=100','./css/product.css?v=100','./css/landing.css?v=100','./css/search.css?v=100','./app.js?v=20261002-v100','./app-chrome.js?v=100','./assets/tq-cover-main-v044.webp','./js/core/dom.js','./js/core/format.js','./js/data/ui-options.js','./js/data/places.js','./js/data/recommendation-data.js','./js/data/course-data.js','./js/data/intent-rules.js','./js/domain/geo.js','./js/domain/schedule.js','./js/domain/trip-cost.js','./js/domain/recommendation.js','./js/domain/intent-parser.js','./js/services/vehicle-settings.js','./js/services/routing.js','./js/services/weather.js','./js/services/geocoding.js','./js/usecases/search-destinations.js','./js/domain/course-planner.js','./js/ui/main-map.js','./js/ui/course-map.js','./js/ui/time-controls.js','./js/ui/course-actions.js','./js/ui/landing.js','./js/ui/wizard.js','./js/ui/results.js','./js/controllers/search-controller.js','./js/controllers/origin-controller.js','./js/controllers/app-controller.js','./js/store/trip-store.js','./js/services/travel-service.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/apple-touch-icon.png'];
 
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()));
@@ -19,10 +19,10 @@ async function decorateNavigation(response){
   if(!type.includes('text/html'))return response;
   let html=await response.text();
   html=html.replace(/\s*<link rel="stylesheet" href="\.\/(?:styles|app-chrome|landing-touch-fix)\.css\?v=[^"']+" \/>\s*/g,'\n');
-  if(!html.includes('./css/base.css'))html=html.replace('</head>','  <link rel="stylesheet" href="./css/base.css?v=054" />\n  <link rel="stylesheet" href="./css/product.css?v=054" />\n  <link rel="stylesheet" href="./css/landing.css?v=054" />\n  <link rel="stylesheet" href="./css/search.css?v=054" />\n</head>');
-  html=html.replace(/\.\/app\.js\?v=[^"']+/g,'./app.js?v=20261002-refactor6');
-  html=html.replace(/\.\/app-chrome\.js\?v=[^"']+/g,'./app-chrome.js?v=047');
-  if(!html.includes('app-chrome.js'))html=html.replace('</body>','  <script src="./app-chrome.js?v=047" defer></script>\n</body>');
+  if(!html.includes('./css/base.css'))html=html.replace('</head>','  <link rel="stylesheet" href="./css/base.css?v=100" />\n  <link rel="stylesheet" href="./css/product.css?v=100" />\n  <link rel="stylesheet" href="./css/landing.css?v=100" />\n  <link rel="stylesheet" href="./css/search.css?v=100" />\n</head>');
+  html=html.replace(/\.\/app\.js\?v=[^"']+/g,'./app.js?v=20261002-v100');
+  html=html.replace(/\.\/app-chrome\.js\?v=[^"']+/g,'./app-chrome.js?v=100');
+  if(!html.includes('app-chrome.js'))html=html.replace('</body>','  <script src="./app-chrome.js?v=100" defer></script>\n</body>');
   return new Response(html,{status:response.status,statusText:response.statusText,headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store'}});
 }
 

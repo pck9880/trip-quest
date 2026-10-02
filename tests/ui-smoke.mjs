@@ -127,4 +127,17 @@ assert.ok(!app.includes("const openAdvanced=$('#openAdvancedSearch')"),'event im
 assert.ok(resultsSource.includes('function renderCourses('),'course result rendering module missing');
 assert.ok(searchControllerSource.includes('function sortRecommendations('),'search controller sorting missing');
 assert.ok(chromeCss.includes('body[data-trip-step="2"]:not(.tq-advanced-open) .wizard'),'simple search must hide advanced wizard at step two');
-console.log('TRIP QUEST v0.54 style-system UI/runtime smoke tests passed');
+console.log('TRIP QUEST v1.0 UI/runtime smoke tests passed');
+
+const mainMapSource=read('js/ui/main-map.js');
+const courseMapSource=read('js/ui/course-map.js');
+const originControllerSource=read('js/controllers/origin-controller.js');
+assert.ok(mainMapSource.includes('https://tile.openstreetmap.org/{z}/{x}/{y}.png'),'current OSM tile endpoint required');
+assert.ok(mainMapSource.includes('openstreetmap.org/copyright'),'OSM attribution link required');
+assert.ok(courseMapSource.includes('openstreetmap.org/copyright'),'course map OSM attribution link required');
+assert.ok(originControllerSource.includes('OpenStreetMap / Nominatim'),'geocoder attribution required');
+assert.ok(originControllerSource.includes('Open-Meteo'),'weather attribution required');
+assert.ok(resultsSource.includes('OSRM 도로 경로'),'routing provider disclosure required');
+
+assert.ok(html.includes('TRIP QUEST · v1.0.0'),'v1.0.0 footer/version marker missing');
+assert.ok(chromeJs.includes("footer.textContent='TRIP QUEST · v1.0.0'"),'chrome footer version missing');

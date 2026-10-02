@@ -31,8 +31,8 @@ jobs:
           cp -a site-src/. _site/
           node --check _site/app.js
           node --check _site/app-chrome.js
-          node tests/ai-smoke.mjs
-          node tests/ui-smoke.mjs
+          find _site/js -name '*.js' -print0 | xargs -0 -n1 node --check
+          npm test
           python3 - <<'PY'
           import struct, zlib, json, re, urllib.request
           from pathlib import Path
