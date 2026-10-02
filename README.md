@@ -1,4 +1,4 @@
-# TRIP QUEST · v0.49
+# TRIP QUEST · v0.50
 
 국내여행 AI 플래너의 GitHub Pages/PWA 배포 저장소입니다.
 
@@ -28,3 +28,14 @@
 - `js/services/geocoding.js`: 지오코딩
 - `js/services/vehicle-settings.js`: 차량 설정/localStorage
 - `js/domain/trip-cost.js`: 예상 통행료 계산
+
+## v0.50 추천/의도 계층 분리
+
+추천 점수 계산과 자연어 의도 해석을 UI 진입점에서 분리했습니다.
+
+- `js/domain/recommendation.js`: 거리·카테고리·도심 선호·점수 계산
+- `js/usecases/search-destinations.js`: 도로거리 검증/후보 정제
+- `js/domain/intent-parser.js`: 여행 자연어 의도 파싱
+- `js/data/intent-rules.js`: 자연어 규칙 데이터
+
+이 단계까지 `app.js`는 UI orchestration 중심으로 축소되며 추천/의도 로직은 독립 테스트 가능한 모듈이 됩니다.

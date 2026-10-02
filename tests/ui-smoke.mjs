@@ -10,7 +10,7 @@ const sw=read('sw.js');
 const app=read('app.js');
 const chromeJs=read('app-chrome.js');
 const chromeCss=read('app-chrome.css');
-const moduleFiles=['js/core/dom.js','js/core/format.js','js/data/places.js','js/data/recommendation-data.js','js/data/course-data.js','js/data/ui-options.js','js/domain/geo.js','js/domain/schedule.js','js/domain/trip-cost.js','js/services/vehicle-settings.js','js/services/routing.js','js/services/weather.js','js/services/geocoding.js'];
+const moduleFiles=['js/core/dom.js','js/core/format.js','js/data/places.js','js/data/recommendation-data.js','js/data/course-data.js','js/data/ui-options.js','js/domain/geo.js','js/domain/schedule.js','js/domain/trip-cost.js','js/services/vehicle-settings.js','js/services/routing.js','js/services/weather.js','js/services/geocoding.js','js/data/intent-rules.js','js/domain/recommendation.js','js/domain/intent-parser.js','js/usecases/search-destinations.js'];
 for(const file of moduleFiles)assert.ok(fs.existsSync(new URL(file,root)),'missing extracted module: '+file);
 assert.ok(app.includes("from './js/core/dom.js'"),'app.js must use core DOM module');
 assert.ok(app.includes("from './js/data/places.js'"),'app.js must use places data module');
@@ -22,6 +22,9 @@ assert.ok(!app.includes('function clientWeather('),'weather service must be outs
 assert.ok(!app.includes('function localGeocode('),'geocoding service must be outside app.js');
 assert.ok(!app.includes('function activeVehicleProfile('),'vehicle settings must be outside app.js');
 assert.ok(!app.includes('function estimateRoundTripToll('),'trip cost logic must be outside app.js');
+assert.ok(!app.includes('function localRecommend('),'recommendation engine must be outside app.js');
+assert.ok(!app.includes('function refineRoadDistanceResults('),'road-distance verification must be outside app.js');
+assert.ok(!app.includes('function localAI('),'intent parser must be outside app.js');
 
 assert.equal((html.match(/\\n/g)||[]).length,0,'index.html must not contain literal \\n text');
 
@@ -92,4 +95,4 @@ assert.ok(app.includes("openAdvanced.classList.add('open')"),'manual drawer open
 assert.ok(app.includes("openAdvanced.classList.remove('open')"),'manual drawer close state missing');
 assert.ok(app.includes("if(n!==2){document.body.classList.remove('tq-advanced-open')"),'manual drawer must collapse when leaving step two');
 assert.ok(chromeCss.includes('body[data-trip-step="2"]:not(.tq-advanced-open) .wizard'),'simple search must hide advanced wizard at step two');
-console.log('TRIP QUEST v0.49 service-layer UI/runtime smoke tests passed');
+console.log('TRIP QUEST v0.50 recommendation/intent modular smoke tests passed');
