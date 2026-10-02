@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.0 — KEEP course library
+
+- Added star-toggle KEEP controls beside A/B course selection
+- Added persistent local course storage with duplicate prevention and removal
+- Reworked bottom navigation to Explore / KEEP / Settings
+- Added KEEP count badge, saved-course list, and detail bottom sheet
+- Added removal from both course cards and KEEP list/detail views
+- Added KEEP persistence/unit regression tests
+
+
 ## 1.0.1 — Landing cover hotfix
 
 - Fixed the cover image URL after stylesheets moved into `site-src/css/`

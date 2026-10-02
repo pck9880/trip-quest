@@ -5,6 +5,7 @@
   const ICON_PATHS={
     home:'<path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V21h13V9.5"/><path d="M9.5 21v-6h5v6"/>',
     ai:'<path d="M12 3l1.2 3.3L16.5 7.5l-3.3 1.2L12 12l-1.2-3.3-3.3-1.2 3.3-1.2L12 3Z"/><path d="m18.5 13 .8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z"/><path d="m5 14 .7 1.8 1.8.7-1.8.7L5 19l-.7-1.8-1.8-.7 1.8-.7L5 14Z"/>',
+    star:'<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/>',
     route:'<circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M7.8 17.1c2.6-1.1 1.8-4.3 4.4-5.4 1.5-.7 2.9-.2 4.1-1.8"/><path d="M7.7 6.3h4.7"/><path d="m10.5 4.2 2.1 2.1-2.1 2.1"/>',
     settings:'<path d="M4 6h10"/><path d="M18 6h2"/><circle cx="16" cy="6" r="2"/><path d="M4 12h2"/><path d="M10 12h10"/><circle cx="8" cy="12" r="2"/><path d="M4 18h8"/><path d="M16 18h4"/><circle cx="14" cy="18" r="2"/>',
     location:'<path d="M20 10c0 5.2-8 12-8 12S4 15.2 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
@@ -280,7 +281,46 @@
     });
   }
 
-  function addBottomNav(){if($('.tq-bottom-nav'))return;const nav=el('nav','tq-bottom-nav');nav.setAttribute('aria-label','앱 하단 메뉴');nav.innerHTML=`<button type="button" data-tab="home" class="active"><i>${iconSvg('home','tq-icon tq-nav-icon')}</i><span>홈</span></button><button type="button" data-tab="ai"><i>${iconSvg('ai','tq-icon tq-nav-icon')}</i><span>AI 찾기</span></button><button type="button" data-tab="plan"><i>${iconSvg('route','tq-icon tq-nav-icon')}</i><span>여행</span></button><button type="button" data-tab="settings"><i>${iconSvg('settings','tq-icon tq-nav-icon')}</i><span>설정</span></button>`;document.body.appendChild(nav);const setActive=tab=>nav.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));nav.onclick=e=>{const b=e.target.closest('button');if(!b)return;const tab=b.dataset.tab;if(tab==='home'){setActive('home');showCover()}else if(tab==='ai'){setActive('ai');scrollToTarget('.ai-hero');$('#aiInput')?.focus({preventScroll:true})}else if(tab==='plan'){setActive('plan');scrollToTarget('#progress')}else if(tab==='settings'){setActive('settings');openVehicleSetup()}}}
+  function addBottomNav(){
+    if($('.tq-bottom-nav'))return;
+    const nav=el('nav','tq-bottom-nav');
+    nav.setAttribute('aria-label','앱 하단 메뉴');
+    nav.innerHTML=`<button type="button" data-tab="explore" class="active"><i>${iconSvg('ai','tq-icon tq-nav-icon')}</i><span>탐색</span></button><button type="button" data-tab="keep"><i>${iconSvg('star','tq-icon tq-nav-icon')}</i><span>KEEP</span><b class="tq-keep-badge" hidden>0</b></button><button type="button" data-tab="settings"><i>${iconSvg('settings','tq-icon tq-nav-icon')}</i><span>설정</span></button>`;
+    document.body.appendChild(nav);
+
+    const setActive=tab=>nav.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+    const updateKeepBadge=count=>{
+      const badge=nav.querySelector('.tq-keep-badge');
+      if(!badge)return;
+      const n=Math.max(0,Number(count)||0);
+      badge.textContent=n>99?'99+':String(n);
+      badge.hidden=n===0;
+    };
+
+    nav.onclick=e=>{
+      const b=e.target.closest('button');
+      if(!b)return;
+      const tab=b.dataset.tab;
+      if(tab==='explore'){
+        setActive('explore');
+        window.dispatchEvent(new CustomEvent('tripquest:close-keep'));
+        scrollToTarget('.ai-hero');
+        $('#aiInput')?.focus({preventScroll:true});
+      }else if(tab==='keep'){
+        setActive('keep');
+        window.dispatchEvent(new CustomEvent('tripquest:open-keep'));
+      }else if(tab==='settings'){
+        setActive('settings');
+        window.dispatchEvent(new CustomEvent('tripquest:close-keep'));
+        openVehicleSetup();
+      }
+    };
+
+    window.addEventListener('tripquest:keep-change',e=>updateKeepBadge(e.detail?.count));
+    window.addEventListener('tripquest:keep-count',e=>updateKeepBadge(e.detail?.count));
+    window.addEventListener('tripquest:keep-closed',()=>setActive('explore'));
+    window.dispatchEvent(new CustomEvent('tripquest:keep-request-count'));
+  }
   function enhanceTopbar(){const top=$('.topbar');if(!top||top.querySelector('.tq-top-label'))return;top.classList.add('tq-appbar');const label=el('div','tq-top-label','<small>TRIP QUEST</small><strong>여행 찾기</strong>');$('.brand')?.after(label);const share=$('#topShareBtn');if(share){share.setAttribute('aria-label','여행 공유');share.textContent='↗';share.classList.add('tq-icon-btn')}}
   function observeLanding(){const landing=$('#mainLanding'),nav=$('.tq-bottom-nav');if(!landing)return;const sync=()=>nav?.classList.toggle('cover-open',!landing.hidden);new MutationObserver(sync).observe(landing,{attributes:true,attributeFilter:['hidden','class']});sync()}
   function enforceCourseDetailOrder(){const panel=$('#courseDetailPanel'),map=panel?.querySelector('.course-route-map-card'),actions=panel?.querySelector('#courseActionButtons');if(panel&&map&&actions&&map.nextElementSibling!==actions)map.insertAdjacentElement('afterend',actions)}
@@ -288,6 +328,6 @@
   function selectedManualCount(){return document.querySelectorAll('#categoryChoices button.selected').length}
   function addManualSearchButton(){const options=$('#manualOptions');if(!options||$('#manualSearchNow'))return;const wrap=el('div','manual-search-now');wrap.style.cssText='margin-top:18px;display:grid;gap:8px';wrap.innerHTML='<button id="manualSearchNow" class="btn primary" type="button" style="width:100%;min-height:56px">선택한 조건으로 검색하기 →</button><small id="manualSearchHint" style="color:#8e99a8;text-align:center"></small>';options.appendChild(wrap);const btn=$('#manualSearchNow'),hint=$('#manualSearchHint');const sync=()=>{const count=selectedManualCount();btn.disabled=count===0;hint.textContent=count?`취향 ${count}개 선택 · 현재 거리/방향 조건으로 검색`:'여행 취향을 1개 이상 선택하세요.'};options.addEventListener('click',()=>setTimeout(sync,0));sync();btn.onclick=async()=>{if(btn.disabled)return;const next=$('#nextBtn');if(!next)return;btn.disabled=true;btn.textContent='추천 조건 준비 중…';try{next.click();await new Promise(r=>setTimeout(r,120));btn.textContent='추천지 검색 중…';$('#nextBtn')?.click()}finally{setTimeout(()=>{btn.disabled=selectedManualCount()===0;btn.textContent='선택한 조건으로 검색하기 →'},900)}}}
   function runtimeHealthCheck(){document.querySelectorAll('#categoryChoices button,#directionChoices button,.progress-step').forEach(b=>b.type='button')}
-  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();bindLandingPressFeedback();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();addManualSearchButton();createVehicleSetup();watchFirstLocation();applyVehicleSettings();refreshEnergyPrices();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v1.0.1';document.documentElement.classList.add('tq-chrome-ready')}
+  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();bindLandingPressFeedback();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();addManualSearchButton();createVehicleSetup();watchFirstLocation();applyVehicleSettings();refreshEnergyPrices();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v1.1.0';document.documentElement.classList.add('tq-chrome-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootChrome,{once:true});else bootChrome();
 })();
