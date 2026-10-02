@@ -21,7 +21,7 @@ const assets=fs.readdirSync(new URL('./assets/',site)).filter(x=>/^tq-cover-main
 assert.deepEqual(assets,['tq-cover-main-v044.webp'],'only the active cover should remain');
 
 const pkg=JSON.parse(read(new URL('../package.json',import.meta.url)));
-assert.equal(pkg.version,'1.0.0');
+assert.equal(pkg.version,'1.0.1');
 
 const app=read(new URL('./app.js',site));
 assert.ok(app.length<20000,'app.js should remain an orchestration entrypoint');
