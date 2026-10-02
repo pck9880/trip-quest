@@ -41,7 +41,7 @@ export function createResultsUI(state){
     const target=quest.checkpoints[0];
     const gpsOn=locationConsentService.isEnabled();
     card.hidden=false;
-    card.innerHTML=`<div><small>COURSE QUEST</small><strong>${esc(course.id||'')}코스 QUEST 설정 완료</strong><p>최종 목적지 <b>${esc(target.name)}</b> 도착 후 앱에서 GPS 위치가 확인되면 완료됩니다.</p><span>${gpsOn?'GPS ON · 앱 활성화 중 자동 확인':'GPS OFF · MY > 위치 및 GPS에서 켜기'}</span></div><button type="button" data-open-course-quest>QUEST 보기 →</button>`;
+    card.innerHTML=`<div><small>COURSE QUEST</small><strong>${esc(course.id||'')}코스 QUEST 설정 완료</strong><p>최종 목적지 <b>${esc(target.name)}</b> 도착 후 QUEST에서 보상받기를 누르면 GPS 위치를 확인합니다.</p><span>${gpsOn?'GPS ON · 보상받기에서 위치 확인':'GPS OFF · MY > 위치 및 GPS에서 켜기'}</span></div><button type="button" data-open-course-quest>QUEST 보기 →</button>`;
     card.querySelector('[data-open-course-quest]')?.addEventListener('click',()=>window.dispatchEvent(new CustomEvent('tripquest:open-quest')));
   }
 
@@ -104,7 +104,7 @@ export function createResultsUI(state){
     $('#courseList').className='course-list';
     $('#courseList').innerHTML=courses.map(c=>{const keep=buildCourseKeep(state.selected,c);const kept=keepService.has(keep.id);return `<article class="course-card" data-course="${c.id}"><div class="course-top"><span class="course-id">${c.id}</span><span class="badge">날씨 적합 ${esc(c.weatherFit)}</span></div><h4>${esc(c.title)}</h4><p>${esc(c.reason)}</p><ol class="stops">${c.stops.map((s,i)=>`<li>${i+1}. ${esc(s.name)}</li>`).join('')}</ol><div class="course-rule">${esc(c.localRule||"근거리 코스")}${c.maxLocalLegKm?` · 최대 구간 ${c.maxLocalLegKm.toFixed(1)}km`:""}</div><div class="course-stats"><span>${fmtKm(c.route.distanceKm)}</span><span>${fmtMin(c.route.timeMin)}</span><span>약 ${fmtWon(c.estimatedCost.total)}</span></div><div class="course-choice-row"><button class="btn secondary choose-course" type="button">${c.id}코스 선택</button><button class="course-keep-toggle${kept?' is-kept':''}" type="button" data-keep-id="${esc(keep.id)}" aria-pressed="${kept}" aria-label="${kept?'KEEP 해제':'KEEP에 저장'}" title="${kept?'KEEP 해제':'KEEP에 저장'}">${kept?'★':'☆'}</button></div></article>`}).join('');
   
-    $('#courseList').onclick=e=>{
+    $('#courseList').onclick=async e=>{
       const card=e.target.closest('.course-card');
       if(!card)return;
 
@@ -128,7 +128,9 @@ export function createResultsUI(state){
   
       all('.course-card').forEach(x=>x.classList.toggle('selected',x===card));
       all('.choose-course').forEach(x=>x.textContent=`${x.closest('.course-card').dataset.course}코스 선택`);
+      button.disabled=true;
       button.textContent='코스 설정중…';
+      await new Promise(resolve=>setTimeout(resolve,420));
 
       try{
         const courseQuest=buildCourseQuest(state.selected||{},course);
@@ -139,6 +141,7 @@ export function createResultsUI(state){
       }
       renderCourseQuest(course);
       button.textContent='선택 완료 ✓';
+      button.disabled=false;
   
       const panel=$('#courseDetailPanel');
       if(panel)panel.hidden=false;
@@ -154,7 +157,7 @@ export function createResultsUI(state){
       setText('#actionHint',`${id}코스를 선택했습니다. 아래에서 주변 카페·음식점을 확인할 수 있습니다.`);
       renderTripCompletion(course);
       const completion=$('#tripCompletionCard');if(completion)completion.hidden=false;
-      toast(`${id}코스를 선택했습니다.`);
+      toast(`${id}코스 설정 완료 · QUEST가 준비됐습니다.`);
       setTimeout(()=>document.querySelector('#courseDetailPanel')?.scrollIntoView({behavior:'smooth',block:'start'}),80);
     };
   }

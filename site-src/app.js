@@ -12,6 +12,7 @@ import { createTravelService } from './js/services/travel-service.js';
 import { initKeepPanel } from './js/ui/keep-panel.js';
 import { initMyPage } from './js/ui/my-page.js';
 import { initQuestPanel } from './js/ui/quest-panel.js';
+import { initQuestIsland } from './js/ui/quest-island.js';
 const store=createTripStore();
 const state=store.state;
 const travelService=createTravelService();
@@ -82,7 +83,7 @@ function initPWA(){
 
 async function loadConfig(){
   state.config=await travelService.getConfig();$('#gasPrice').value=state.config.defaultGasPrice;
-  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v1.5.0 · 코스 연동 QUEST · GPS 설정');
+  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v1.5.1 · 보상받기 · 코스 아일랜드');
 }
 
 
@@ -289,5 +290,5 @@ if(typeof window!=='undefined'){
     if(state.step===4)showSafeRuntimeError();
   });
 }
-async function boot(){initTimes();initMap();initKeepPanel({onOpenCourse:openKeptCourse});initQuestPanel();initMyPage({onOpenHistoryCourse:openHistoryCourse});validateUIRuntime();bindChoices();bindActions();initPWA();syncDistanceUI();syncDirectionUI();syncCategoriesUI();setStep(1);showMainLanding();try{await loadConfig()}catch{setText('#providerNow','설정 확인 필요')}setInterval(refreshLive,10*60*1000)}
+async function boot(){initTimes();initMap();initKeepPanel({onOpenCourse:openKeptCourse});initQuestPanel();initQuestIsland();initMyPage({onOpenHistoryCourse:openHistoryCourse});validateUIRuntime();bindChoices();bindActions();initPWA();syncDistanceUI();syncDirectionUI();syncCategoriesUI();setStep(1);showMainLanding();try{await loadConfig()}catch{setText('#providerNow','설정 확인 필요')}setInterval(refreshLive,10*60*1000)}
 if(typeof document!=='undefined')boot();

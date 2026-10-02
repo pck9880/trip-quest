@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.5.1 — reward claim and active-course island
+
+- Renamed the QUEST position action to `보상받기`
+- Changed QUEST verification to a fresh one-shot GPS check only when the user taps `보상받기`
+- Added a dedicated wrong-location popup with contextual, non-punitive feedback
+- Added GPS-accuracy failure feedback without completing the QUEST
+- Added a visible course-setting delay and a `코스 설정 완료` popup
+- Added a persistent Dynamic-Island-style active-course bar at the top of the app
+- Tapping the active-course bar opens the current QUEST
+- Removed foreground automatic GPS tracking; inactive/background apps never verify or complete a QUEST
+- Kept rewards pending for a later product update
+
+
 ## 1.5.0 — course-linked foreground GPS QUEST
 
 - Replaced standalone regional QUEST selection with automatic QUEST generation from the selected A/B course

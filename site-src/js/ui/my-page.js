@@ -212,11 +212,11 @@ export function initMyPage({onOpenHistoryCourse}={}){
         <button class="tq-my-back" type="button" data-my-action="home">← MY PAGE</button>
         <section class="tq-location-settings">
           <small>LOCATION & GPS</small><h3>위치 및 GPS</h3>
-          <p>GPS를 켜면 현재 위치 권한을 요청하고, 선택한 코스 QUEST의 최종 목적지 도착 여부를 앱이 활성화된 동안 자동 확인합니다.</p>
+          <p>GPS를 켜면 현재 위치 권한을 요청합니다. 코스 QUEST는 목적지 도착 후 ‘보상받기’를 누를 때만 현재 위치를 확인합니다.</p>
           <div><span>GPS 기능</span><strong class="${status.enabled?'on':'off'}">${status.enabled?'ON':'OFF'}</strong></div>
-          <div><span>QUEST 자동 확인</span><strong>${status.enabled?'활성화':'중지'}</strong></div>
+          <div><span>QUEST 위치 확인</span><strong>${status.enabled?'보상받기에서 사용':'중지'}</strong></div>
           <div><span>백그라운드</span><strong>자동 완료 안 함</strong></div>
-          <p class="tq-location-privacy">앱이 꺼져 있거나 비활성화된 동안에는 QUEST를 완료하지 않습니다. 목적지 도착 후 앱을 다시 열면 GPS 확인을 재개합니다. 전체 이동 경로는 저장하지 않습니다.</p>
+          <p class="tq-location-privacy">앱이 꺼져 있거나 비활성화된 동안에는 QUEST 위치를 확인하지 않습니다. 목적지 도착 후 앱을 열고 보상받기를 눌러야 완료됩니다. 전체 이동 경로는 저장하지 않습니다.</p>
           <button type="button" class="tq-gps-toggle ${status.enabled?'is-on':''}" data-location-action="${status.enabled?'disable':'enable'}">${status.enabled?'GPS 끄기':'GPS 켜기 및 위치 권한 요청'}</button>
           <small id="tqGpsPermissionState" class="tq-location-os-note">브라우저 위치 권한 확인 중…</small>
         </section>
@@ -234,7 +234,7 @@ export function initMyPage({onOpenHistoryCourse}={}){
         <button class="tq-my-back" type="button" data-my-action="home">← MY PAGE</button>
         <section class="tq-app-info-page">
           <small>ABOUT</small><h3>TRIP QUEST</h3>
-          <div><span>버전</span><strong>v1.5.0</strong></div>
+          <div><span>버전</span><strong>v1.5.1</strong></div>
           <div><span>프로필</span><strong>로컬 기기 저장</strong></div>
           <div><span>로그인</span><strong>추후 계정 연결 예정</strong></div>
           <p>현재 사용자 데이터는 서버 계정이 아닌 이 브라우저에 저장됩니다. 데이터 관리에서 백업 파일을 만들어 보관할 수 있습니다.</p>
@@ -271,8 +271,7 @@ export function initMyPage({onOpenHistoryCourse}={}){
         if(!support.ok)throw Object.assign(new Error(support.error.message),support.error);
         await gpsService.current({timeout:15000,maximumAge:0});
         locationConsentService.enable();
-        if(questSessionService.getSnapshot().session)questSessionService.resume().catch(()=>{});
-        toast('GPS를 켰습니다. 코스 QUEST를 앱 활성화 중 자동 확인합니다.');
+        toast('GPS를 켰습니다. QUEST에서 보상받기를 누르면 현재 위치를 확인합니다.');
       }catch(error){
         locationConsentService.disable();
         toast(error.message||'GPS를 켜지 못했습니다.');
