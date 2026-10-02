@@ -41,11 +41,15 @@ const gpack=await coursePack({...context,destination:hwang,categories:['번화�
 assert.deepEqual(gpack[0].stops.map(x=>x.name),['경주 황리단길','경주 대릉원','경주 첨성대']);
 assert.deepEqual(gpack[1].stops.map(x=>x.name),['경주 황리단길','경주 동궁과월지','경주 보문호수']);
 
-const source=fs.readFileSync(new URL('../site-src/app.js',import.meta.url),'utf8');
-assert.ok(source.includes("const CURATED_COURSES="),'curated nationwide route graph required');
-assert.ok(source.includes("'seoul-hongdae'"),'Hongdae route preset required');
-assert.ok(source.includes("'daegu-dongseong'"),'Daegu route preset required');
-assert.ok(source.includes("'gwangju-dongmyeong'"),'Gwangju route preset required');
-assert.ok(source.includes("'suwon-haengni'"),'Suwon route preset required');
-assert.ok(source.includes("const all=s=>Array.from(document.querySelectorAll(s))"),'plural selector stability helper required');
-console.log('TRIP QUEST v0.47 urban hotspot, route, and vehicle tests passed');
+const appSource=fs.readFileSync(new URL('../site-src/app.js',import.meta.url),'utf8');
+const courseData=fs.readFileSync(new URL('../site-src/js/data/course-data.js',import.meta.url),'utf8');
+const domSource=fs.readFileSync(new URL('../site-src/js/core/dom.js',import.meta.url),'utf8');
+assert.ok(courseData.includes("export const CURATED_COURSES="),'curated nationwide route graph required');
+assert.ok(courseData.includes("'seoul-hongdae'"),'Hongdae route preset required');
+assert.ok(courseData.includes("'daegu-dongseong'"),'Daegu route preset required');
+assert.ok(courseData.includes("'gwangju-dongmyeong'"),'Gwangju route preset required');
+assert.ok(courseData.includes("'suwon-haengni'"),'Suwon route preset required');
+assert.ok(domSource.includes("export const all=s=>Array.from(document.querySelectorAll(s))"),'plural selector stability helper required');
+assert.ok(appSource.includes("from './js/data/course-data.js'"),'app entry must import extracted course data');
+assert.ok(!appSource.includes("const CURATED_COURSES="),'course data must not remain embedded in app.js');
+console.log('TRIP QUEST v0.48 modular foundation, urban hotspot, route, and vehicle tests passed');
