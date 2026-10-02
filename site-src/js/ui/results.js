@@ -5,6 +5,9 @@ import { drawCourseRoute } from './course-map.js';
 import { renderCourseActionButtons } from './course-actions.js';
 import { keepService, buildCourseKeep } from '../services/keep-service.js';
 import { historyService, buildTravelHistoryItem } from '../services/history-service.js';
+import { buildCourseQuest } from '../domain/course-quest.js';
+import { questSessionService } from '../services/quest-session-service.js';
+import { locationConsentService } from '../services/location-consent-service.js';
 
 export function createResultsUI(state){
   let onSelectPlace=null;
@@ -17,6 +20,29 @@ export function createResultsUI(state){
     button.setAttribute('aria-label',kept?'KEEP 해제':'KEEP에 저장');
     button.title=kept?'KEEP 해제':'KEEP에 저장';
     button.textContent=kept?'★':'☆';
+  }
+
+  function renderCourseQuest(course){
+    const panel=$('#courseDetailPanel');
+    if(!panel||!course)return;
+    let card=$('#courseQuestCard');
+    if(!card){
+      card=document.createElement('section');
+      card.id='courseQuestCard';
+      card.className='course-quest-card';
+      panel.appendChild(card);
+    }
+    const quest=buildCourseQuest(state.selected||{},course);
+    if(!quest){
+      card.hidden=false;
+      card.innerHTML='<div><small>QUEST</small><strong>코스 QUEST를 만들 수 없습니다.</strong><p>최종 목적지 좌표 정보가 부족합니다.</p></div>';
+      return;
+    }
+    const target=quest.checkpoints[0];
+    const gpsOn=locationConsentService.isEnabled();
+    card.hidden=false;
+    card.innerHTML=`<div><small>COURSE QUEST</small><strong>${esc(course.id||'')}코스 QUEST 설정 완료</strong><p>최종 목적지 <b>${esc(target.name)}</b> 도착 후 앱에서 GPS 위치가 확인되면 완료됩니다.</p><span>${gpsOn?'GPS ON · 앱 활성화 중 자동 확인':'GPS OFF · MY > 위치 및 GPS에서 켜기'}</span></div><button type="button" data-open-course-quest>QUEST 보기 →</button>`;
+    card.querySelector('[data-open-course-quest]')?.addEventListener('click',()=>window.dispatchEvent(new CustomEvent('tripquest:open-quest')));
   }
 
   function renderTripCompletion(course){
@@ -74,6 +100,7 @@ export function createResultsUI(state){
     else setText('#courseWeather',`예상 ${w.condition} · ${Math.round(w.temperature_2m)}°C · 강수 ${w.precipitation_probability||0}% · 바람 ${Math.round(w.wind_speed_10m)}km/h · Open-Meteo`);
     $('#courseDetailPanel').hidden=true;
     const completion=$('#tripCompletionCard');if(completion)completion.hidden=true;
+    const questCard=$('#courseQuestCard');if(questCard)questCard.hidden=true;
     $('#courseList').className='course-list';
     $('#courseList').innerHTML=courses.map(c=>{const keep=buildCourseKeep(state.selected,c);const kept=keepService.has(keep.id);return `<article class="course-card" data-course="${c.id}"><div class="course-top"><span class="course-id">${c.id}</span><span class="badge">날씨 적합 ${esc(c.weatherFit)}</span></div><h4>${esc(c.title)}</h4><p>${esc(c.reason)}</p><ol class="stops">${c.stops.map((s,i)=>`<li>${i+1}. ${esc(s.name)}</li>`).join('')}</ol><div class="course-rule">${esc(c.localRule||"근거리 코스")}${c.maxLocalLegKm?` · 최대 구간 ${c.maxLocalLegKm.toFixed(1)}km`:""}</div><div class="course-stats"><span>${fmtKm(c.route.distanceKm)}</span><span>${fmtMin(c.route.timeMin)}</span><span>약 ${fmtWon(c.estimatedCost.total)}</span></div><div class="course-choice-row"><button class="btn secondary choose-course" type="button">${c.id}코스 선택</button><button class="course-keep-toggle${kept?' is-kept':''}" type="button" data-keep-id="${esc(keep.id)}" aria-pressed="${kept}" aria-label="${kept?'KEEP 해제':'KEEP에 저장'}" title="${kept?'KEEP 해제':'KEEP에 저장'}">${kept?'★':'☆'}</button></div></article>`}).join('');
   
@@ -101,6 +128,16 @@ export function createResultsUI(state){
   
       all('.course-card').forEach(x=>x.classList.toggle('selected',x===card));
       all('.choose-course').forEach(x=>x.textContent=`${x.closest('.course-card').dataset.course}코스 선택`);
+      button.textContent='코스 설정중…';
+
+      try{
+        const courseQuest=buildCourseQuest(state.selected||{},course);
+        if(courseQuest)questSessionService.armCourseQuest(courseQuest);
+      }catch(error){
+        console.error('course quest setup error',error);
+        toast('코스는 선택했지만 QUEST 설정을 완료하지 못했습니다.');
+      }
+      renderCourseQuest(course);
       button.textContent='선택 완료 ✓';
   
       const panel=$('#courseDetailPanel');

@@ -82,7 +82,7 @@ function initPWA(){
 
 async function loadConfig(){
   state.config=await travelService.getConfig();$('#gasPrice').value=state.config.defaultGasPrice;
-  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v1.4.0 · GPS QUEST · XP · 칭호');
+  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v1.5.0 · 코스 연동 QUEST · GPS 설정');
 }
 
 
