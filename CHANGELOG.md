@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.5.0 — course-linked foreground GPS QUEST
+
+- Replaced standalone regional QUEST selection with automatic QUEST generation from the selected A/B course
+- Added a visible `코스 설정중…` state and a course-detail QUEST card
+- QUEST completion now verifies arrival at the selected course's final stop
+- Moved location/GPS consent and ON/OFF control to MY > 위치 및 GPS
+- Enabling GPS requests the browser/OS location permission immediately from Settings
+- GPS verification runs only while the PWA is active; background/inactive sessions cannot complete a QUEST
+- When the app returns to the foreground, an armed course QUEST automatically resumes location verification
+- QUEST UI no longer contains a consent screen
+- Current QUEST rewards are disabled/pending; completion records are stored without XP/title unlocks
+- Continuous user coordinates are not persisted; only public course target coordinates and successful verification metadata are stored
+
+
 ## 1.4.0 — GPS QUEST, XP and titles
 
 - Added a dedicated QUEST bottom tab and initial regional GPS QUEST catalog

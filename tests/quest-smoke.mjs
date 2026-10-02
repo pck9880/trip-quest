@@ -1,8 +1,7 @@
 import assert from 'node:assert/strict';
-import { QUESTS } from '../site-src/js/data/quest-data.js';
+import { buildCourseQuest } from '../site-src/js/domain/course-quest.js';
 import { createLocationConsentService } from '../site-src/js/services/location-consent-service.js';
 import { createGpsService, normalizeGpsError } from '../site-src/js/services/gps-service.js';
-import { createCheckpointVerifier } from '../site-src/js/domain/quest-verification.js';
 import { createQuestService } from '../site-src/js/services/quest-service.js';
 import { createQuestSessionService } from '../site-src/js/services/quest-session-service.js';
 
@@ -13,25 +12,41 @@ class FakeStorage{
   removeItem(key){this.data.delete(key)}
 }
 
+const destination={name:'부산 전포카페거리',category:'카페거리',lat:35.1555,lng:129.0644};
+const course={id:'A',title:'WALK',mode:'walk',stops:[
+  {name:'서면 젊음의거리',category:'번화가',lat:35.1578,lng:129.0595},
+  {name:'전포카페거리',category:'카페거리',lat:35.1555,lng:129.0644},
+  {name:'삼정타워',category:'쇼핑거리',lat:35.1528,lng:129.0592}
+]};
+const courseQuest=buildCourseQuest(destination,course);
+assert.equal(courseQuest.type,'course-quest');
+assert.equal(courseQuest.course.id,'A');
+assert.equal(courseQuest.routeStops.length,3);
+assert.equal(courseQuest.checkpoints.length,1,'course QUEST should verify final destination only');
+assert.equal(courseQuest.checkpoints[0].name,'삼정타워');
+assert.equal(courseQuest.rewardStatus,'pending');
+assert.equal(courseQuest.xp,0);
+
 let now=new Date(2026,9,2,10,0,0);
 const consentStorage=new FakeStorage();
 const consent=createLocationConsentService(consentStorage,()=>new Date(now));
-assert.equal(consent.isAgreed(),false);
-assert.equal(consent.agree().agreed,true);
-assert.ok(consent.status().agreedAt);
-assert.equal(consent.revoke().agreed,false);
-consent.agree();
+assert.equal(consent.isEnabled(),false);
+assert.equal(consent.enable().enabled,true);
+assert.equal(consent.isAgreed(),true);
+assert.equal(consent.disable().enabled,false);
+assert.equal(consent.status().agreed,true,'GPS OFF should not erase prior app-level acknowledgement');
+consent.enable();
 
 assert.equal(normalizeGpsError({code:1}).type,'permission_denied');
 assert.equal(normalizeGpsError({code:2}).type,'position_unavailable');
 assert.equal(normalizeGpsError({code:3}).type,'timeout');
 
-let clearedId=null,watchHandlers=null;
+let clearedId=null;
 const fakeNavigator={
   permissions:{query:async()=>({state:'granted'})},
   geolocation:{
     getCurrentPosition(success){success({coords:{latitude:35,longitude:129,accuracy:15},timestamp:1000})},
-    watchPosition(success,error){watchHandlers={success,error};return 77},
+    watchPosition(){return 77},
     clearWatch(id){clearedId=id}
   }
 };
@@ -40,37 +55,23 @@ assert.equal(gps.support().ok,true);
 assert.equal(await gps.permissionState(),'granted');
 assert.equal((await gps.current()).accuracyM,15);
 gps.watch({onPosition:()=>{},onError:()=>{}});
-assert.equal(gps.isWatching(),true);
 assert.equal(gps.stop(),true);
 assert.equal(clearedId,77);
 const insecureGps=createGpsService({navigatorRef:fakeNavigator,windowRef:{isSecureContext:false,location:{hostname:'example.com'}}});
 assert.equal(insecureGps.support().error.type,'insecure');
 
-const checkpoint={id:'cp',lat:35,lng:129};
-const verifier=createCheckpointVerifier(checkpoint,{radiusM:120,maxAccuracyM:60,requiredHits:3,dwellMs:20000,maxAgeMs:30000,maxJumpSpeedKmh:180});
-assert.equal(verifier.evaluate({lat:35,lng:129,accuracyM:100,timestamp:1000},1000).status,'weak');
-assert.equal(verifier.evaluate({lat:35,lng:129,accuracyM:20,timestamp:2000},2000).status,'verifying');
-assert.equal(verifier.evaluate({lat:35,lng:129,accuracyM:20,timestamp:12000},12000).status,'verifying');
-const verified=verifier.evaluate({lat:35,lng:129,accuracyM:20,timestamp:23000},23000);
-assert.equal(verified.status,'verified');
-assert.equal(verified.verified,true);
-
 const questStorage=new FakeStorage();
-now=new Date(2026,9,2,12,0,0);
 const quests=createQuestService(questStorage,()=>new Date(now));
-const quest=QUESTS[0];
-let completion=quests.completeQuest(quest,quest.checkpoints.map(cp=>cp.id),now);
-assert.equal(completion.created,true);
-assert.equal(completion.stats.xp,quest.xp);
-assert.equal(completion.newTitles[0].id,'first-step');
-assert.equal(quests.getStats().equippedTitleInfo.name,'첫 발걸음');
-completion=quests.completeQuest(quest,quest.checkpoints.map(cp=>cp.id),now);
-assert.equal(completion.created,false,'same quest/day must not duplicate XP');
-assert.equal(quests.equipTitle('first-step'),true);
+const rewardPending=quests.completeQuest(courseQuest,['arrival'],now);
+assert.equal(rewardPending.created,true);
+assert.equal(rewardPending.earnedXp,0,'course QUEST reward is intentionally pending');
+assert.equal(rewardPending.newTitles.length,0,'pending reward must not unlock titles');
+assert.equal(quests.getStats().xp,0);
 
 const sessionStorage=new FakeStorage();
-const sessionQuestStorage=new FakeStorage();
+const sessionProgress=createQuestService(new FakeStorage(),()=>new Date(now));
 let ms=1000;
+let active=true;
 let gpsWatching=false,stopCount=0,handlers=null;
 const sessionGps={
   support:()=>({ok:true,error:null}),
@@ -79,46 +80,59 @@ const sessionGps={
   stop(){const was=gpsWatching;gpsWatching=false;if(was)stopCount++;return was},
   isWatching:()=>gpsWatching
 };
-const sessionProgress=createQuestService(sessionQuestStorage,()=>new Date(now));
 const session=createQuestSessionService({
-  storage:sessionStorage,
-  gps:sessionGps,
-  consent,
-  progress:sessionProgress,
-  clock:()=>new Date(now),
-  receivedNow:()=>ms
+  storage:sessionStorage,gps:sessionGps,consent,progress:sessionProgress,
+  clock:()=>new Date(now),receivedNow:()=>ms,isActive:()=>active
 });
-await session.begin(quest.id);
-assert.equal(session.getSnapshot().session.questId,quest.id);
-assert.equal(session.getSnapshot().isWatching,true);
-handlers.onPosition({lat:quest.checkpoints[0].lat,lng:quest.checkpoints[0].lng,accuracyM:15,timestamp:ms});
-assert.ok(!sessionStorage.getItem('tq_quest_session_v1').includes('"lat"'),'raw GPS coordinates must not be persisted');
-ms=11000;now=new Date(now.getTime()+10000);handlers.onPosition({lat:quest.checkpoints[0].lat,lng:quest.checkpoints[0].lng,accuracyM:15,timestamp:ms});
-ms=22000;now=new Date(now.getTime()+11000);handlers.onPosition({lat:quest.checkpoints[0].lat,lng:quest.checkpoints[0].lng,accuracyM:15,timestamp:ms});
-assert.equal(session.getSnapshot().session.checkpointIndex,1);
 
-for(let index=1;index<quest.checkpoints.length;index++){
-  const cp=quest.checkpoints[index];
-  ms+=1000;now=new Date(now.getTime()+1000);handlers.onPosition({lat:cp.lat,lng:cp.lng,accuracyM:15,timestamp:ms});
-  ms+=10000;now=new Date(now.getTime()+10000);handlers.onPosition({lat:cp.lat,lng:cp.lng,accuracyM:15,timestamp:ms});
-  ms+=11000;now=new Date(now.getTime()+11000);handlers.onPosition({lat:cp.lat,lng:cp.lng,accuracyM:15,timestamp:ms});
-}
-assert.equal(session.getSnapshot().session,null,'completed quest session must be cleared');
+session.armCourseQuest(courseQuest);
+assert.equal(session.getSnapshot().session.status,'armed');
+assert.equal(session.getSnapshot().quest.course.id,'A');
+await session.resume();
+assert.equal(session.getSnapshot().isWatching,true);
+
+// A live user position outside the target is evaluated but never persisted.
+const userOutside={lat:35.123456,lng:129.123456,accuracyM:18,timestamp:ms};
+handlers.onPosition(userOutside);
+const stored=sessionStorage.getItem('tq_quest_session_v1');
+assert.ok(!stored.includes('35.123456'),'live user latitude must not be persisted');
+assert.ok(!stored.includes('129.123456'),'live user longitude must not be persisted');
+assert.ok(stored.includes('"checkpoints"'),'public course target may be persisted for session restore');
+
+// Background/inactive callbacks must not complete a QUEST.
+active=false;
+handlers.onPosition({lat:courseQuest.checkpoints[0].lat,lng:courseQuest.checkpoints[0].lng,accuracyM:15,timestamp:ms});
+assert.ok(session.getSnapshot().session,'inactive app must keep QUEST pending');
+assert.equal(session.getSnapshot().session.status,'paused');
+assert.equal(session.getSnapshot().isWatching,false);
+
+// Reopening the app resumes GPS; two good fixes complete the arrival verification.
+active=true;
+await session.resume();
+ms+=1000;now=new Date(now.getTime()+1000);
+handlers.onPosition({lat:courseQuest.checkpoints[0].lat,lng:courseQuest.checkpoints[0].lng,accuracyM:15,timestamp:ms});
+assert.ok(session.getSnapshot().session,'first arrival fix should not complete yet');
+ms+=1500;now=new Date(now.getTime()+1500);
+handlers.onPosition({lat:courseQuest.checkpoints[0].lat,lng:courseQuest.checkpoints[0].lng,accuracyM:15,timestamp:ms});
+assert.equal(session.getSnapshot().session,null,'foreground GPS arrival should complete QUEST');
 assert.equal(sessionProgress.getStats().completedCount,1);
-assert.ok(stopCount>=1,'GPS watch must stop after quest completion');
+assert.equal(sessionProgress.getStats().xp,0,'completion record should not grant reward yet');
+assert.ok(stopCount>=1,'GPS watch must stop after completion');
 
-await session.begin(quest.id);
-assert.equal(session.getSnapshot().isWatching,true);
+session.armCourseQuest(courseQuest);
+await session.resume();
 session.cancel();
 assert.equal(session.getSnapshot().session,null);
 assert.equal(session.getSnapshot().isWatching,false);
 
 const deniedGps={...sessionGps,permissionState:async()=> 'denied'};
 const deniedSession=createQuestSessionService({storage:new FakeStorage(),gps:deniedGps,consent,progress:sessionProgress});
-await assert.rejects(()=>deniedSession.begin(quest.id),error=>error.type==='permission_denied');
+deniedSession.armCourseQuest(courseQuest);
+await assert.rejects(()=>deniedSession.resume(),error=>error.type==='permission_denied');
 
-consent.revoke();
-const noConsentSession=createQuestSessionService({storage:new FakeStorage(),gps:sessionGps,consent,progress:sessionProgress});
-await assert.rejects(()=>noConsentSession.begin(quest.id),error=>error.type==='consent_required');
+consent.disable();
+const gpsOffSession=createQuestSessionService({storage:new FakeStorage(),gps:sessionGps,consent,progress:sessionProgress});
+gpsOffSession.armCourseQuest(courseQuest);
+await assert.rejects(()=>gpsOffSession.resume(),error=>error.type==='gps_disabled');
 
-console.log('TRIP QUEST v1.4 GPS QUEST, consent, verification, XP and title tests passed');
+console.log('TRIP QUEST v1.5 course-linked foreground GPS QUEST tests passed');

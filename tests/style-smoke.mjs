@@ -24,7 +24,7 @@ assert.ok(landing.includes('@keyframes tqLandingButtonRelease'),'landing release
 assert.ok(landing.includes('url("../assets/tq-cover-main-v044.webp")'),'cover path must resolve from css/landing.css');
 assert.ok(fs.existsSync(new URL('./assets/tq-cover-main-v044.webp',root)),'active cover asset missing');
 assert.ok(read('css/search.css').includes('@keyframes tqManualDrawerIn'),'manual drawer animation missing');
-console.log('TRIP QUEST v1.4.0 semantic CSS and style-budget tests passed');
+console.log('TRIP QUEST v1.5.0 semantic CSS and style-budget tests passed');
 
 assert.ok(read('css/base.css').includes('.course-keep-toggle'),'course KEEP star styles missing');
 assert.ok(read('css/product.css').includes('.tq-keep-overlay'),'KEEP bottom sheet styles missing');
@@ -51,6 +51,10 @@ assert.ok(myDetails.includes('.tq-month-trip-strip'),'monthly trip summary style
 const questCss=read('css/product.css');
 assert.ok(questCss.includes('.tq-quest-overlay'),'QUEST panel styles missing');
 assert.ok(questCss.includes('.tq-gps-status'),'GPS live status styles missing');
-assert.ok(questCss.includes('.tq-quest-consent'),'QUEST consent styles missing');
+assert.ok(questCss.includes('.course-quest-card'),'course-linked QUEST card styles missing');
 assert.ok(questCss.includes('.tq-title-page'),'MY title styles missing');
 assert.ok(questCss.includes('grid-template-columns:repeat(4,1fr)'),'four-tab bottom nav layout missing');
+
+assert.ok(questCss.includes('.tq-gps-toggle'),'MY GPS toggle styles missing');
+assert.ok(questCss.includes('.tq-quest-empty'),'course QUEST empty state styles missing');
+assert.ok(questCss.includes('.tq-quest-reward-pending'),'pending reward styles missing');
