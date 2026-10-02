@@ -20,8 +20,8 @@ These are disclosure items, not hidden defects. They should be included in buyer
 
 ## GPS QUEST / PWA limitations
 
-- GPS QUEST requires a secure HTTPS context and explicit user consent before geolocation is requested.
+- GPS can be enabled or disabled from MY > 위치 및 GPS. Turning it on is the explicit app-level action that triggers the browser/OS geolocation permission request.
 - Browser/OS location permission can still be denied or permanently blocked by the user; the web app cannot override or programmatically revoke that OS-level permission.
-- GPS accuracy varies by device, buildings, weather, and radio conditions. The app uses accuracy/radius/repeated-fix/dwell checks to reduce false verification but cannot guarantee survey-grade positioning.
-- Static PWAs cannot guarantee continuous background geolocation, especially on iOS. TRIP QUEST pauses verification when backgrounded and requires the user to resume after returning.
-- No continuous GPS route history is persisted by the QUEST implementation.
+- GPS accuracy varies by device, buildings, weather, and radio conditions. The app uses radius, accuracy, repeated-fix, stale-position and implausible-jump checks to reduce false verification but cannot guarantee survey-grade positioning.
+- TRIP QUEST intentionally does not complete QUESTs while the PWA is inactive, backgrounded, or closed. Verification pauses when hidden and automatically resumes after the app returns to the foreground when GPS is ON.
+- No continuous live user GPS route history is persisted by the QUEST implementation.

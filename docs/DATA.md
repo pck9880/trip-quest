@@ -65,8 +65,8 @@ When adding destinations:
 
 ## GPS QUEST data
 
-GPS QUEST definitions live in `site-src/js/data/quest-data.js`. Each quest contains region/theme metadata, XP reward, verification thresholds, and named checkpoint coordinates.
+The active QUEST is generated from the user's selected A/B course by `site-src/js/domain/course-quest.js`. The route stops are shown as QUEST context, while the final course stop is the GPS completion point.
 
-During an active QUEST, live latitude/longitude values are processed in memory for checkpoint verification. The persisted session stores only the quest ID, checkpoint progress, verified checkpoint IDs, verification time, and reported accuracy. It intentionally does **not** persist a continuous route or raw live coordinate history.
+Public course/checkpoint coordinates may be persisted so an armed QUEST can survive a page reload. Live user latitude/longitude values are processed only in memory and are not written to the session. Successful verification stores the checkpoint ID, verification time, and reported GPS accuracy.
 
-QUEST progress (XP, completions, unlocked/equipped titles) is stored separately in `tq_quest_progress_v1`. App-level location consent is device-specific and is not transferred by backup/restore.
+QUEST completion history remains in `tq_quest_progress_v1`. Rewards are currently pending: course-linked completions award 0 XP and do not unlock titles. Location/GPS enablement is device-specific and is not transferred by backup/restore.
