@@ -34,16 +34,38 @@
     scene.classList.add('tq-photo-cover-active');
   }
   function addCoverMotion(){
+    const landing=$('#mainLanding');
     const bg=$('.main-landing-bg');
-    if(!bg)return;
-    bg.querySelectorAll('.tq-geo-scene').forEach(n=>n.remove());
-    let scene=bg.querySelector('.tq-photo-cover-fx');
-    if(!scene){
-      scene=el('div','tq-photo-cover-fx');
-      scene.setAttribute('aria-hidden','true');
-      scene.innerHTML='<i class="tq-cover-light l1"></i><i class="tq-cover-light l2"></i>';
-      bg.appendChild(scene);
-    }
+    if(!landing||!bg)return;
+
+    bg.querySelectorAll('.tq-geo-scene,.tq-photo-cover-fx,.tq-cover-photo').forEach(n=>n.remove());
+    landing.classList.remove('tq-photo-ready','tq-photo-error');
+
+    const img=new Image();
+    img.className='tq-cover-photo';
+    img.alt='';
+    img.decoding='async';
+    img.loading='eager';
+    img.src='./assets/tq-cover-main-v038.webp';
+
+    const markReady=()=>{
+      if(!img.naturalWidth)return;
+      landing.classList.add('tq-photo-ready');
+      landing.classList.remove('tq-photo-error');
+    };
+    const markError=()=>{
+      landing.classList.remove('tq-photo-ready');
+      landing.classList.add('tq-photo-error');
+    };
+    img.addEventListener('load',markReady,{once:true});
+    img.addEventListener('error',markError,{once:true});
+    bg.appendChild(img);
+    if(img.complete)markReady();
+
+    const scene=el('div','tq-photo-cover-fx');
+    scene.setAttribute('aria-hidden','true');
+    scene.innerHTML='<i class="tq-cover-light l1"></i><i class="tq-cover-light l2"></i>';
+    bg.appendChild(scene);
     forceVisibleMotion(scene);
   }
   function showCover(){const landing=$('#mainLanding');if(!landing)return;landing.hidden=false;landing.classList.remove('leaving');document.body.classList.add('landing-open');addCoverMotion();window.scrollTo({top:0,behavior:'smooth'})}
@@ -146,6 +168,6 @@
   function enhanceTripSummaryToll(){const summary=$('#tripSummary');if(!summary||!summary.querySelector('.metric-grid'))return;const metrics=[...summary.querySelectorAll('.metric')],find=l=>metrics.find(m=>m.querySelector('span')?.textContent.trim()===l),dm=find('왕복 거리'),tm=find('통행료')||find('예상 통행료'),total=find('교통비 합계'),fuel=find('기름값');if(!dm||!tm)return;const distance=parseKm(dm.querySelector('strong')?.textContent),estimated=estimateToll(distance),label=tm.querySelector('span'),value=tm.querySelector('strong');if(label)label.textContent='예상 통행료';if(value)value.textContent=estimated?`약 ${fmtWon(estimated)}`:'0원';if(total){const f=parseWon(fuel?.querySelector('strong')?.textContent);total.querySelector('strong').textContent=fmtWon(f+estimated)}}
   function observeTripSummary(){const summary=$('#tripSummary');if(!summary)return;new MutationObserver(()=>requestAnimationFrame(enhanceTripSummaryToll)).observe(summary,{childList:true,subtree:true,characterData:true});enhanceTripSummaryToll()}
   function runtimeHealthCheck(){document.querySelectorAll('#categoryChoices button,#directionChoices button,.progress-step').forEach(b=>b.type='button')}
-  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();addManualSearchButton();observeTripSummary();createVehicleSetup();watchFirstLocation();applyVehicleSettings();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.37';document.documentElement.classList.add('tq-chrome-ready')}
+  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();addManualSearchButton();observeTripSummary();createVehicleSetup();watchFirstLocation();applyVehicleSettings();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.38';document.documentElement.classList.add('tq-chrome-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootChrome,{once:true});else bootChrome();
 })();
