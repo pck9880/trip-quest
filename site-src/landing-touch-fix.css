@@ -36,7 +36,7 @@
   #mainLocateBtn,#mainManualBtn{transform:translateZ(0);}
 }
 
-/* Course detail layout: route map -> cafe/restaurant recommendations */
+/* Course detail layout: selected route map -> nearby recommendation controls -> results */
 #courseDetailPanel.course-detail-panel{
   display:flex;
   flex-direction:column;
@@ -44,8 +44,12 @@
 #courseDetailPanel[hidden]{display:none !important;}
 #courseDetailPanel .course-detail-head{order:1;}
 #courseDetailPanel .course-route-map-card{order:2;}
-#courseDetailPanel .nearby-head{
+#courseDetailPanel #courseActionButtons{
   order:3;
   margin-top:18px;
 }
-#courseDetailPanel #nearbyPlaces{order:4;}
+#courseDetailPanel .nearby-head{
+  order:4;
+  margin-top:18px;
+}
+#courseDetailPanel #nearbyPlaces{order:5;}
