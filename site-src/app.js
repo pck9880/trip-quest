@@ -14,10 +14,11 @@ import { initMyPage } from './js/ui/my-page.js';
 import { initQuestPanel } from './js/ui/quest-panel.js';
 import { initQuestIsland } from './js/ui/quest-island.js';
 import { initSearchFlow } from './js/ui/search-flow.js';
+import { initLinkedPlaceSearch } from './js/ui/linked-place-search.js';
 const store=createTripStore();
 const state=store.state;
 const travelService=createTravelService();
-let searchModeUI=null;
+let searchUI=null;
 
 const wizardUI=createWizardUI(state);
 const {setStep,syncDistanceUI,setDistanceBoundary,syncCategoriesUI,syncDirectionUI,validateUIRuntime,bindChoices}=wizardUI;
@@ -79,7 +80,7 @@ function initPWA(){
 
 async function loadConfig(){
   state.config=await travelService.getConfig();$('#gasPrice').value=state.config.defaultGasPrice;
-  setText('#providerNow','검색 엔진 준비');setText('#updatedAt','v1.8.0 · QUERY PLAN / 50KM SNAP');
+  setText('#providerNow','PLACE RESOLVER 준비');setText('#updatedAt','v1.9.0 · TRIP ONLY / PLACE RESOLVER');
 }
 
 
@@ -91,7 +92,7 @@ function resetTrip(){
   const manualBar=$('#openAdvancedSearch');
   if(manualBar){manualBar.setAttribute('aria-expanded','false');manualBar.classList.remove('open')}
   store.resetJourney();
-  searchModeUI?.reset();
+  searchUI?.reset();
   syncDistanceUI();
   all('#directionChoices button').forEach(b=>b.classList.toggle('selected',b.dataset.value==='전체'));
   syncCategoriesUI();
@@ -163,12 +164,18 @@ function ensureAIOrigin(){
   if(state.origin)return Promise.resolve(state.origin);
   return new Promise((resolve,reject)=>{
     if(!navigator.geolocation){reject(new Error('현재 위치를 사용할 수 없습니다. 출발지를 먼저 설정해주세요.'));return}
-    setText('#resultCaption','AI 추천 · 현재 위치 확인 중');
+    setText('#resultCaption','추천 · 현재 위치 확인 중');
     $('#ranking').className='ranking empty-state';
     $('#ranking').innerHTML='추천지를 계산하기 위해 현재 위치를 확인하고 있습니다…';
     navigator.geolocation.getCurrentPosition(async pos=>{
       try{
-        await setOrigin({lat:pos.coords.latitude,lng:pos.coords.longitude,name:'현재 위치'});
+        const lat=pos.coords.latitude,lng=pos.coords.longitude;
+        let place=null;
+        try{place=await travelService.reverseGeocode(lat,lng)}catch{}
+        const current=place||{lat,lng,name:'현재 위치',address:'현재 위치',placeTypeLabel:'현재 위치'};
+        state.searchRegion=current;
+        await setOrigin({...current,name:current.name||'현재 위치'});
+        searchUI?.syncPlaceLabel?.();
         resolve(state.origin);
       }catch(e){reject(e)}
     },()=>reject(new Error('위치 권한이 필요합니다. 위치를 허용하거나 출발지를 직접 설정해주세요.')),{enableHighAccuracy:true,timeout:8000});
@@ -215,8 +222,8 @@ async function askAI(message,options={}){
       $('#ranking').className='ranking empty-state';
       const needsMore=result.intent==='clarify'||result.intent==='off_topic';
       $('#ranking').innerHTML=needsMore
-        ? '<div><strong>검색 분석 완료</strong><br><br>여행 조건을 조금 더 알려주면 추천 정확도가 올라갑니다.<br><small>예: “오늘 답답해서 60km 안에서 조용히 바람 쐬고 싶어”</small><br><br><button id="aiRefineBtn" class="btn primary" type="button">AI 검색 다시 입력</button></div>'
-        : '<div><strong>AI 분석 완료</strong><br><br>현재 조건으로 추천 가능한 장소가 부족합니다.<br>거리나 상황을 조금 넓혀 다시 검색해보세요.<br><br><button id="aiRefineBtn" class="btn primary" type="button">검색 조건 다시 입력</button></div>';
+        ? '<div><strong>검색 분석 완료</strong><br><br>여행 조건을 조금 더 알려주면 추천 정확도가 올라갑니다.<br><small>예: “가야공원에서 출발해서 100km 안에 바다”</small><br><br><button id="aiRefineBtn" class="btn primary" type="button">검색 다시 입력</button></div>'
+        : '<div><strong>검색 분석 완료</strong><br><br>현재 조건으로 추천 가능한 장소가 부족합니다.<br>거리나 상황을 조금 넓혀 다시 검색해보세요.<br><br><button id="aiRefineBtn" class="btn primary" type="button">검색 조건 다시 입력</button></div>';
       setText('#resultCaption',needsMore?'검색 분석 완료 · 조건 보완 필요':'검색 분석 완료 · 추천 조건 조정 필요');
       setText('#mapStatus','검색 분석 완료');
       setStep(4);
@@ -260,19 +267,15 @@ function handleAIChoice(c){if(!c)return;if(c.action==='search'){if(c.patch)apply
 
 function currentAISearchMessage(){
   const text=$('#aiInput')?.value.trim()||'';
-  if(text)return text;
-  if(state.searchMode==='cafe')return '카페';
-  if(state.searchMode==='food')return '맛집';
-  return '오늘 가기 좋은 여행지를 추천해줘';
+  return text||'오늘 가기 좋은 여행지를 추천해줘';
 }
 
 async function primarySearch(){
-  if(state.searchMode==='travel')return askAI(currentAISearchMessage());
-  return searchModeUI?.searchLocalPlaces(currentAISearchMessage());
+  return askAI(currentAISearchMessage());
 }
 
 function bindActions(){
-  bindAppActions({state,setStep,sortRecommendations,useLocation,searchOrigin,updateSchedulePreview,resetTrip,recommend,searchSimilarDistance,primarySearch,openCategorySelect:launch=>searchModeUI?.openCategory(launch)});
+  bindAppActions({state,setStep,sortRecommendations,useLocation,searchOrigin,updateSchedulePreview,resetTrip,recommend,searchSimilarDistance,primarySearch,startTripSearch:launch=>searchUI?.start(launch)});
 }
 
 function showSafeRuntimeError(){
@@ -293,5 +296,5 @@ if(typeof window!=='undefined'){
     if(state.step===4)showSafeRuntimeError();
   });
 }
-async function boot(){initTimes();initMap();initKeepPanel({onOpenCourse:openKeptCourse});initQuestPanel();initQuestIsland();initMyPage({onOpenHistoryCourse:openHistoryCourse});searchModeUI=initSearchFlow({state,travelService,setOrigin,hideMainLanding,showMainLanding});validateUIRuntime();bindChoices();bindActions();initPWA();syncDistanceUI();syncDirectionUI();syncCategoriesUI();setStep(1);showMainLanding();try{await loadConfig()}catch{setText('#providerNow','설정 확인 필요')}setInterval(refreshLive,10*60*1000)}
+async function boot(){initTimes();initMap();initKeepPanel({onOpenCourse:openKeptCourse});initQuestPanel();initQuestIsland();initMyPage({onOpenHistoryCourse:openHistoryCourse});searchUI=initSearchFlow({state,travelService,setOrigin,hideMainLanding,showMainLanding});initLinkedPlaceSearch({travelService});validateUIRuntime();bindChoices();bindActions();initPWA();syncDistanceUI();syncDirectionUI();syncCategoriesUI();setStep(1);showMainLanding();try{await loadConfig()}catch{setText('#providerNow','설정 확인 필요')}setInterval(refreshLive,10*60*1000)}
 if(typeof document!=='undefined')boot();
