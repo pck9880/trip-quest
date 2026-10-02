@@ -1,0 +1,37 @@
+/* v0.27 iPhone Safari landing touch safety */
+.main-landing-bg,
+.main-landing-bg::before,
+.main-landing-bg::after,
+.main-landing [aria-hidden="true"],
+.main-landing .cover-motion,
+.main-landing .cover-motion * {
+  pointer-events:none !important;
+  -webkit-user-select:none;
+  user-select:none;
+}
+.main-landing-bg{z-index:0 !important;}
+.main-landing-inner{
+  position:relative;
+  z-index:10 !important;
+  pointer-events:auto !important;
+}
+.main-cover-brand,.main-cover-copy{position:relative;z-index:11;}
+.main-cover-action{
+  position:relative;
+  z-index:30 !important;
+  pointer-events:auto !important;
+  isolation:isolate;
+}
+#mainLocateBtn,#mainManualBtn{
+  position:relative;
+  z-index:40 !important;
+  pointer-events:auto !important;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-touch-callout:none;
+}
+#mainLocateBtn{cursor:pointer;}
+#mainManualBtn{cursor:pointer;}
+@supports (-webkit-touch-callout:none){
+  #mainLocateBtn,#mainManualBtn{transform:translateZ(0);}
+}
