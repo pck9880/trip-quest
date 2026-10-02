@@ -23,10 +23,10 @@ async function decorateNavigation(response){
   html=html.replace(/\.\/css\/base\.css\?v=[^"']+/g,'./css/base.css?v=110');
   html=html.replace(/\.\/css\/product\.css\?v=[^"']+/g,'./css/product.css?v=151');
   html=html.replace(/\.\/css\/landing\.css\?v=[^"']+/g,'./css/landing.css?v=101');
-  html=html.replace(/\.\/css\/search\.css\?v=[^"']+/g,'./css/search.css?v=100');
+  html=html.replace(/\.\/css\/search\.css\?v=[^"']+/g,'./css/search.css?v=160');
   html=html.replace(/\.\/app\.js\?v=[^"']+/g,'./app.js?v=20261002-v160');
   html=html.replace(/\.\/app-chrome\.js\?v=[^"']+/g,'./app-chrome.js?v=160');
-  if(!html.includes('app-chrome.js'))html=html.replace('</body>','  <script src="./app-chrome.js?v=151" defer></script>\n</body>');
+  if(!html.includes('app-chrome.js'))html=html.replace('</body>','  <script src="./app-chrome.js?v=160" defer></script>\n</body>');
   return new Response(html,{status:response.status,statusText:response.statusText,headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store'}});
 }
 
