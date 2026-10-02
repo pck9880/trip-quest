@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.4.0 — GPS QUEST, XP and titles
+
+- Added a dedicated QUEST bottom tab and initial regional GPS QUEST catalog
+- Added consent-first location flow before browser/OS geolocation permission requests
+- Added secure-context, permission-denied, unavailable, timeout and unsupported GPS handling
+- Added checkpoint verification using radius, accuracy, repeated fixes, dwell time, stale-position rejection and implausible-jump rejection
+- Added resumable QUEST sessions without persisting raw GPS coordinates or full movement paths
+- Pauses GPS verification when the QUEST panel closes or the PWA moves to the background
+- Added QUEST XP, levels, unlockable/equippable titles and MY PAGE title management
+- Added QUEST progress to user-data backup while keeping location consent device-specific
+- Added automated GPS mocks and QUEST lifecycle regression coverage
+
+
 ## 1.3.0 — MY PAGE detail and local data portability
 
 - Added 512px compressed square profile images before IndexedDB storage

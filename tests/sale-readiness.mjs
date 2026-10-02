@@ -21,7 +21,7 @@ const assets=fs.readdirSync(new URL('./assets/',site)).filter(x=>/^tq-cover-main
 assert.deepEqual(assets,['tq-cover-main-v044.webp'],'only the active cover should remain');
 
 const pkg=JSON.parse(read(new URL('../package.json',import.meta.url)));
-assert.equal(pkg.version,'1.3.0');
+assert.equal(pkg.version,'1.4.0');
 
 const app=read(new URL('./app.js',site));
 assert.ok(app.length<20000,'app.js should remain an orchestration entrypoint');
@@ -37,4 +37,4 @@ assert.ok(commercial.includes('Open-Meteo Free API'),'commercial weather limitat
 const provenance=read(new URL('../docs/ASSET_PROVENANCE.md',import.meta.url));
 assert.ok(provenance.includes('provenance should be confirmed'),'cover provenance disclosure missing');
 
-console.log('TRIP QUEST v1.3.0 sale-readiness checks passed');
+console.log('TRIP QUEST v1.4.0 sale-readiness checks passed');
