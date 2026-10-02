@@ -10,13 +10,18 @@ const sw=read('sw.js');
 const app=read('app.js');
 const chromeJs=read('app-chrome.js');
 const chromeCss=read('app-chrome.css');
-const moduleFiles=['js/core/dom.js','js/core/format.js','js/data/places.js','js/data/recommendation-data.js','js/data/course-data.js','js/data/ui-options.js','js/domain/geo.js','js/domain/schedule.js'];
+const moduleFiles=['js/core/dom.js','js/core/format.js','js/data/places.js','js/data/recommendation-data.js','js/data/course-data.js','js/data/ui-options.js','js/domain/geo.js','js/domain/schedule.js','js/domain/trip-cost.js','js/services/vehicle-settings.js','js/services/routing.js','js/services/weather.js','js/services/geocoding.js'];
 for(const file of moduleFiles)assert.ok(fs.existsSync(new URL(file,root)),'missing extracted module: '+file);
 assert.ok(app.includes("from './js/core/dom.js'"),'app.js must use core DOM module');
 assert.ok(app.includes("from './js/data/places.js'"),'app.js must use places data module');
 assert.ok(app.includes("from './js/domain/geo.js'"),'app.js must use geo domain module');
 assert.ok(!app.includes('const RAW_PLACES='),'place dataset must be outside app.js');
 assert.ok(!app.includes('function geoKm('),'geo calculations must be outside app.js');
+assert.ok(!app.includes('function roadRoute('),'routing service must be outside app.js');
+assert.ok(!app.includes('function clientWeather('),'weather service must be outside app.js');
+assert.ok(!app.includes('function localGeocode('),'geocoding service must be outside app.js');
+assert.ok(!app.includes('function activeVehicleProfile('),'vehicle settings must be outside app.js');
+assert.ok(!app.includes('function estimateRoundTripToll('),'trip cost logic must be outside app.js');
 
 assert.equal((html.match(/\\n/g)||[]).length,0,'index.html must not contain literal \\n text');
 
@@ -64,8 +69,10 @@ assert.ok(chromeJs.includes('suppressClick'),'dragged-out taps must suppress acc
 assert.ok(!chromeCss.includes('#mainLocateBtn:disabled{\n  cursor:wait!important;\n  opacity:.88!important;\n  transform:none!important;'),'disabled state must not cancel release rebound');
 assert.ok(!chromeJs.includes('tq-cover-action-head'),'extra landing action header must not be injected');
 assert.ok(chromeJs.includes("fetch('./fuel-prices.json'"),'runtime fuel-price refresh missing');
-assert.ok(app.includes('function activeVehicleProfile'),'vehicle profile calculation missing');
-assert.ok(app.includes('function estimateRoundTripToll'),'toll estimation missing');
+const vehicleService=read('js/services/vehicle-settings.js');
+const tripCost=read('js/domain/trip-cost.js');
+assert.ok(vehicleService.includes('function activeVehicleProfile'),'vehicle profile calculation missing');
+assert.ok(tripCost.includes('function estimateRoundTripToll'),'toll estimation missing');
 assert.ok(app.includes("costLabel:vehicle.fuel==='electric'?'충전비':'연료비'"),'energy cost labels missing');
 const boot=(chromeJs.match(/function bootChrome\(\)\{([^}]*)\}/)||[])[1]||'';
 assert.ok(!boot.includes('observeTripSummary()'),'legacy DOM toll patch must not run');
@@ -85,4 +92,4 @@ assert.ok(app.includes("openAdvanced.classList.add('open')"),'manual drawer open
 assert.ok(app.includes("openAdvanced.classList.remove('open')"),'manual drawer close state missing');
 assert.ok(app.includes("if(n!==2){document.body.classList.remove('tq-advanced-open')"),'manual drawer must collapse when leaving step two');
 assert.ok(chromeCss.includes('body[data-trip-step="2"]:not(.tq-advanced-open) .wizard'),'simple search must hide advanced wizard at step two');
-console.log('TRIP QUEST v0.48 UI/runtime and modular-boundary smoke tests passed');
+console.log('TRIP QUEST v0.49 service-layer UI/runtime smoke tests passed');

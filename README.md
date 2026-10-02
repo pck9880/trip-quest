@@ -1,4 +1,4 @@
-# TRIP QUEST · v0.48
+# TRIP QUEST · v0.49
 
 국내여행 AI 플래너의 GitHub Pages/PWA 배포 저장소입니다.
 
@@ -18,3 +18,13 @@
 - `site-src/js/data/`: 여행지·추천·코스·UI 옵션 데이터
 - `site-src/js/domain/`: 지리·일정 순수 계산
 - `npm test`: AI/추천/코스/UI smoke test
+
+## v0.49 서비스 계층 분리
+
+외부 I/O와 차량/비용 계산 책임을 `app.js`에서 분리했습니다.
+
+- `js/services/routing.js`: OSRM 및 경로 fallback
+- `js/services/weather.js`: Open-Meteo 및 시간대 날씨 선택
+- `js/services/geocoding.js`: 지오코딩
+- `js/services/vehicle-settings.js`: 차량 설정/localStorage
+- `js/domain/trip-cost.js`: 예상 통행료 계산
