@@ -22,20 +22,20 @@ export function createWizardUI(state){
     if(state.searchMode!=='travel')return;
     const raw=normalizedDistanceRange({minKm:state.minKm,targetKm:state.targetKm});
     let min=Math.max(0,Math.min(350,Math.round(raw.min/50)*50));
-    let max=Math.max(50,Math.min(400,Math.round(raw.max/50)*50));
-    if(max<=min)max=Math.min(400,min+50);
+    let max=Math.max(50,Math.min(450,Math.round(raw.max/50)*50));
+    if(max<=min)max=Math.min(450,min+50);
     if(max<=min){min=Math.max(0,max-50)}
     state.minKm=min;state.targetKm=max;
     setText('#distanceMinValue',min);setText('#distanceMaxValue',max);
     setText('#distanceHint','50km 스냅 · '+min+'~'+max+'km');
     const minRange=$('#distanceMinRange'),maxRange=$('#distanceMaxRange'),fill=$('#distanceRangeFill');
-    if(minRange){minRange.min='0';minRange.max='400';minRange.step='50';minRange.value=String(min)}
-    if(maxRange){maxRange.min='0';maxRange.max='400';maxRange.step='50';maxRange.value=String(max)}
-    if(fill){fill.style.left=(min/400*100)+'%';fill.style.right=(100-max/400*100)+'%'}
+    if(minRange){minRange.min='0';minRange.max='450';minRange.step='50';minRange.value=String(min)}
+    if(maxRange){maxRange.min='0';maxRange.max='450';maxRange.step='50';maxRange.value=String(max)}
+    if(fill){fill.style.left=(min/450*100)+'%';fill.style.right=(100-max/450*100)+'%'}
   }
   
   function setDistanceBoundary(which,value,haptic=true){
-    const v=Math.max(0,Math.min(400,Math.round(Number(value)/50)*50));
+    const v=Math.max(0,Math.min(450,Math.round(Number(value)/50)*50));
     if(which==='min')state.minKm=Math.min(v,state.targetKm-50);
     else state.targetKm=Math.max(v,state.minKm+50);
     syncDistanceUI();state.activeDistanceBand=null;
