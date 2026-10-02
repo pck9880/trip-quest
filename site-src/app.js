@@ -24,7 +24,7 @@ const travelService=createTravelService();
 const wizardUI=createWizardUI(state);
 const {setStep,syncDistanceUI,setDistanceBoundary,syncCategoriesUI,syncDirectionUI,validateUIRuntime,bindChoices}=wizardUI;
 const searchController=createSearchController({state,travelService,setStep});
-const {sortRecommendations,currentPayload,recommend,selectPlace,renderRanking,presentRecommendations,openKeptCourse}=searchController;
+const {sortRecommendations,currentPayload,recommend,selectPlace,renderRanking,presentRecommendations,openKeptCourse,openHistoryCourse}=searchController;
 const originController=createOriginController({state,travelService,setStep,recommend});
 const {startFromMainLocation,useLocation,setOrigin,refreshLive,searchOrigin}=originController;
 
@@ -81,7 +81,7 @@ function initPWA(){
 
 async function loadConfig(){
   state.config=await travelService.getConfig();$('#gasPrice').value=state.config.defaultGasPrice;
-  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v1.2.0 · MY PAGE · 출석 · 여행 기록');
+  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v1.3.0 · MY PAGE 상세화 · 백업 · 캘린더');
 }
 
 
@@ -288,5 +288,5 @@ if(typeof window!=='undefined'){
     if(state.step===4)showSafeRuntimeError();
   });
 }
-async function boot(){initTimes();initMap();initKeepPanel({onOpenCourse:openKeptCourse});initMyPage();validateUIRuntime();bindChoices();bindActions();initPWA();syncDistanceUI();syncDirectionUI();syncCategoriesUI();setStep(1);showMainLanding();try{await loadConfig()}catch{setText('#providerNow','설정 확인 필요')}setInterval(refreshLive,10*60*1000)}
+async function boot(){initTimes();initMap();initKeepPanel({onOpenCourse:openKeptCourse});initMyPage({onOpenHistoryCourse:openHistoryCourse});validateUIRuntime();bindChoices();bindActions();initPWA();syncDistanceUI();syncDirectionUI();syncCategoriesUI();setStep(1);showMainLanding();try{await loadConfig()}catch{setText('#providerNow','설정 확인 필요')}setInterval(refreshLive,10*60*1000)}
 if(typeof document!=='undefined')boot();
