@@ -42,11 +42,13 @@ export function createQuestService(storage=defaultStorage(),clock=()=>new Date()
     const expected=(quest.checkpoints||[]).map(cp=>cp.id);
     if(expected.some(id=>!verifiedCheckpointIds.includes(id)))throw new Error('모든 체크포인트 인증이 필요합니다.');
     const data=read(),date=completedAt instanceof Date?completedAt:new Date(completedAt),completionId=`${quest.id}:${dayKey(date)}`;
-    if(data.completed.some(item=>item.id===completionId))return {created:false,progress:data,stats:statsFrom(data),newTitles:[]};
-    data.xp=(Number(data.xp)||0)+(Number(quest.xp)||0);
-    data.completed.push({id:completionId,questId:quest.id,title:quest.title,region:quest.region,theme:quest.theme,xp:Number(quest.xp)||0,completedAt:date.toISOString(),checkpointCount:expected.length});
-    const newTitles=refreshTitles(data);write(data);
-    const detail={created:true,questId:quest.id,xp:quest.xp,newTitles,stats:statsFrom(data)};
+    if(data.completed.some(item=>item.id===completionId))return {created:false,progress:data,stats:statsFrom(data),newTitles:[],earnedXp:0};
+    const rewardEnabled=quest.rewardStatus!=='pending';
+    const earnedXp=rewardEnabled?(Number(quest.xp)||0):0;
+    data.xp=(Number(data.xp)||0)+earnedXp;
+    data.completed.push({id:completionId,questId:quest.id,title:quest.title,region:quest.region||quest.destination?.name||'',theme:quest.theme||'course',xp:earnedXp,rewardStatus:quest.rewardStatus||'active',completedAt:date.toISOString(),checkpointCount:expected.length,courseId:quest.course?.id||''});
+    const newTitles=rewardEnabled?refreshTitles(data):[];write(data);
+    const detail={created:true,questId:quest.id,xp:earnedXp,earnedXp,newTitles,stats:statsFrom(data)};
     if(typeof window!=='undefined')window.dispatchEvent(new CustomEvent('tripquest:quest-change',{detail}));
     return {created:true,progress:data,stats:detail.stats,newTitles};
   }
