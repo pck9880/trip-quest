@@ -93,12 +93,12 @@ export function localAI(message,context={}){
   const regionText=profile.regionConstraint?profile.regionConstraint+' 지역 · ':'';
   const categoryText=hardCategories.length?hardCategories.join(' · ')+' 중심 · ':'';
   const linkText=linkedModes.length?linkedModes.map(x=>x==='cafe'?'CAFE':'FOOD').join(' + ')+' 코스 연계':'여행지 중심';
-  const message=regionText+categoryText+linkText+' 조건으로 검색했습니다.';
+  const responseMessage=regionText+categoryText+linkText+' 조건으로 검색했습니다.';
 
   return {
     mode:'local',
     intent:'travel_search',
-    message,
+    message:responseMessage,
     patch,
     focusQuery:'',
     semanticProfile:profile,
