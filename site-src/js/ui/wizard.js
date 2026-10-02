@@ -19,25 +19,30 @@ export function createWizardUI(state){
   }
   
   function syncDistanceUI(){
-    const r=normalizedDistanceRange({minKm:state.minKm,targetKm:state.targetKm});
-    state.minKm=r.min;state.targetKm=r.max;
-    const single=$('#searchDistanceRange');
-    if(single&&state.searchMode==='travel'){
-      single.min='10';single.max='400';single.step='10';single.value=String(Math.max(10,r.max));
-      setText('#searchDistanceValue',Math.max(10,r.max)+'km');
-      setText('#searchDistanceHint','출발지 기준 최대 '+Math.max(10,r.max)+'km');
-    }
+    if(state.searchMode!=='travel')return;
+    const raw=normalizedDistanceRange({minKm:state.minKm,targetKm:state.targetKm});
+    let min=Math.max(0,Math.min(350,Math.round(raw.min/50)*50));
+    let max=Math.max(50,Math.min(400,Math.round(raw.max/50)*50));
+    if(max<=min)max=Math.min(400,min+50);
+    if(max<=min){min=Math.max(0,max-50)}
+    state.minKm=min;state.targetKm=max;
+    setText('#distanceMinValue',min);setText('#distanceMaxValue',max);
+    setText('#distanceHint','50km 스냅 · '+min+'~'+max+'km');
+    const minRange=$('#distanceMinRange'),maxRange=$('#distanceMaxRange'),fill=$('#distanceRangeFill');
+    if(minRange){minRange.min='0';minRange.max='400';minRange.step='50';minRange.value=String(min)}
+    if(maxRange){maxRange.min='0';maxRange.max='400';maxRange.step='50';maxRange.value=String(max)}
+    if(fill){fill.style.left=(min/400*100)+'%';fill.style.right=(100-max/400*100)+'%'}
   }
   
   function setDistanceBoundary(which,value,haptic=true){
-    const v=Math.max(0,Math.min(400,Math.round(Number(value)/10)*10));
-    if(which==='min')state.minKm=Math.min(v,state.targetKm-10);
-    else state.targetKm=Math.max(v,state.minKm+10);
-    const r=normalizedDistanceRange({minKm:state.minKm,targetKm:state.targetKm});
-    state.minKm=r.min;state.targetKm=r.max;state.activeDistanceBand=null;syncDistanceUI();
-    if(haptic&&r[which]!==lastDistanceHaptic[which]){
-      lastDistanceHaptic={min:r.min,max:r.max};
-      try{if(navigator.vibrate)navigator.vibrate(8)}catch{}
+    const v=Math.max(0,Math.min(400,Math.round(Number(value)/50)*50));
+    if(which==='min')state.minKm=Math.min(v,state.targetKm-50);
+    else state.targetKm=Math.max(v,state.minKm+50);
+    syncDistanceUI();state.activeDistanceBand=null;
+    const current=which==='min'?state.minKm:state.targetKm;
+    if(haptic&&current!==lastDistanceHaptic[which]){
+      lastDistanceHaptic={min:state.minKm,max:state.targetKm};
+      try{navigator.vibrate?.(8)}catch{}
     }
   }
   
@@ -65,7 +70,6 @@ export function createWizardUI(state){
   }
   
   function bindChoices(){
-    const distanceMin=$('#distanceMinRange'),distanceMax=$('#distanceMaxRange');if(distanceMin)distanceMin.addEventListener('input',e=>setDistanceBoundary('min',e.target.value,true));if(distanceMax)distanceMax.addEventListener('input',e=>setDistanceBoundary('max',e.target.value,true));
     $('#directionChoices').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;state.direction=b.dataset.value;syncDirectionUI()});
     $('#categoryChoices').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;b.classList.toggle('selected');state.categories=all('#categoryChoices button.selected').map(x=>x.dataset.value);syncCategoriesUI();setStep(2)});
   }
