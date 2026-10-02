@@ -1,5 +1,5 @@
-const CACHE='trip-quest-v0.48-modular-foundation-20261002';
-const SHELL=['./','./index.html','./styles.css?v=20261002-1300','./app.js?v=20261002-refactor1','./app-chrome.css?v=047','./app-chrome.js?v=047','./landing-touch-fix.css?v=20261002-1300','./assets/tq-cover-main-v044.webp','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/apple-touch-icon.png'];
+const CACHE='trip-quest-v0.49-service-layer-20261002';
+const SHELL=['./','./index.html','./styles.css?v=20261002-1300','./app.js?v=20261002-refactor2','./app-chrome.css?v=047','./app-chrome.js?v=047','./landing-touch-fix.css?v=20261002-1300','./assets/tq-cover-main-v044.webp','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/apple-touch-icon.png'];
 
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()));
@@ -19,7 +19,7 @@ async function decorateNavigation(response){
   if(!type.includes('text/html'))return response;
   let html=await response.text();
   html=html.replace(/\.\/styles\.css\?v=[^"']+/g,'./styles.css?v=20261002-1300');
-  html=html.replace(/\.\/app\.js\?v=[^"']+/g,'./app.js?v=20261002-refactor1');
+  html=html.replace(/\.\/app\.js\?v=[^"']+/g,'./app.js?v=20261002-refactor2');
   html=html.replace(/\.\/app-chrome\.css\?v=[^"']+/g,'./app-chrome.css?v=047');
   html=html.replace(/\.\/app-chrome\.js\?v=[^"']+/g,'./app-chrome.js?v=047');
   html=html.replace(/\.\/landing-touch-fix\.css\?v=[^"']+/g,'./landing-touch-fix.css?v=20261002-1300');

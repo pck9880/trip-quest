@@ -52,4 +52,4 @@ assert.ok(courseData.includes("'suwon-haengni'"),'Suwon route preset required');
 assert.ok(domSource.includes("export const all=s=>Array.from(document.querySelectorAll(s))"),'plural selector stability helper required');
 assert.ok(appSource.includes("from './js/data/course-data.js'"),'app entry must import extracted course data');
 assert.ok(!appSource.includes("const CURATED_COURSES="),'course data must not remain embedded in app.js');
-console.log('TRIP QUEST v0.48 modular foundation, urban hotspot, route, and vehicle tests passed');
+console.log('TRIP QUEST v0.49 services, urban hotspot, route, and vehicle tests passed');

@@ -6,6 +6,11 @@ import { POPULARITY_HINTS, URBAN_CATEGORIES, HOTSPOT_META } from './js/data/reco
 import { CURATED_COURSES, COURSE_PLACE_META } from './js/data/course-data.js';
 import { DIR_DEG, geoKm, geoBearing, degDiff } from './js/domain/geo.js';
 import { scheduleWindow } from './js/domain/schedule.js';
+import { activeVehicleProfile } from './js/services/vehicle-settings.js';
+import { estimateRoundTripToll } from './js/domain/trip-cost.js';
+import { approxRoute, roadRoute } from './js/services/routing.js';
+import { clientWeather, selectWeatherAt } from './js/services/weather.js';
+import { localGeocode } from './js/services/geocoding.js';
 const state={step:1,origin:null,minKm:0,targetKm:100,direction:'전체',categories:['관광지'],recommendations:[],selected:null,selectedCourse:null,selectedCourseData:null,config:null,map:null,markers:[],routeLine:null,courseMap:null,courseMarkers:[],courseRouteLine:null,aiBusy:false,installPrompt:null,sharedTrip:null,sharedPending:false,resultSort:'recommend',lastSearchMode:'ai',lastAIMessage:'',activeDistanceBand:null};
 
 
@@ -30,41 +35,6 @@ function sortRecommendations(mode=state.resultSort,rerender=true){
 }
 
 
-const VEHICLE_SETTINGS_KEY='tq_vehicle_settings_v1';
-const FUEL_NAMES={gasoline:'휘발유',diesel:'경유',lpg:'LPG',electric:'전기'};
-function readVehicleSettings(){
-  if(typeof localStorage==='undefined')return null;
-  try{return JSON.parse(localStorage.getItem(VEHICLE_SETTINGS_KEY)||'null')}catch{return null}
-}
-function activeVehicleProfile(body={}){
-  const saved=readVehicleSettings();
-  const fuel=saved?.fuel||'gasoline';
-  const efficiency=Math.max(.1,Number(saved?.efficiency)||11);
-  const fallbackPrice={gasoline:1858,diesel:1844,lpg:1139,electric:347}[fuel]||1858;
-  const bodyPrice=Number(body.gasPrice);
-  const energyPrice=fuel==='electric'
-    ?Math.max(1,Number(saved?.energyPrice)||fallbackPrice)
-    :(Number.isFinite(bodyPrice)&&bodyPrice>0?bodyPrice:Math.max(1,Number(saved?.energyPrice)||fallbackPrice));
-  return {
-    vehicleLabel:saved?.vehicleLabel||'캐스퍼',
-    fuel,
-    fuelLabel:FUEL_NAMES[fuel]||'연료',
-    efficiency,
-    energyPrice,
-    tollDiscount:!!saved?.tollDiscount,
-    energyUnit:fuel==='electric'?'kWh':'L',
-    efficiencyUnit:fuel==='electric'?'km/kWh':'km/L'
-  };
-}
-function estimateRoundTripToll(distanceKm,tollDiscount=false){
-  const oneWay=Math.max(0,Number(distanceKm)||0)/2;
-  if(oneWay<40)return 0;
-  const estimate=(900+oneWay*44.3)*2*(tollDiscount?.5:1);
-  return Math.max(0,Math.round(estimate/100)*100);
-}
-
-
-
 for(const p of RAW_PLACES)Object.assign(p,HOTSPOT_META[p.name]||{});
 
 function placeByName(name){return RAW_PLACES.find(p=>p.name===name)}
@@ -79,32 +49,6 @@ function curatedStops(destination,mode){
 }
 
 
-function approxRoute(a,b){const distanceKm=geoKm(a,b)*1.23,avg=distanceKm<20?38:distanceKm<80?52:68;return {distanceKm,timeMin:distanceKm/avg*60,toll:0,coords:[[a.lat,a.lng],[b.lat,b.lng]],source:'estimate'}}
-const ROAD_ROUTE_CACHE=new Map();
-async function roadRoute(a,b){
-  const fallback=approxRoute(a,b);
-  if(typeof window==='undefined'||typeof fetch!=='function')return fallback;
-  const key=[Number(a.lat).toFixed(5),Number(a.lng).toFixed(5),Number(b.lat).toFixed(5),Number(b.lng).toFixed(5)].join(',');
-  if(ROAD_ROUTE_CACHE.has(key))return ROAD_ROUTE_CACHE.get(key);
-  const promise=(async()=>{
-    const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),4500);
-    try{
-      const url=`https://router.project-osrm.org/route/v1/driving/${a.lng},${a.lat};${b.lng},${b.lat}?overview=full&geometries=geojson`;
-      const r=await fetch(url,{signal:ctrl.signal,headers:{accept:'application/json'}});
-      if(!r.ok)throw new Error('route');
-      const j=await r.json(),route=j?.routes?.[0];
-      if(!route||!Number.isFinite(route.distance)||!Number.isFinite(route.duration))throw new Error('route');
-      const coords=(route.geometry?.coordinates||[]).map(([lng,lat])=>[lat,lng]);
-      return {distanceKm:route.distance/1000,timeMin:route.duration/60,toll:0,coords:coords.length>1?coords:[[a.lat,a.lng],[b.lat,b.lng]],source:'osrm'};
-    }catch{return fallback}finally{clearTimeout(timer)}
-  })();
-  ROAD_ROUTE_CACHE.set(key,promise);
-  const result=await promise;
-  ROAD_ROUTE_CACHE.set(key,result);
-  return result;
-}
-function weatherText(code){if(code===0)return '맑음';if([1,2].includes(code))return '대체로 맑음';if(code===3)return '흐림';if([45,48].includes(code))return '안개';if([51,53,55,56,57].includes(code))return '이슬비';if([61,63,65,66,67,80,81,82].includes(code))return '비';if([71,73,75,77,85,86].includes(code))return '눈';if([95,96,99].includes(code))return '뇌우';return '변동'}
-async function clientWeather(lat,lng){try{const u=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&timezone=Asia%2FSeoul&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&hourly=precipitation_probability,weather_code,temperature_2m,wind_speed_10m&forecast_days=3`;const r=await fetch(u);if(!r.ok)throw 0;const j=await r.json();const c=j.current||{};return {current:{temperature_2m:c.temperature_2m,apparent_temperature:c.apparent_temperature,weather_code:c.weather_code,condition:weatherText(c.weather_code),wind_speed_10m:c.wind_speed_10m,precipitation_probability:j.hourly?.precipitation_probability?.[0]||0,source:'open-meteo'},hourly:(j.hourly?.time||[]).map((t,i)=>({time:t,temperature_2m:j.hourly.temperature_2m[i],precipitation_probability:j.hourly.precipitation_probability[i],weather_code:j.hourly.weather_code[i],condition:weatherText(j.hourly.weather_code[i]),wind_speed_10m:j.hourly.wind_speed_10m[i],source:'open-meteo'}))}}catch{return {current:{source:'fallback',condition:'날씨 확인 필요',temperature_2m:null,apparent_temperature:null,wind_speed_10m:null,precipitation_probability:null},hourly:[]}}}
 function recommendationRegion(name=''){
   const regions=['서울','부산','대구','인천','광주','대전','울산','진주','사천','통영','거제','남해','여수','순천','광양','하동','합천','산청','함양','거창','창원','김해','경주','전주','담양','공주','보령','군산','제천','안동','포항','강릉','속초','춘천','제주'];
   return regions.find(r=>name.startsWith(r)||name.includes(r))||name.split(/\s+/)[0]||'기타';
@@ -239,8 +183,6 @@ async function refineRoadDistanceResults(items,body){
   }));
   return diversifyRecommendations(checked.filter(Boolean).sort((a,b)=>b.score-a.score),10);
 }
-async function localGeocode(q){const x=q.trim().toLowerCase();const local=RAW_PLACES.filter(p=>p.name.toLowerCase().includes(x)||x.includes(p.name.split(' ')[0].toLowerCase())).slice(0,5).map(p=>({name:p.name,address:'내장 여행지 데이터',lat:p.lat,lng:p.lng}));try{const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=jsonv2&limit=5&countrycodes=kr&accept-language=ko`);if(r.ok){const j=await r.json();const rem=(j||[]).map(d=>({name:String(d.display_name||'').split(',')[0],address:d.display_name||'',lat:Number(d.lat),lng:Number(d.lon)}));if(rem.length)return rem}}catch{}return local}
-function selectWeatherAt(w,iso){if(!w?.hourly?.length)return w.current;const t=new Date(iso).getTime();if(!Number.isFinite(t))return w.current;let best=w.hourly[0],d=Infinity;for(const x of w.hourly){const dd=Math.abs(new Date(x.time).getTime()-t);if(dd<d){best=x;d=dd}}return best}
 function localCandidates(anchor,cats,maxLegKm){
   let pool=RAW_PLACES
     .filter(p=>p.id!==anchor.id)
@@ -697,7 +639,7 @@ async function startFromMainLocation(){
 }
 async function loadConfig(){
   state.config=await api('/api/config');$('#gasPrice').value=state.config.defaultGasPrice;const p=state.config.providers;
-  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.48 · 모듈 기반 리팩터링 · 기존 기능 유지');
+  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v0.49 · 서비스 계층 분리 · 기존 기능 유지');
 }
 async function useLocation(goNext=false){
   if(!navigator.geolocation){toast('브라우저 위치 기능을 사용할 수 없습니다. 출발지를 검색해주세요.');return}
