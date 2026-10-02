@@ -29,8 +29,66 @@
 
   function readVehicle(){try{return JSON.parse(localStorage.getItem(VEHICLE_KEY)||'null')}catch{return null}}
   function writeVehicle(v){localStorage.setItem(VEHICLE_KEY,JSON.stringify(v))}
-  function forceVisibleMotion(scene){if(!scene||typeof scene.animate!=='function')return;scene.animate([{transform:'translate3d(-5px,-8px,0) scale(1.01)',filter:'brightness(.92)'},{transform:'translate3d(6px,8px,0) scale(1.025)',filter:'brightness(1.12)'},{transform:'translate3d(-5px,-8px,0) scale(1.01)',filter:'brightness(.92)'}],{duration:6200,iterations:Infinity,easing:'ease-in-out'});const core=scene.querySelector('.tq-core');core?.animate([{transform:'translate(-50%,-50%) rotate(45deg) scale(.92)'},{transform:'translate(-50%,-50%) rotate(225deg) scale(1.08)'},{transform:'translate(-50%,-50%) rotate(405deg) scale(.92)'}],{duration:9000,iterations:Infinity,easing:'linear'});scene.querySelectorAll('.tq-node').forEach((node,i)=>node.animate([{opacity:.2,transform:'rotate(45deg) scale(.7)'},{opacity:1,transform:'rotate(225deg) scale(1.45)'},{opacity:.2,transform:'rotate(405deg) scale(.7)'}],{duration:1800+i*180,iterations:Infinity,easing:'ease-in-out',delay:-i*240}))}
-  function addCoverMotion(){const bg=$('.main-landing-bg');if(!bg)return;const existing=bg.querySelector('.tq-geo-scene');if(existing){forceVisibleMotion(existing);return}const scene=el('div','tq-geo-scene');scene.setAttribute('aria-hidden','true');scene.innerHTML='<div class="tq-orbit tq-orbit-a"></div><div class="tq-orbit tq-orbit-b"></div><div class="tq-orbit tq-orbit-c"></div><div class="tq-scan"></div><i class="tq-beam b1"></i><i class="tq-beam b2"></i><i class="tq-beam b3"></i><i class="tq-beam b4"></i><i class="tq-node n1"></i><i class="tq-node n2"></i><i class="tq-node n3"></i><i class="tq-node n4"></i><i class="tq-node n5"></i><i class="tq-node n6"></i><div class="tq-core"><span></span><b>AI</b></div>';bg.appendChild(scene);forceVisibleMotion(scene)}
+  function forceVisibleMotion(scene){
+    if(!scene)return;
+    scene.classList.add('tq-drive-active');
+  }
+  function addCoverMotion(){
+    const bg=$('.main-landing-bg');
+    if(!bg)return;
+    let existing=bg.querySelector('.tq-geo-scene');
+    if(existing&&!existing.classList.contains('tq-drive-scene')){existing.remove();existing=null}
+    if(existing){forceVisibleMotion(existing);return}
+    const scene=el('div','tq-geo-scene tq-drive-scene');
+    scene.setAttribute('aria-hidden','true');
+    scene.innerHTML=`
+      <div class="tq-drive-glow"></div>
+      <div class="tq-drive-horizon"></div>
+
+      <div class="tq-gps-network">
+        <i class="tq-gps-link l1"></i><i class="tq-gps-link l2"></i><i class="tq-gps-link l3"></i>
+        <i class="tq-gps-node n1"><b></b></i>
+        <i class="tq-gps-node n2"><b></b></i>
+        <i class="tq-gps-node n3"><b></b></i>
+        <i class="tq-gps-node n4"><b></b></i>
+        <i class="tq-gps-node n5"><b></b></i>
+        <i class="tq-gps-node n6"><b></b></i>
+      </div>
+
+      <div class="tq-car-hud">
+        <svg class="tq-car-front" viewBox="0 0 360 190" fill="none" aria-hidden="true">
+          <path class="tq-car-line tq-car-roof" d="M82 88 108 51c9-13 22-20 38-22h68c16 2 29 9 38 22l26 37"/>
+          <path class="tq-car-line tq-car-shoulder" d="M58 104c18-10 38-16 60-18h124c22 2 42 8 60 18"/>
+          <path class="tq-car-line tq-car-glass" d="m118 82 18-34h88l18 34"/>
+          <path class="tq-car-line tq-car-bumper" d="M70 130c33 11 70 16 110 16s77-5 110-16"/>
+          <path class="tq-car-line tq-car-lower" d="M93 151h174"/>
+          <path class="tq-car-line tq-car-detail" d="M150 116h60"/>
+          <path class="tq-car-line tq-car-side left" d="M70 105 54 126v28"/>
+          <path class="tq-car-line tq-car-side right" d="m290 105 16 21v28"/>
+          <path class="tq-headlight tq-headlight-left" d="M88 105c18-5 36-7 54-6l-9 18c-18 2-34 0-49-5l4-7Z"/>
+          <path class="tq-headlight tq-headlight-right" d="M272 105c-18-5-36-7-54-6l9 18c18 2 34 0 49-5l-4-7Z"/>
+          <circle class="tq-sensor-dot" cx="180" cy="116" r="3"/>
+        </svg>
+        <div class="tq-car-shadow"></div>
+      </div>
+
+      <div class="tq-road-flow">
+        <i class="tq-road-edge left"></i><i class="tq-road-edge right"></i>
+        <i class="tq-road-line r1"></i>
+        <i class="tq-road-line r2"></i>
+        <i class="tq-road-line r3"></i>
+        <i class="tq-road-line r4"></i>
+        <i class="tq-road-center c1"></i>
+        <i class="tq-road-center c2"></i>
+        <i class="tq-road-center c3"></i>
+      </div>
+
+      <div class="tq-drive-scan"></div>
+      <div class="tq-drive-marker"><i></i></div>
+    `;
+    bg.appendChild(scene);
+    forceVisibleMotion(scene);
+  }
   function showCover(){const landing=$('#mainLanding');if(!landing)return;landing.hidden=false;landing.classList.remove('leaving');document.body.classList.add('landing-open');addCoverMotion();window.scrollTo({top:0,behavior:'smooth'})}
   function scrollToTarget(s){$(s)?.scrollIntoView({behavior:'smooth',block:'start'})}
 
@@ -131,6 +189,6 @@
   function enhanceTripSummaryToll(){const summary=$('#tripSummary');if(!summary||!summary.querySelector('.metric-grid'))return;const metrics=[...summary.querySelectorAll('.metric')],find=l=>metrics.find(m=>m.querySelector('span')?.textContent.trim()===l),dm=find('왕복 거리'),tm=find('통행료')||find('예상 통행료'),total=find('교통비 합계'),fuel=find('기름값');if(!dm||!tm)return;const distance=parseKm(dm.querySelector('strong')?.textContent),estimated=estimateToll(distance),label=tm.querySelector('span'),value=tm.querySelector('strong');if(label)label.textContent='예상 통행료';if(value)value.textContent=estimated?`약 ${fmtWon(estimated)}`:'0원';if(total){const f=parseWon(fuel?.querySelector('strong')?.textContent);total.querySelector('strong').textContent=fmtWon(f+estimated)}}
   function observeTripSummary(){const summary=$('#tripSummary');if(!summary)return;new MutationObserver(()=>requestAnimationFrame(enhanceTripSummaryToll)).observe(summary,{childList:true,subtree:true,characterData:true});enhanceTripSummaryToll()}
   function runtimeHealthCheck(){document.querySelectorAll('#categoryChoices button,#directionChoices button,.progress-step').forEach(b=>b.type='button')}
-  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();addManualSearchButton();observeTripSummary();createVehicleSetup();watchFirstLocation();applyVehicleSettings();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.33';document.documentElement.classList.add('tq-chrome-ready')}
+  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();addManualSearchButton();observeTripSummary();createVehicleSetup();watchFirstLocation();applyVehicleSettings();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.34';document.documentElement.classList.add('tq-chrome-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootChrome,{once:true});else bootChrome();
 })();
