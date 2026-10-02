@@ -15,7 +15,7 @@ export function createOriginController({state,travelService,setStep,recommend}){
       try{
         await setOrigin({lat:pos.coords.latitude,lng:pos.coords.longitude,name:'현재 위치'});
         if(btn){btn.classList.add('done');btn.textContent='위치 확인 완료 ✓'}
-        if(status)status.textContent='현재 위치를 찾았습니다. 여행 취향 검색 화면으로 이동합니다.';
+        if(status)status.textContent='현재 위치를 찾았습니다. 선택한 검색 화면으로 이동합니다.';
         setTimeout(()=>{
           hideMainLanding();
           setStep(2);
