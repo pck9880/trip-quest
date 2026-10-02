@@ -14,7 +14,7 @@ const productCss=read('css/product.css');
 const landingCss=read('css/landing.css');
 const searchCss=read('css/search.css');
 const chromeCss=productCss+landingCss+searchCss;
-const moduleFiles=['js/core/dom.js','js/core/format.js','js/data/places.js','js/data/recommendation-data.js','js/data/course-data.js','js/data/ui-options.js','js/domain/geo.js','js/domain/schedule.js','js/domain/trip-cost.js','js/services/vehicle-settings.js','js/services/routing.js','js/services/weather.js','js/services/geocoding.js','js/data/intent-rules.js','js/domain/recommendation.js','js/domain/intent-parser.js','js/usecases/search-destinations.js','js/domain/course-planner.js','js/ui/main-map.js','js/ui/course-map.js','js/ui/time-controls.js','js/ui/course-actions.js','js/ui/landing.js','js/ui/wizard.js','js/ui/results.js','js/controllers/search-controller.js','js/controllers/origin-controller.js','js/controllers/app-controller.js','js/store/trip-store.js','js/services/travel-service.js','js/services/keep-service.js','js/ui/keep-panel.js'];
+const moduleFiles=['js/core/dom.js','js/core/format.js','js/data/places.js','js/data/recommendation-data.js','js/data/course-data.js','js/data/ui-options.js','js/domain/geo.js','js/domain/schedule.js','js/domain/trip-cost.js','js/services/vehicle-settings.js','js/services/routing.js','js/services/weather.js','js/services/geocoding.js','js/data/intent-rules.js','js/domain/recommendation.js','js/domain/intent-parser.js','js/usecases/search-destinations.js','js/domain/course-planner.js','js/ui/main-map.js','js/ui/course-map.js','js/ui/time-controls.js','js/ui/course-actions.js','js/ui/landing.js','js/ui/wizard.js','js/ui/results.js','js/ui/search-flow.js','js/services/place-search-service.js','js/controllers/search-controller.js','js/controllers/origin-controller.js','js/controllers/app-controller.js','js/store/trip-store.js','js/services/travel-service.js','js/services/keep-service.js','js/ui/keep-panel.js'];
 for(const file of moduleFiles)assert.ok(fs.existsSync(new URL(file,root)),'missing extracted module: '+file);
 assert.ok(app.includes("from './js/core/dom.js'"),'app.js must use core DOM module');
 const recommendationModule=read('js/domain/recommendation.js');
@@ -42,7 +42,7 @@ assert.equal((html.match(/\\n/g)||[]).length,0,'index.html must not contain lite
 
 const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);
 assert.equal(new Set(ids).size,ids.length,'HTML ids must be unique');
-for(const id of ['mainLanding','mainLocateBtn','mainManualBtn','aiInput','aiSend','advancedDistanceControl','distanceMinRange','distanceMaxRange','openAdvancedSearch','originSearch','ranking','map','courseList','courseMap','toast']){
+for(const id of ['mainLanding','mainLocateBtn','mainManualBtn','categorySelect','categoryBackBtn','changeSearchMode','activeSearchMode','aiInput','aiSend','searchDistanceRange','moodKeywordPanel','moodKeywordChoices','originSearch','ranking','map','courseList','courseMap','toast']){
   assert.ok(ids.includes(id),'required UI id missing: '+id);
 }
 
@@ -64,7 +64,7 @@ for(const m of html.matchAll(/(?:src|href)="\.\/assets\/([^"?]+)(?:\?[^"]*)?"/g)
 
 assert.ok(landingCss.includes('Landing press lifecycle'),'landing touch lifecycle CSS missing');
 assert.ok(searchCss.includes('Search page hierarchy'),'simplified search CSS missing');
-assert.ok(searchCss.includes('Distance range and manual-input drawer'),'distance/drawer CSS missing');
+assert.ok(searchCss.includes('v1.7 category gate + simplified search'),'category/search CSS missing');
 assert.ok(landingCss.includes('background-image:url("../assets/tq-cover-main-v044.webp")'),'landing stylesheet must resolve cover relative to /css');
 assert.ok(html.includes('id="mainLanding" class="main-landing tq-photo-ready"'),'landing must start photo-ready to prevent fallback flash');
 assert.ok(!chromeJs.includes("landing.classList.remove('tq-photo-ready','tq-photo-error')"),'cover probe must not clear photo-ready before load');
@@ -105,31 +105,30 @@ assert.ok(!searchControllerSource.includes("api('/api/"),'search controller must
 const boot=(chromeJs.match(/function bootChrome\(\)\{([^}]*)\}/)||[])[1]||'';
 assert.ok(!boot.includes('observeTripSummary()'),'legacy DOM toll patch must not run');
 
-assert.ok(html.includes('오늘 어디로 떠날까요?'),'simplified search title missing');
-assert.ok(html.includes('거리와 취향을 분석해 갈 만한 여행지를 추천합니다.'),'simplified search subtitle missing');
+assert.ok(html.includes('id="categorySelect"'),'category gate missing');
+assert.ok(html.includes('SELECT CATEGORY'),'category gate heading missing');
+assert.ok(html.includes('TRIP')&&html.includes('CAFE')&&html.includes('FOOD'),'TRIP/CAFE/FOOD category labels missing');
+assert.ok(html.includes('어디로 떠나고 싶나요?')||app.includes("title.textContent='어디로 떠나고 싶나요?'"),'TRIP search title missing');
 const wizardSource=read('js/ui/wizard.js');
 const appControllerSource=read('js/controllers/app-controller.js');
 const resultsSource=read('js/ui/results.js');
 assert.ok(wizardSource.includes('document.body.dataset.tripStep=String(n)'),'step-aware simple search visibility missing');
-assert.ok(!html.includes('quickDistanceChoices'),'quick distance buttons must be removed');
-assert.ok(!html.includes('quickThemeChoices'),'quick mood buttons must be removed');
-assert.ok(!html.includes('SEARCH RANGE'),'SEARCH RANGE shortcut label must be removed');
-assert.ok(!html.includes('QUICK MOOD'),'quick mood section must be removed');
-assert.ok(!html.includes('id="distanceAdvancedToggle"'),'distance slider must no longer be hidden behind a toggle');
-assert.ok(html.includes('class="ai-distance-control tq-distance-primary"'),'drag distance control must be visible in main search page');
-assert.ok(html.includes('class="tq-manual-input-bar"'),'bottom manual-input bar missing');
-assert.ok(appControllerSource.includes("const openAdvanced=$('#openAdvancedSearch')"),'manual drawer binding missing');
-assert.ok(appControllerSource.includes("openAdvanced.classList.add('open')"),'manual drawer open state missing');
-assert.ok(appControllerSource.includes("openAdvanced.classList.remove('open')"),'manual drawer close state missing');
-assert.ok(wizardSource.includes("if(n!==2){document.body.classList.remove('tq-advanced-open')"),'manual drawer must collapse when leaving step two');
+assert.ok(!html.includes('id="openAdvancedSearch"'),'direct-selection drawer must be removed');
+assert.ok(!html.includes('id="advancedDistanceControl"'),'dual distance control must be removed');
+assert.ok(!html.includes('id="distanceMinRange"'),'minimum distance handle must be removed');
+assert.ok(!html.includes('id="distanceMaxRange"'),'maximum distance handle must be removed');
+assert.ok(html.includes('id="searchDistanceRange"'),'single distance slider missing');
+assert.ok(html.includes('id="moodKeywordPanel"'),'mood filter panel missing');
+assert.ok(appControllerSource.includes("openCategorySelect?.('gps')"),'cover GPS must route through category gate');
+assert.ok(appControllerSource.includes("openCategorySelect?.('manual')"),'cover manual region must route through category gate');
 assert.ok(!app.includes('function renderRanking('),'results rendering must be outside app.js');
 assert.ok(!app.includes('async function selectPlace('),'search selection controller must be outside app.js');
 assert.ok(!app.includes('async function searchOrigin('),'origin controller must be outside app.js');
 assert.ok(!app.includes("const openAdvanced=$('#openAdvancedSearch')"),'event implementation must be outside app.js');
 assert.ok(resultsSource.includes('function renderCourses('),'course result rendering module missing');
 assert.ok(searchControllerSource.includes('function sortRecommendations('),'search controller sorting missing');
-assert.ok(chromeCss.includes('body[data-trip-step="2"]:not(.tq-advanced-open) .wizard'),'simple search must hide advanced wizard at step two');
-console.log('TRIP QUEST v1.6.0 UI/runtime smoke tests passed');
+assert.ok(chromeCss.includes('body[data-trip-step="1"] .wizard'),'pre-result wizard must stay hidden');
+console.log('TRIP QUEST v1.7.0 UI/runtime smoke tests passed');
 
 const mainMapSource=read('js/ui/main-map.js');
 const courseMapSource=read('js/ui/course-map.js');
@@ -141,8 +140,8 @@ assert.ok(originControllerSource.includes('OpenStreetMap / Nominatim'),'geocoder
 assert.ok(originControllerSource.includes('Open-Meteo'),'weather attribution required');
 assert.ok(resultsSource.includes('OSRM 도로 경로'),'routing provider disclosure required');
 
-assert.ok(html.includes('TRIP QUEST · v1.6.0'),'v1.0.0 footer/version marker missing');
-assert.ok(chromeJs.includes("footer.textContent='TRIP QUEST · v1.6.0'"),'chrome footer version missing');
+assert.ok(html.includes('TRIP QUEST · v1.7.0'),'v1.0.0 footer/version marker missing');
+assert.ok(chromeJs.includes("footer.textContent='TRIP QUEST · v1.7.0'"),'chrome footer version missing');
 
 const keepServiceSource=read('js/services/keep-service.js');
 const keepPanelSource=read('js/ui/keep-panel.js');

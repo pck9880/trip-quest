@@ -2,9 +2,14 @@ import { localGeocode } from './geocoding.js';
 import { geoKm } from '../domain/geo.js';
 
 export const SEARCH_MODE_CONFIGS={
-  travel:{id:'travel',label:'여행지',categoryCode:'AT4',placeholder:'예: 조용한 바다, 힙한 동네, 전시 보러 가고 싶어',button:'여행지 찾기',radiusKm:null},
-  cafe:{id:'cafe',label:'카페',categoryCode:'CE7',placeholder:'예: 조용한 카페, 로스터리, 디저트 카페',button:'카페 찾기',radiusKm:2},
-  food:{id:'food',label:'맛집',categoryCode:'FD6',placeholder:'예: 돼지국밥, 혼밥, 고기집, 점심',button:'맛집 찾기',radiusKm:2}
+  travel:{id:'travel',code:'TRIP',label:'여행지',categoryCode:'AT4',placeholder:'예: 조용한 바다, 힙한 동네, 전시 보러 가고 싶어',button:'TRIP SEARCH',distance:{min:10,max:400,step:10,default:100}},
+  cafe:{id:'cafe',code:'CAFE',label:'카페',categoryCode:'CE7',placeholder:'예: 로스터리, 디저트 카페, 작업하기 좋은 카페',button:'CAFE SEARCH',distance:{min:.5,max:20,step:.5,default:2}},
+  food:{id:'food',code:'FOOD',label:'맛집',categoryCode:'FD6',placeholder:'예: 돼지국밥, 파스타, 혼밥, 고기집',button:'FOOD SEARCH',distance:{min:.5,max:20,step:.5,default:2}}
+};
+
+export const MOOD_OPTIONS={
+  cafe:['조용한','감성','디저트','뷰','로스터리','작업','데이트','대형'],
+  food:['로컬','혼밥','가성비','분위기','데이트','가족','야식','웨이팅']
 };
 
 function safeMode(mode){return SEARCH_MODE_CONFIGS[mode]?mode:'travel'}
@@ -29,19 +34,49 @@ function normalizePlace(item,mode,center,source='OpenStreetMap / Nominatim'){
   const validCenter=Number.isFinite(Number(center?.lat))&&Number.isFinite(Number(center?.lng));
   return {
     id:item.place_id?String(item.place_id):`osm-${lat}-${lng}`,
-    provider:'osm',
+    provider:item.provider||'osm',
     source,
     name:cleanText(item.display_name||item.name||'장소').split(',')[0],
     type:mode,
-    category:SEARCH_MODE_CONFIGS[safeMode(mode)].label,
+    category:item.categoryLabel||SEARCH_MODE_CONFIGS[safeMode(mode)].label,
     address:cleanText(item.display_name||item.address||''),
-    roadAddress:'',
+    roadAddress:cleanText(item.roadAddress||''),
     lat,lng,
     distanceKm:validCenter&&Number.isFinite(lat)&&Number.isFinite(lng)?geoKm(center,{lat,lng}):null,
-    phone:'',
-    detailUrl:Number.isFinite(lat)&&Number.isFinite(lng)?`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`:'',
+    phone:item.phone||'',
+    detailUrl:item.detailUrl||(Number.isFinite(lat)&&Number.isFinite(lng)?`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`:''),
     rawType:item.type||item.addresstype||'',
-    importance:Number(item.importance)||0
+    importance:Number(item.importance)||0,
+    rating:Number.isFinite(Number(item.rating))?Number(item.rating):null,
+    reviewCount:Number.isFinite(Number(item.reviewCount))?Number(item.reviewCount):null,
+    reviewSource:item.reviewSource||null
+  };
+}
+function termMatchScore(text,terms=[]){
+  const hay=cleanText(text).toLowerCase();
+  return terms.reduce((score,term)=>score+(term&&hay.includes(String(term).toLowerCase())?1:0),0);
+}
+function rankPlace(item,{query='',moods=[],radiusKm=2}={}){
+  const text=[item.name,item.address,item.category,item.rawType].filter(Boolean).join(' ');
+  const moodMatches=moods.filter(m=>termMatchScore(text,[m])>0);
+  const keywordTerms=cleanText(query).split(' ').filter(x=>x.length>1);
+  const keywordMatches=termMatchScore(text,keywordTerms);
+  const radius=Math.max(.5,Number(radiusKm)||2);
+  const distance=Number(item.distanceKm);
+  const distanceScore=Number.isFinite(distance)?Math.max(0,28*(1-Math.min(distance,radius)/radius)):0;
+  const keywordScore=Math.min(18,keywordMatches*6);
+  const moodScore=Math.min(18,moodMatches.length*9);
+  const sourceScore=Math.min(12,Math.max(0,Number(item.importance)||0)*12);
+  const reviews=Number(item.reviewCount);
+  const rating=Number(item.rating);
+  const reviewScore=Number.isFinite(reviews)&&reviews>0?Math.min(16,Math.log10(reviews+1)*6):0;
+  const ratingScore=Number.isFinite(rating)&&rating>0?Math.min(8,rating/5*8):0;
+  const score=Math.round((distanceScore+keywordScore+moodScore+sourceScore+reviewScore+ratingScore)*10)/10;
+  return {
+    ...item,
+    moodMatches,
+    popularityScore:score,
+    rankingBasis:Number.isFinite(reviews)&&reviews>0?'review+rating+distance+keyword+mood':'distance+keyword+mood+source'
   };
 }
 
@@ -52,9 +87,10 @@ export function createPlaceSearchService({fetchRef=globalThis.fetch}={}){
     return {
       mode:selected,
       primary:selected==='travel'?'TourAPI + Kakao Local secure proxy':'Kakao Local secure proxy',
-      secondary:selected==='travel'?'TRIP QUEST local data':'Naver Local optional',
+      reviewRanking:selected==='travel'?null:'rating/review provider secure proxy',
       fallback:'OpenStreetMap / Nominatim',
-      secureProxyConnected:false
+      secureProxyConnected:false,
+      ratingReviewConnected:false
     };
   }
 
@@ -72,7 +108,7 @@ export function createPlaceSearchService({fetchRef=globalThis.fetch}={}){
     })).filter(item=>Number.isFinite(item.lat)&&Number.isFinite(item.lng));
   }
 
-  async function searchPlaces({mode='travel',query='',region=null,radiusKm=2}={}){
+  async function searchPlaces({mode='travel',query='',region=null,radiusKm=2,moods=[]}={}){
     const selected=safeMode(mode);
     if(selected==='travel')return {items:[],source:'TRIP QUEST recommendation engine',providerPlan:providerPlan(selected)};
     const cfg=modeConfig(selected),center=region;
@@ -84,7 +120,7 @@ export function createPlaceSearchService({fetchRef=globalThis.fetch}={}){
     const params=new URLSearchParams({
       q:cleanText([keyword,regionText].filter(Boolean).join(' ')),
       format:'jsonv2',
-      limit:'15',
+      limit:'20',
       countrycodes:'kr',
       'accept-language':'ko'
     });
@@ -109,14 +145,16 @@ export function createPlaceSearchService({fetchRef=globalThis.fetch}={}){
     const items=dedupe((rows||[]).map(row=>normalizePlace(row,selected,center)))
       .filter(item=>Number.isFinite(item.lat)&&Number.isFinite(item.lng))
       .filter(item=>!Number.isFinite(item.distanceKm)||item.distanceKm<=Math.max(1,Number(radiusKm)||2)*1.35)
-      .sort((a,b)=>(a.distanceKm??999)-(b.distanceKm??999)||b.importance-a.importance)
-      .slice(0,12);
+      .map(item=>rankPlace(item,{query:userQuery,moods,radiusKm}))
+      .sort((a,b)=>b.popularityScore-a.popularityScore||(a.distanceKm??999)-(b.distanceKm??999))
+      .slice(0,15);
 
     return {
       items,
-      source:'OpenStreetMap fallback · Kakao Local secure proxy 연결 전',
+      source:'OpenStreetMap fallback · review/rating provider 연결 전',
       providerPlan:providerPlan(selected),
-      fallback:true
+      fallback:true,
+      rankingBasis:'현재는 거리·키워드·무드·OSM 중요도 기반 / 리뷰·평점 연결 시 자동 반영'
     };
   }
 

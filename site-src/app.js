@@ -13,7 +13,7 @@ import { initKeepPanel } from './js/ui/keep-panel.js';
 import { initMyPage } from './js/ui/my-page.js';
 import { initQuestPanel } from './js/ui/quest-panel.js';
 import { initQuestIsland } from './js/ui/quest-island.js';
-import { initSearchMode } from './js/ui/search-mode.js';
+import { initSearchFlow } from './js/ui/search-flow.js';
 const store=createTripStore();
 const state=store.state;
 const travelService=createTravelService();
@@ -79,7 +79,7 @@ function initPWA(){
 
 async function loadConfig(){
   state.config=await travelService.getConfig();$('#gasPrice').value=state.config.defaultGasPrice;
-  setText('#providerNow','검색 엔진 준비');setText('#updatedAt','v1.6.0 · 여행지/카페/맛집 모드');
+  setText('#providerNow','검색 엔진 준비');setText('#updatedAt','v1.7.0 · TRIP/CAFE/FOOD');
 }
 
 
@@ -272,7 +272,7 @@ async function primarySearch(){
 }
 
 function bindActions(){
-  bindAppActions({state,startFromMainLocation,hideMainLanding,setStep,sortRecommendations,useLocation,searchOrigin,updateSchedulePreview,resetTrip,recommend,searchSimilarDistance,primarySearch});
+  bindAppActions({state,setStep,sortRecommendations,useLocation,searchOrigin,updateSchedulePreview,resetTrip,recommend,searchSimilarDistance,primarySearch,openCategorySelect:launch=>searchModeUI?.openCategory(launch)});
 }
 
 function showSafeRuntimeError(){
@@ -293,5 +293,5 @@ if(typeof window!=='undefined'){
     if(state.step===4)showSafeRuntimeError();
   });
 }
-async function boot(){initTimes();initMap();initKeepPanel({onOpenCourse:openKeptCourse});initQuestPanel();initQuestIsland();initMyPage({onOpenHistoryCourse:openHistoryCourse});searchModeUI=initSearchMode({state,travelService});validateUIRuntime();bindChoices();bindActions();initPWA();syncDistanceUI();syncDirectionUI();syncCategoriesUI();setStep(1);showMainLanding();try{await loadConfig()}catch{setText('#providerNow','설정 확인 필요')}setInterval(refreshLive,10*60*1000)}
+async function boot(){initTimes();initMap();initKeepPanel({onOpenCourse:openKeptCourse});initQuestPanel();initQuestIsland();initMyPage({onOpenHistoryCourse:openHistoryCourse});searchModeUI=initSearchFlow({state,travelService,setOrigin,hideMainLanding,showMainLanding});validateUIRuntime();bindChoices();bindActions();initPWA();syncDistanceUI();syncDirectionUI();syncCategoriesUI();setStep(1);showMainLanding();try{await loadConfig()}catch{setText('#providerNow','설정 확인 필요')}setInterval(refreshLive,10*60*1000)}
 if(typeof document!=='undefined')boot();

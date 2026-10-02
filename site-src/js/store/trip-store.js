@@ -14,6 +14,7 @@ const INITIAL_SECTIONS={
     searchMode:'travel',
     searchRegion:null,
     localRadiusKm:2,
+    moodKeywords:[],
     placeResults:[]
   },
   selection:{
@@ -45,6 +46,7 @@ const FIELD_MAP={
   searchMode:['search','searchMode'],
   searchRegion:['search','searchRegion'],
   localRadiusKm:['search','localRadiusKm'],
+  moodKeywords:['search','moodKeywords'],
   placeResults:['search','placeResults'],
   selected:['selection','selected'],
   selectedCourse:['selection','selectedCourse'],
@@ -60,7 +62,7 @@ function cloneInitial(){
   return {
     navigation:{...INITIAL_SECTIONS.navigation},
     origin:{...INITIAL_SECTIONS.origin},
-    search:{...INITIAL_SECTIONS.search,categories:[...INITIAL_SECTIONS.search.categories],recommendations:[],placeResults:[]},
+    search:{...INITIAL_SECTIONS.search,categories:[...INITIAL_SECTIONS.search.categories],recommendations:[],moodKeywords:[],placeResults:[]},
     selection:{...INITIAL_SECTIONS.selection},
     runtime:{...INITIAL_SECTIONS.runtime}
   };
@@ -110,6 +112,7 @@ export function createTripStore(seed={}){
       searchMode:INITIAL_SECTIONS.search.searchMode,
       searchRegion:null,
       localRadiusKm:INITIAL_SECTIONS.search.localRadiusKm,
+      moodKeywords:[],
       placeResults:[],
       selected:null,
       selectedCourse:null,
