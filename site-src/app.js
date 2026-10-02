@@ -124,8 +124,8 @@ function startAIProgressGauge(){
 }
 function applyPatch(patch={}){
   let distanceChanged=false;
-  if(Number.isFinite(Number(patch.minKm))){state.minKm=Math.max(0,Math.min(400,Number(patch.minKm)));distanceChanged=true}
-  if(Number.isFinite(Number(patch.targetKm))){state.targetKm=Math.max(0,Math.min(400,Number(patch.targetKm)));distanceChanged=true}
+  if(Number.isFinite(Number(patch.minKm))){state.minKm=Math.max(0,Math.min(450,Number(patch.minKm)));distanceChanged=true}
+  if(Number.isFinite(Number(patch.targetKm))){state.targetKm=Math.max(0,Math.min(450,Number(patch.targetKm)));distanceChanged=true}
   if(distanceChanged&&state.minKm>state.targetKm)[state.minKm,state.targetKm]=[state.targetKm,state.minKm];
   if(typeof patch.direction==='string'&&patch.direction)state.direction=patch.direction;
   if(Array.isArray(patch.categories))state.categories=[...new Set(patch.categories.filter(Boolean))];
@@ -243,7 +243,7 @@ async function askAI(message,options={}){
   }
 }
 function similarDistanceBand(){
-  const min=Math.max(0,Number(state.minKm||0)-20),max=Math.min(400,Number(state.targetKm||100)+20);
+  const min=Math.max(0,Number(state.minKm||0)-20),max=Math.min(450,Number(state.targetKm||100)+20);
   return {min,max};
 }
 async function searchSimilarDistance(){
