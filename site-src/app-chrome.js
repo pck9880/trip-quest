@@ -3,9 +3,31 @@
   const $=s=>document.querySelector(s);
   const el=(tag,cls,html='')=>{const n=document.createElement(tag);if(cls)n.className=cls;if(html)n.innerHTML=html;return n};
 
+  function forceVisibleMotion(scene){
+    if(!scene||typeof scene.animate!=='function')return;
+    scene.animate([
+      {transform:'translate3d(-5px,-8px,0) scale(1.01)',filter:'brightness(.92)'},
+      {transform:'translate3d(6px,8px,0) scale(1.025)',filter:'brightness(1.12)'},
+      {transform:'translate3d(-5px,-8px,0) scale(1.01)',filter:'brightness(.92)'}
+    ],{duration:6200,iterations:Infinity,easing:'ease-in-out'});
+    const core=scene.querySelector('.tq-core');
+    core?.animate([
+      {transform:'translate(-50%,-50%) rotate(45deg) scale(.92)',boxShadow:'0 0 24px rgba(201,255,69,.08)'},
+      {transform:'translate(-50%,-50%) rotate(225deg) scale(1.08)',boxShadow:'0 0 72px rgba(201,255,69,.30)'},
+      {transform:'translate(-50%,-50%) rotate(405deg) scale(.92)',boxShadow:'0 0 24px rgba(201,255,69,.08)'}
+    ],{duration:9000,iterations:Infinity,easing:'linear'});
+    scene.querySelectorAll('.tq-node').forEach((node,i)=>node.animate([
+      {opacity:.2,transform:'rotate(45deg) scale(.7)'},
+      {opacity:1,transform:'rotate(225deg) scale(1.45)'},
+      {opacity:.2,transform:'rotate(405deg) scale(.7)'}
+    ],{duration:1800+i*180,iterations:Infinity,easing:'ease-in-out',delay:-i*240}));
+  }
+
   function addCoverMotion(){
     const bg=$('.main-landing-bg');
-    if(!bg||bg.querySelector('.tq-geo-scene'))return;
+    if(!bg)return;
+    const existing=bg.querySelector('.tq-geo-scene');
+    if(existing){forceVisibleMotion(existing);return;}
     const scene=el('div','tq-geo-scene');
     scene.setAttribute('aria-hidden','true');
     scene.innerHTML=`
@@ -15,6 +37,7 @@
       <i class="tq-node n1"></i><i class="tq-node n2"></i><i class="tq-node n3"></i><i class="tq-node n4"></i><i class="tq-node n5"></i><i class="tq-node n6"></i>
       <div class="tq-core"><span></span><b>AI</b></div>`;
     bg.appendChild(scene);
+    forceVisibleMotion(scene);
   }
 
   function showCover(){
@@ -23,6 +46,7 @@
     landing.hidden=false;
     landing.classList.remove('leaving');
     document.body.classList.add('landing-open');
+    addCoverMotion();
     window.scrollTo({top:0,behavior:'smooth'});
   }
 
@@ -85,7 +109,7 @@
     enhanceTopbar();
     addBottomNav();
     observeLanding();
-    const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.25';
+    const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.26';
     document.documentElement.classList.add('tq-chrome-ready');
   }
 
