@@ -19,12 +19,12 @@
 
   const VEHICLE_KEY='tq_vehicle_settings_v1';
   const VEHICLES={
-    compact:{label:'경차',fuel:'gasoline',eff:14.0}, small:{label:'소형차',fuel:'gasoline',eff:13.2},
+    compact:{label:'경차 / 캐스퍼',fuel:'gasoline',eff:11.0}, small:{label:'소형차',fuel:'gasoline',eff:13.2},
     midsize:{label:'중형차',fuel:'gasoline',eff:11.5}, suv:{label:'SUV',fuel:'gasoline',eff:10.2},
     van:{label:'승합차',fuel:'diesel',eff:9.0}, ev:{label:'전기차',fuel:'electric',eff:5.0}
   };
   const FUEL_LABEL={gasoline:'휘발유',diesel:'경유',lpg:'LPG',electric:'전기'};
-  let ENERGY_DEFAULT={gasoline:1858,diesel:1843,lpg:1139,electric:347};
+  let ENERGY_DEFAULT={gasoline:1858,diesel:1844,lpg:1139,electric:347};
   let setupWaitingForLocation=false;
 
   function readVehicle(){try{return JSON.parse(localStorage.getItem(VEHICLE_KEY)||'null')}catch{return null}}
