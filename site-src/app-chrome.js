@@ -24,11 +24,28 @@
     van:{label:'승합차',fuel:'diesel',eff:9.0}, ev:{label:'전기차',fuel:'electric',eff:5.0}
   };
   const FUEL_LABEL={gasoline:'휘발유',diesel:'경유',lpg:'LPG',electric:'전기'};
-  const ENERGY_DEFAULT={gasoline:1858,diesel:1843,lpg:1050,electric:347};
+  let ENERGY_DEFAULT={gasoline:1858,diesel:1843,lpg:1139,electric:347};
   let setupWaitingForLocation=false;
 
   function readVehicle(){try{return JSON.parse(localStorage.getItem(VEHICLE_KEY)||'null')}catch{return null}}
   function writeVehicle(v){localStorage.setItem(VEHICLE_KEY,JSON.stringify(v))}
+  async function refreshEnergyPrices(){
+    try{
+      const r=await fetch('./fuel-prices.json',{cache:'no-store'});
+      if(!r.ok)return;
+      const j=await r.json();
+      for(const key of ['gasoline','diesel','lpg']){
+        const n=Number(j?.[key]);
+        if(Number.isFinite(n)&&n>0)ENERGY_DEFAULT[key]=n;
+      }
+      const saved=readVehicle();
+      if(saved){
+        saved.energyPrice=ENERGY_DEFAULT[saved.fuel]||saved.energyPrice||ENERGY_DEFAULT.gasoline;
+        writeVehicle(saved);
+        applyVehicleSettings(saved);
+      }
+    }catch{}
+  }
   function forceVisibleMotion(){return}
   function addCoverMotion(){
     const landing=$('#mainLanding');
@@ -96,7 +113,27 @@
   }
   function openVehicleSetup(){createVehicleSetup();const modal=$('#tqVehicleSetup'),saved=readVehicle();const key=saved?.vehicle||'compact';const d=VEHICLES[key]||VEHICLES.compact;modal.hidden=false;document.body.classList.add('tq-modal-open');const btn=modal.querySelector(`[data-vehicle="${key}"]`);btn?.click();if(saved){$('#tqFuel').value=saved.fuel||d.fuel;$('#tqEfficiency').value=saved.efficiency||d.eff;$('#tqTollDiscount').checked=!!saved.tollDiscount;$('#tqFuel').dispatchEvent(new Event('change'))}}
   function closeVehicleSetup(){$('#tqVehicleSetup')?.setAttribute('hidden','');document.body.classList.remove('tq-modal-open')}
-  function applyVehicleSettings(s=readVehicle()){if(!s)return;const gas=$('#gasPrice');if(gas&&s.fuel!=='electric')gas.value=s.energyPrice||ENERGY_DEFAULT[s.fuel]||1858;document.documentElement.dataset.vehicle=s.vehicle||''}
+  function applyVehicleSettings(s=readVehicle()){
+    if(!s)return;
+    const gas=$('#gasPrice');
+    if(gas){
+      const card=gas.closest('.field-card');
+      const label=card?.querySelector(':scope > span');
+      const unit=card?.querySelector('.input-unit > b');
+      const currentPrice=ENERGY_DEFAULT[s.fuel]||Number(s.energyPrice)||ENERGY_DEFAULT.gasoline;
+      s.energyPrice=currentPrice;
+      if(s.fuel==='electric'){
+        gas.min='50';gas.max='1000';gas.step='1';gas.value=String(currentPrice);
+        if(label)label.textContent='충전 단가';
+        if(unit)unit.textContent='원/kWh';
+      }else{
+        gas.min='500';gas.max='3500';gas.step='10';gas.value=String(currentPrice);
+        if(label)label.textContent=`${FUEL_LABEL[s.fuel]||'연료'} 가격`;
+        if(unit)unit.textContent='원/L';
+      }
+    }
+    document.documentElement.dataset.vehicle=s.vehicle||'';
+  }
   function watchFirstLocation(){const label=$('#originLabel');if(!label)return;const ready=()=>{const t=label.textContent.trim();return t&&t!=='위치를 아직 선택하지 않았습니다.'&&!/확인|검색|불러|실패|허용/.test(t)};const check=()=>{if(!setupWaitingForLocation||!ready())return;setupWaitingForLocation=false;if(!readVehicle())setTimeout(openVehicleSetup,180)};new MutationObserver(check).observe(label,{childList:true,subtree:true,characterData:true});$('#mainLocateBtn')?.addEventListener('click',()=>{setupWaitingForLocation=true;setTimeout(check,250)},{capture:true});check()}
 
   function enhanceLandingSurface(){
@@ -141,6 +178,29 @@
   function enhanceTripSummaryToll(){const summary=$('#tripSummary');if(!summary||!summary.querySelector('.metric-grid'))return;const metrics=[...summary.querySelectorAll('.metric')],find=l=>metrics.find(m=>m.querySelector('span')?.textContent.trim()===l),dm=find('왕복 거리'),tm=find('통행료')||find('예상 통행료'),total=find('교통비 합계'),fuel=find('기름값');if(!dm||!tm)return;const distance=parseKm(dm.querySelector('strong')?.textContent),estimated=estimateToll(distance),label=tm.querySelector('span'),value=tm.querySelector('strong');if(label)label.textContent='예상 통행료';if(value)value.textContent=estimated?`약 ${fmtWon(estimated)}`:'0원';if(total){const f=parseWon(fuel?.querySelector('strong')?.textContent);total.querySelector('strong').textContent=fmtWon(f+estimated)}}
   function observeTripSummary(){const summary=$('#tripSummary');if(!summary)return;new MutationObserver(()=>requestAnimationFrame(enhanceTripSummaryToll)).observe(summary,{childList:true,subtree:true,characterData:true});enhanceTripSummaryToll()}
   function runtimeHealthCheck(){document.querySelectorAll('#categoryChoices button,#directionChoices button,.progress-step').forEach(b=>b.type='button')}
-  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();addManualSearchButton();observeTripSummary();createVehicleSetup();watchFirstLocation();applyVehicleSettings();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.41';document.documentElement.classList.add('tq-chrome-ready')}
+  function bindLandingFallback(){
+    const landing=$('#mainLanding');
+    if(!landing||landing.dataset.hitFallback)return;
+    landing.dataset.hitFallback='1';
+    const activate=(clientY,target)=>{
+      if(!landing.classList.contains('tq-photo-ready')||document.body.classList.contains('tq-modal-open'))return;
+      if(target?.closest?.('#mainLocateBtn,#mainManualBtn'))return;
+      const rect=landing.getBoundingClientRect();
+      if(!rect.height)return;
+      const y=(clientY-rect.top)/rect.height;
+      if(y>=.72&&y<.835){
+        $('#mainLocateBtn')?.click();
+      }else if(y>=.835&&y<=.94){
+        $('#mainManualBtn')?.click();
+      }
+    };
+    if('PointerEvent' in window){
+      landing.addEventListener('pointerup',e=>activate(e.clientY,e.target),{passive:true});
+    }else{
+      landing.addEventListener('touchend',e=>{const t=e.changedTouches?.[0];if(t)activate(t.clientY,e.target)},{passive:true});
+    }
+  }
+
+  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();enhanceTopbar();addBottomNav();observeLanding();bindLandingFallback();observeCourseDetailOrder();addManualSearchButton();createVehicleSetup();watchFirstLocation();applyVehicleSettings();refreshEnergyPrices();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.42';document.documentElement.classList.add('tq-chrome-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootChrome,{once:true});else bootChrome();
 })();
