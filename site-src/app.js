@@ -79,7 +79,7 @@ function initPWA(){
 
 async function loadConfig(){
   state.config=await travelService.getConfig();$('#gasPrice').value=state.config.defaultGasPrice;
-  setText('#providerNow','검색 엔진 준비');setText('#updatedAt','v1.7.0 · TRIP/CAFE/FOOD');
+  setText('#providerNow','검색 엔진 준비');setText('#updatedAt','v1.8.0 · QUERY PLAN / 50KM SNAP');
 }
 
 
