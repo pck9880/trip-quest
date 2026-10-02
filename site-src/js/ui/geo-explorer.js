@@ -1,11 +1,25 @@
 import { $, esc, toast } from '../core/dom.js';
 import { geoBearing, geoKm, bearingLabel8 } from '../domain/geo.js';
+import { gpsService } from '../services/gps-service.js';
 
 const KOREA={minLat:33.05,maxLat:38.65,minLng:125.0,maxLng:129.75,left:210,right:790,top:42,bottom:690};
 const REGIONS=[
  ['서울특별시','서울',37.5665,126.9780],['부산광역시','부산',35.1796,129.0756],['대구광역시','대구',35.8714,128.6014],['인천광역시','인천',37.4563,126.7052],['광주광역시','광주',35.1595,126.8526],['대전광역시','대전',36.3504,127.3845],['울산광역시','울산',35.5384,129.3114],['세종특별자치시','세종',36.4800,127.2890],['경기도','경기',37.4138,127.5183],['강원특별자치도','강원',37.8228,128.1555],['충청북도','충북',36.6357,127.4917],['충청남도','충남',36.5184,126.8000],['전북특별자치도','전북',35.7175,127.1530],['전라남도','전남',34.8679,126.9910],['경상북도','경북',36.4919,128.8889],['경상남도','경남',35.4606,128.2132],['제주특별자치도','제주',33.4890,126.4983]
 ];
-const LAND=[[126.15,37.75],[126.45,38.05],[127.15,38.30],[128.10,38.55],[128.65,38.35],[128.90,38.00],[129.20,37.70],[129.40,37.20],[129.35,36.75],[129.55,36.30],[129.45,35.85],[129.25,35.35],[128.95,35.05],[128.65,34.85],[128.30,34.75],[127.95,34.55],[127.55,34.65],[127.15,34.45],[126.75,34.55],[126.40,34.75],[126.15,35.10],[126.05,35.55],[126.25,35.90],[126.10,36.25],[126.35,36.60],[126.20,37.00],[126.45,37.35]];
+const LAND=[
+ [126.12,37.70],[126.18,37.86],[126.45,38.05],[126.72,38.18],[127.10,38.30],[127.55,38.34],[128.05,38.55],[128.38,38.61],[128.62,38.48],[128.82,38.25],
+ [128.98,37.92],[129.18,37.70],[129.34,37.42],[129.42,37.08],[129.36,36.82],[129.48,36.55],[129.43,36.22],[129.50,35.92],[129.38,35.62],[129.30,35.38],
+ [129.18,35.18],[129.06,35.08],[128.90,35.10],[128.78,34.96],[128.62,34.88],[128.45,34.91],[128.30,34.82],[128.16,34.72],[127.98,34.62],[127.78,34.58],
+ [127.62,34.70],[127.42,34.62],[127.22,34.50],[127.02,34.55],[126.84,34.48],[126.66,34.58],[126.48,34.64],[126.34,34.80],[126.20,34.94],[126.10,35.16],
+ [126.02,35.38],[126.08,35.58],[126.18,35.78],[126.10,36.00],[126.18,36.22],[126.34,36.38],[126.22,36.58],[126.30,36.80],[126.20,37.02],[126.38,37.22],
+ [126.52,37.38],[126.44,37.52],[126.28,37.58]
+];
+const MAP_LABELS=[
+ ['서울',37.5665,126.9780,12,-10],['인천',37.4563,126.7052,-42,5],['수원',37.2636,127.0286,12,17],['춘천',37.8813,127.7298,12,-8],
+ ['강릉',37.7519,128.8761,12,4],['청주',36.6424,127.4890,12,-8],['대전',36.3504,127.3845,12,16],['전주',35.8242,127.1480,-38,2],
+ ['광주',35.1595,126.8526,-38,4],['대구',35.8714,128.6014,12,-7],['포항',36.0190,129.3435,12,-5],['울산',35.5384,129.3114,12,9],
+ ['창원',35.2279,128.6811,-42,16],['부산',35.1796,129.0756,12,18],['여수',34.7604,127.6622,12,18],['제주',33.4996,126.5312,12,6]
+];
 function svgPoint(svg,event){const pt=svg.createSVGPoint();pt.x=event.clientX;pt.y=event.clientY;const matrix=svg.getScreenCTM()?.inverse();return matrix?pt.matrixTransform(matrix):{x:500,y:318}}
 function geoToXY(point){const lng=Math.max(KOREA.minLng,Math.min(KOREA.maxLng,Number(point?.lng)||127.5));const lat=Math.max(KOREA.minLat,Math.min(KOREA.maxLat,Number(point?.lat)||36));return{x:KOREA.left+(lng-KOREA.minLng)/(KOREA.maxLng-KOREA.minLng)*(KOREA.right-KOREA.left),y:KOREA.bottom-(lat-KOREA.minLat)/(KOREA.maxLat-KOREA.minLat)*(KOREA.bottom-KOREA.top)}}
 function xyToGeo(x,y){const cx=Math.max(KOREA.left,Math.min(KOREA.right,x)),cy=Math.max(KOREA.top,Math.min(KOREA.bottom,y));return{x:cx,y:cy,lng:KOREA.minLng+(cx-KOREA.left)/(KOREA.right-KOREA.left)*(KOREA.maxLng-KOREA.minLng),lat:KOREA.maxLat-(cy-KOREA.top)/(KOREA.bottom-KOREA.top)*(KOREA.maxLat-KOREA.minLat)}}
@@ -16,14 +30,14 @@ function cityLabel(place){const text=String(place?.address||place?.name||'');con
 function installKoreaCanvas(svg){
  if(!svg||svg.querySelector('#koreaMapLayer'))return;
  const ns='http://www.w3.org/2000/svg',layer=document.createElementNS(ns,'g');layer.id='koreaMapLayer';layer.setAttribute('class','tq-korea-map');
- let dots='';for(let lat=34.45;lat<=38.5;lat+=.17){for(let lng=125.95;lng<=129.55;lng+=.16){if(inside(lng,lat)){const p=geoToXY({lat,lng});dots+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4.1"/>`}}}
+ let dots='';for(let lat=34.42;lat<=38.56;lat+=.14){for(let lng=125.95;lng<=129.55;lng+=.13){if(inside(lng,lat)){const p=geoToXY({lat,lng});dots+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.7"/>`}}}
  for(let lat=33.32;lat<=33.58;lat+=.13){for(let lng=126.15;lng<=126.90;lng+=.14){const dx=(lng-126.52)/.43,dy=(lat-33.45)/.18;if(dx*dx+dy*dy<1){const p=geoToXY({lat,lng});dots+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4.1"/>`}}}
- const labelNames=new Set(['서울','대전','대구','광주','부산','울산','제주']);const labels=REGIONS.filter(r=>labelNames.has(r[1])).map(r=>{const p=geoToXY({lat:r[2],lng:r[3]});return `<g class="tq-map-city" transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})"><circle r="3.5"/><text x="9" y="4">${r[1]}</text></g>`}).join('');
+ const labels=MAP_LABELS.map(r=>{const p=geoToXY({lat:r[1],lng:r[2]});return `<g class="tq-map-city" transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})"><circle r="4.8"/><text x="${r[3]}" y="${r[4]}">${r[0]}</text></g>`}).join('');
  layer.innerHTML=`<g class="tq-dot-land">${dots}</g><g class="tq-city-labels">${labels}</g>`;
  const field=svg.querySelector('.tq-geo-field');field?.after(layer);
  const style=document.createElement('style');style.id='tqKoreaCanvasStyle';style.textContent=`
- .tq-geo-grid,.tq-geo-ring-labels,.tq-geo-cardinals,.tq-geo-contours,.tq-geo-ambient{display:none!important}.tq-korea-map{pointer-events:none}.tq-dot-land circle{fill:#718078;opacity:.56}.tq-map-city circle{fill:#c9ff45;opacity:.9}.tq-map-city text{fill:#aab5ad;font:700 12px ui-monospace,monospace;letter-spacing:.05em}.tq-geo-origin .core{fill:#c9ff45!important}.tq-geo-origin text{fill:#c9ff45!important}
- .tq-geo-explorer{height:auto!important;min-height:0!important;overflow:visible!important;padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))!important}.tq-geo-stage{position:relative!important;inset:auto!important;height:min(76vw,680px)!important;min-height:500px!important;overflow:hidden!important;background:radial-gradient(circle at 50% 48%,rgba(201,255,69,.045),transparent 55%)}.tq-geo-canvas{inset:8px 0 auto!important;width:100%!important;height:calc(100% - 14px)!important;min-height:0!important}.tq-geo-readout{top:auto!important;bottom:8px!important}.tq-geo-search-sheet{position:relative!important;z-index:20!important;left:auto!important;right:auto!important;bottom:auto!important;top:auto!important;transform:none!important;transition:none!important;max-height:none!important;overflow:visible!important;margin:10px 14px 0!important;padding:14px!important;touch-action:auto!important}.tq-geo-sheet-handle,.tq-geo-sheet-expand{display:none!important}.tq-geo-sheet-top{grid-template-columns:minmax(0,1fr)!important}.tq-geo-location-popup.tq-location-result-bar{position:relative!important;z-index:12!important;left:auto!important;top:auto!important;width:auto!important;transform:none!important;margin:10px 14px 0!important;border-radius:15px!important;box-shadow:none!important}.tq-start-region-list{display:grid;gap:7px;max-height:min(54vh,520px);overflow:auto;padding:2px 3px 12px;overscroll-behavior:contain}.tq-start-region-list button{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:54px;padding:0 16px;border:1px solid #2d3b47;border-radius:15px;background:#101820;color:#eef3f5;text-align:left;font:700 15px inherit}.tq-start-region-list button small{color:#c9ff45;font:700 11px ui-monospace,monospace;letter-spacing:.08em}.tq-start-picker-card .tq-start-divider span{white-space:nowrap}.tq-start-picker-card header p{margin-bottom:0}@media(max-width:720px){.tq-geo-explorer{margin-bottom:78px!important}.tq-geo-stage{height:62vh!important;min-height:470px!important;max-height:610px!important}.tq-geo-location-popup.tq-location-result-bar{margin:8px 12px 0!important}.tq-geo-search-sheet{margin:8px 8px 0!important;border-radius:24px!important}.tq-geo-readout{left:12px!important;right:12px!important;bottom:6px!important}.tq-map-city text{font-size:11px}}
+ .tq-geo-grid,.tq-geo-ring-labels,.tq-geo-cardinals,.tq-geo-contours,.tq-geo-ambient{display:none!important}.tq-korea-map{pointer-events:none}.tq-dot-land circle{fill:#78877f;opacity:.64}.tq-map-city circle{fill:#c9ff45;opacity:.96;stroke:#0b1016;stroke-width:2}.tq-map-city text{fill:#eef4ef;font:800 16px Pretendard,"Noto Sans KR",system-ui,sans-serif;letter-spacing:-.02em;paint-order:stroke;stroke:#0b1016;stroke-width:5px;stroke-linejoin:round}.tq-geo-origin .core{fill:#c9ff45!important}.tq-geo-origin text{fill:#c9ff45!important}
+ .tq-geo-explorer{height:auto!important;min-height:0!important;overflow:visible!important;padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))!important}.tq-geo-stage{position:relative!important;inset:auto!important;height:min(76vw,680px)!important;min-height:500px!important;overflow:hidden!important;background:radial-gradient(circle at 50% 48%,rgba(201,255,69,.045),transparent 55%)}.tq-geo-canvas{inset:8px 0 auto!important;width:100%!important;height:calc(100% - 14px)!important;min-height:0!important}.tq-geo-readout{top:auto!important;bottom:8px!important}.tq-geo-search-sheet{position:relative!important;z-index:20!important;left:auto!important;right:auto!important;bottom:auto!important;top:auto!important;transform:none!important;transition:none!important;max-height:none!important;overflow:visible!important;margin:10px 14px 0!important;padding:14px!important;touch-action:auto!important}.tq-geo-sheet-handle,.tq-geo-sheet-expand{display:none!important}.tq-geo-sheet-top{grid-template-columns:minmax(0,1fr)!important}.tq-geo-location-popup.tq-location-result-bar{position:relative!important;z-index:12!important;left:auto!important;top:auto!important;width:auto!important;transform:none!important;margin:10px 14px 0!important;border-radius:15px!important;box-shadow:none!important}.tq-start-region-list{display:grid;gap:7px;max-height:min(54vh,520px);overflow:auto;padding:2px 3px 12px;overscroll-behavior:contain}.tq-start-region-list button{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:54px;padding:0 16px;border:1px solid #2d3b47;border-radius:15px;background:#101820;color:#eef3f5;text-align:left;font:700 15px inherit}.tq-start-region-list button small{color:#c9ff45;font:700 11px ui-monospace,monospace;letter-spacing:.08em}.tq-start-picker-card .tq-start-divider span{white-space:nowrap}.tq-start-picker-card header p{margin-bottom:0}@media(max-width:720px){.tq-geo-explorer{margin-bottom:78px!important}.tq-geo-stage{height:62vh!important;min-height:470px!important;max-height:610px!important}.tq-geo-location-popup.tq-location-result-bar{margin:8px 12px 0!important}.tq-geo-search-sheet{margin:8px 8px 0!important;border-radius:24px!important}.tq-geo-readout{left:12px!important;right:12px!important;bottom:6px!important}.tq-map-city text{font-size:14px}}
  `;document.head.appendChild(style)
 }
 function normalizeLayout(sheet,popup){if(sheet){sheet.removeAttribute('data-state');sheet.classList.add('is-fixed-panel');sheet.querySelector('#geoSheetHandle')?.remove();sheet.querySelector('#geoSheetExpand')?.remove()}const stage=$('.tq-geo-stage');if(popup&&stage&&popup.parentElement===stage){stage.after(popup);popup.classList.add('tq-location-result-bar')}}
@@ -43,7 +57,31 @@ export function initGeoExplorer({state,travelService,setOrigin,onSearch,onSelect
  function openStartPicker(){const overlay=createPicker();overlay.hidden=false;document.body.classList.add('tq-modal-open')}
  function closeStartPicker(){const overlay=$('#geoStartPicker');if(overlay)overlay.hidden=true;document.body.classList.remove('tq-modal-open')}
  async function selectRegion(index){const r=REGIONS[index];if(!r)return;const origin={name:r[0],address:r[0],displayRegion:r[0],lat:r[2],lng:r[3],placeTypeLabel:'시·도'};state.searchRegion=origin;await setOrigin(origin);syncOrigin();closeStartPicker();toast(r[0]+'에서 시작합니다.')}
- async function useGpsOrigin(){const btn=$('#geoStartUseGps')||$('#geoStartQuickGps');if(!navigator.geolocation){toast('현재 위치 기능을 사용할 수 없습니다. 지역을 선택해주세요.');return null}if(btn)btn.disabled=true;return new Promise(resolve=>navigator.geolocation.getCurrentPosition(async pos=>{let origin=null;try{const lat=pos.coords.latitude,lng=pos.coords.longitude,found=await travelService.reverseGeocode(lat,lng);origin={...(found||{}),lat,lng,name:found?.name||'현재 위치',address:found?.address||'현재 위치'};origin.displayRegion=cityLabel(origin);state.searchRegion=origin;await setOrigin(origin);syncOrigin();closeStartPicker();toast(origin.displayRegion+'에서 시작합니다.')}catch{}finally{if(btn)btn.disabled=false}resolve(origin)},()=>{if(btn)btn.disabled=false;toast('위치 권한을 허용하거나 시·도를 선택해주세요.');resolve(null)},{enableHighAccuracy:true,timeout:10000,maximumAge:30000}))}
+ async function useGpsOrigin(){
+  const btn=$('#geoStartUseGps')||$('#geoStartQuickGps');
+  const support=gpsService.support();
+  if(!support.ok){toast(support.error?.message||'현재 위치 기능을 사용할 수 없습니다. 지역을 선택해주세요.');return null}
+  if(btn){btn.disabled=true;btn.classList.add('is-loading')}
+  try{
+    const pos=await gpsService.current({enableHighAccuracy:true,timeout:20000,maximumAge:0});
+    const lat=pos.lat,lng=pos.lng;
+    let found=null;
+    try{found=await travelService.reverseGeocode(lat,lng)}catch{}
+    const origin={...(found||{}),lat,lng,accuracy:pos.accuracyM,name:found?.name||'현재 위치',address:found?.address||'현재 위치'};
+    origin.displayRegion=cityLabel(origin);
+    state.searchRegion=origin;
+    await setOrigin(origin);
+    syncOrigin();
+    closeStartPicker();
+    toast(`${origin.displayRegion} · 현재 위치로 설정했습니다.`);
+    return origin;
+  }catch(err){
+    toast(err?.message||'GPS 위치를 확인하지 못했습니다. 위치 권한을 확인해주세요.');
+    return null;
+  }finally{
+    if(btn){btn.disabled=false;btn.classList.remove('is-loading')}
+  }
+ }
  function clearCandidates(){const group=$('#geoCandidateLayer');if(group)group.innerHTML='';if(results)results.innerHTML=''}
  function renderRecommendations(items=[]){clearCandidates();if(!state.origin||!Array.isArray(items)||!items.length)return;const group=$('#geoCandidateLayer');if(group){group.innerHTML=items.slice(0,8).map((item,index)=>{const p=geoToXY(item);return `<g class="tq-geo-candidate" data-geo-index="${index}" transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})"><circle r="19"></circle><text text-anchor="middle" dy="4">${String(index+1).padStart(2,'0')}</text></g>`}).join('');group.onclick=e=>{const node=e.target.closest('[data-geo-index]');if(node)onSelect?.(Number(node.dataset.geoIndex))}}if(results){results.innerHTML='<div class="tq-geo-result-head"><span>AI PICKS</span><b>'+items.length+'곳</b></div>'+items.slice(0,8).map((item,index)=>'<button type="button" data-result-index="'+index+'"><b>'+String(index+1).padStart(2,'0')+'</b><span><strong>'+esc(item.name)+'</strong><small>'+esc((item.category||'여행지')+' · '+Math.round(Number(item.distanceKm||item.geoDistanceKm||0))+'km')+'</small></span><em>선택</em></button>').join('');results.onclick=e=>{const row=e.target.closest('[data-result-index]');if(row)onSelect?.(Number(row.dataset.resultIndex))}}}
  function renderEmpty(message='현재 조건에서 추천 가능한 여행지가 부족합니다.'){clearCandidates();if(results)results.innerHTML='<div class="tq-start-empty">'+esc(message)+'</div>'}

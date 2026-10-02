@@ -34,6 +34,11 @@ assert.ok(geoExplorer.includes('const LAND=['),'dotted Korea land boundary missi
 assert.ok(geoExplorer.includes('installKoreaCanvas'),'dotted Korea map renderer missing');
 assert.ok(geoExplorer.includes('tq-dot-land'),'dotted Korea land layer missing');
 assert.ok(geoExplorer.includes('tq-city-labels'),'major city labels missing');
+assert.ok(geoExplorer.includes('const MAP_LABELS=['),'detailed geographic label source missing');
+for(const city of ['서울','인천','수원','춘천','강릉','청주','대전','전주','광주','대구','포항','울산','창원','부산','여수','제주'])assert.ok(geoExplorer.includes(`'${city}'`),`map label missing: ${city}`);
+assert.ok(geoExplorer.includes("font:800 16px"),'desktop map labels must be readable');
+assert.ok(geoExplorer.includes("font-size:14px"),'mobile map labels must be readable');
+assert.ok(geoExplorer.includes("gpsService.current({enableHighAccuracy:true,timeout:20000,maximumAge:0})"),'GEO current-location flow must use fresh high-accuracy GPS');
 for(const city of ['서울','대전','대구','광주','부산','울산','제주'])assert.ok(geoExplorer.includes(`'${city}'`),`major city label missing: ${city}`);
 assert.ok(geoExplorer.includes('geoToXY')&&geoExplorer.includes('xyToGeo'),'Korea coordinate projection missing');
 assert.ok(geoExplorer.includes('setPointerCapture'),'drag pointer capture missing');
@@ -66,9 +71,9 @@ assert.ok(searchCss.includes('.tq-geo-explorer'),'GEO explorer styles missing');
 assert.ok(searchCss.includes('.tq-geo-target'),'GEO target styles missing');
 assert.ok(productCss.includes('.tq-bottom-nav'),'bottom navigation styles missing');
 assert.ok(landingCss.includes('.main-landing'),'landing styles missing');
-assert.ok(sw.includes("const CACHE='trip-quest-v1.11.0-dotted-korea-20261003'"),'service worker v1.11 cache version missing');
+assert.ok(sw.includes("const CACHE='trip-quest-v1.11.1-gps-map-labels-20261003'"),'service worker v1.11.1 cache version missing');
 assert.equal(manifest.display,'standalone','PWA display must be standalone');
 assert.ok(Array.isArray(manifest.icons)&&manifest.icons.length>=2,'PWA icons missing');
 assert.ok(chrome.includes("probe.src='./assets/tq-cover-main-v044.webp'"),'landing artwork preload missing');
 
-console.log('TRIP QUEST v1.11 dotted Korea map, 17-region START picker, fixed AI search panel, inline location result, and PWA smoke tests passed');
+console.log('TRIP QUEST v1.11.1 GPS, detailed dotted Korea map labels, START picker, fixed search panel, and PWA smoke tests passed');
