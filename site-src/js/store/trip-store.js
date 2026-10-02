@@ -13,6 +13,7 @@ const INITIAL_SECTIONS={
     activeDistanceBand:null,
     searchMode:'travel',
     searchRegion:null,
+    localMinRadiusKm:0,
     localRadiusKm:2,
     moodKeywords:[],
     placeResults:[]
@@ -45,6 +46,7 @@ const FIELD_MAP={
   activeDistanceBand:['search','activeDistanceBand'],
   searchMode:['search','searchMode'],
   searchRegion:['search','searchRegion'],
+  localMinRadiusKm:['search','localMinRadiusKm'],
   localRadiusKm:['search','localRadiusKm'],
   moodKeywords:['search','moodKeywords'],
   placeResults:['search','placeResults'],
@@ -111,6 +113,7 @@ export function createTripStore(seed={}){
       activeDistanceBand:null,
       searchMode:INITIAL_SECTIONS.search.searchMode,
       searchRegion:null,
+      localMinRadiusKm:INITIAL_SECTIONS.search.localMinRadiusKm,
       localRadiusKm:INITIAL_SECTIONS.search.localRadiusKm,
       moodKeywords:[],
       placeResults:[],

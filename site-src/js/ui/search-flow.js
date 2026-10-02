@@ -26,11 +26,33 @@ export function initSearchFlow({state,travelService,setOrigin,hideMainLanding,sh
   const placeResults=$('#placeSearchResults');
   const moodPanel=$('#moodKeywordPanel');
   const moodChoices=$('#moodKeywordChoices');
-  const distanceRange=$('#searchDistanceRange');
+  const distanceMin=$('#distanceMinRange');
+  const distanceMax=$('#distanceMaxRange');
+  const distanceFill=$('#distanceRangeFill');
+  let lastSnap={min:null,max:null};
   let pendingLaunch='manual';
 
   const config=()=>SEARCH_MODE_CONFIGS[state.searchMode]||SEARCH_MODE_CONFIGS.travel;
   const isLocal=()=>state.searchMode==='cafe'||state.searchMode==='food';
+  const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+
+  function rangeValues(){
+    return state.searchMode==='travel'
+      ?{min:Number(state.minKm)||0,max:Number(state.targetKm)||100}
+      :{min:Number(state.localMinRadiusKm)||0,max:Number(state.localRadiusKm)||2};
+  }
+
+  function pulseSnap(input,key,value){
+    if(!input||lastSnap[key]===value)return;
+    lastSnap[key]=value;
+    input.classList.remove('is-snapping');
+    void input.offsetWidth;
+    input.classList.add('is-snapping');
+    setTimeout(()=>input.classList.remove('is-snapping'),150);
+    if(state.searchMode==='travel'){
+      try{navigator.vibrate?.(8)}catch{}
+    }
+  }
 
   function syncRegionLabel(){
     const label=$('#searchRegionLabel');
@@ -51,22 +73,58 @@ export function initSearchFlow({state,travelService,setOrigin,hideMainLanding,sh
   }
 
   function syncDistanceUI(){
-    if(!distanceRange)return;
+    if(!distanceMin||!distanceMax)return;
     const distance=config().distance;
-    distanceRange.min=String(distance.min);
-    distanceRange.max=String(distance.max);
-    distanceRange.step=String(distance.step);
-    const raw=state.searchMode==='travel'?Number(state.targetKm||distance.default):Number(state.localRadiusKm||distance.default);
-    const value=Math.max(distance.min,Math.min(distance.max,raw));
-    distanceRange.value=String(value);
-    const valueEl=$('#searchDistanceValue');
-    if(valueEl)valueEl.textContent=distanceLabel(value);
-    const hint=$('#searchDistanceHint');
-    if(hint)hint.textContent=state.searchMode==='travel'?'출발지 기준 최대 '+distanceLabel(value):'선택 지역 기준 '+distanceLabel(value)+' 이내';
-    const scale=$('#searchDistanceScale');
-    if(scale)scale.innerHTML=state.searchMode==='travel'
-      ?'<span>10km</span><span>100</span><span>200</span><span>400km</span>'
-      :'<span>500m</span><span>5km</span><span>10km</span><span>20km</span>';
+    const current=rangeValues();
+    const min=clamp(current.min,distance.min,distance.max-distance.step);
+    const max=clamp(current.max,min+distance.step,distance.max);
+    if(state.searchMode==='travel'){state.minKm=min;state.targetKm=max}
+    else{state.localMinRadiusKm=min;state.localRadiusKm=max}
+    for(const input of [distanceMin,distanceMax]){
+      input.min=String(distance.min);
+      input.max=String(distance.max);
+      input.step=String(distance.step);
+    }
+    distanceMin.value=String(min);
+    distanceMax.value=String(max);
+    const minValue=$('#distanceMinValue'),maxValue=$('#distanceMaxValue');
+    if(minValue)minValue.textContent=String(min);
+    if(maxValue)maxValue.textContent=String(max);
+    const span=Math.max(.001,distance.max-distance.min);
+    if(distanceFill){
+      distanceFill.style.left=((min-distance.min)/span*100)+'%';
+      distanceFill.style.right=(100-(max-distance.min)/span*100)+'%';
+    }
+    const title=$('#distanceTitle'),hint=$('#distanceHint'),labels=$('#distanceLabels'),ruler=$('#distanceRuler'),help=$('#distanceHelp');
+    if(title)title.textContent=state.searchMode==='travel'?'내 위치 기준 검색 거리':'선택 지역 기준 검색 거리';
+    if(hint)hint.textContent=(state.searchMode==='travel'?'50km 스냅 · ':'')+distanceLabel(min)+' ~ '+distanceLabel(max);
+    if(labels)labels.innerHTML=state.searchMode==='travel'
+      ?'<span>0</span><span>100</span><span>200</span><span>300</span><span>400km</span>'
+      :'<span>0</span><span>5</span><span>10</span><span>15</span><span>20km</span>';
+    if(ruler)ruler.innerHTML=Array.from({length:9},(_,i)=>'<i class="'+(i%2===0?'major':'')+'"></i>').join('');
+    if(help)help.textContent=state.searchMode==='travel'
+      ?'양쪽 핸들을 드래그하면 50km마다 자석처럼 맞춰집니다.'
+      :'양쪽 핸들로 원하는 주변 거리 범위를 설정하세요.';
+  }
+
+  function setRangeBoundary(which,rawValue){
+    const distance=config().distance;
+    const step=distance.step;
+    let value=Math.round(Number(rawValue)/step)*step;
+    value=clamp(value,distance.min,distance.max);
+    const current=rangeValues();
+    let min=current.min,max=current.max;
+    if(which==='min')min=Math.min(value,max-step);
+    else max=Math.max(value,min+step);
+    min=clamp(min,distance.min,distance.max-step);
+    max=clamp(max,min+step,distance.max);
+    if(state.searchMode==='travel'){
+      state.minKm=min;state.targetKm=max;state.activeDistanceBand=null;
+    }else{
+      state.localMinRadiusKm=min;state.localRadiusKm=max;
+    }
+    syncDistanceUI();
+    pulseSnap(which==='min'?distanceMin:distanceMax,which,which==='min'?min:max);
   }
 
   function syncModeUI(){
@@ -130,9 +188,10 @@ export function initSearchFlow({state,travelService,setOrigin,hideMainLanding,sh
     if(resetFilters){state.moodKeywords=[];const input=$('#aiInput');if(input)input.value=''}
     if(state.searchMode==='travel'){
       state.minKm=0;
-      if(!Number.isFinite(Number(state.targetKm))||Number(state.targetKm)<10)state.targetKm=100;
-    }else if(!Number.isFinite(Number(state.localRadiusKm))||Number(state.localRadiusKm)<.5){
-      state.localRadiusKm=2;
+      if(!Number.isFinite(Number(state.targetKm))||Number(state.targetKm)<50)state.targetKm=100;
+    }else{
+      if(!Number.isFinite(Number(state.localMinRadiusKm))||Number(state.localMinRadiusKm)<0)state.localMinRadiusKm=0;
+      if(!Number.isFinite(Number(state.localRadiusKm))||Number(state.localRadiusKm)<.5)state.localRadiusKm=2;
     }
     if(placeResults){placeResults.hidden=true;placeResults.innerHTML=''}
     syncModeUI();
@@ -225,7 +284,7 @@ export function initSearchFlow({state,travelService,setOrigin,hideMainLanding,sh
     if(send){send.disabled=true;send.textContent='검색 중…'}
     if(placeResults){placeResults.hidden=false;placeResults.innerHTML='<div class="tq-place-loading">거리 · 키워드 · 무드를 분석해 장소를 찾고 있습니다…</div>'}
     try{
-      const result=await travelService.searchPlaces({mode:state.searchMode,query,region:center,radiusKm:state.localRadiusKm,moods:state.moodKeywords});
+      const result=await travelService.searchPlaces({mode:state.searchMode,query,region:center,radiusMinKm:state.localMinRadiusKm,radiusKm:state.localRadiusKm,moods:state.moodKeywords});
       renderPlaces(result);
     }catch(error){
       placeResults.hidden=false;
@@ -255,13 +314,8 @@ export function initSearchFlow({state,travelService,setOrigin,hideMainLanding,sh
     else state.moodKeywords=[...state.moodKeywords,value];
     syncMoodUI();
   });
-  distanceRange?.addEventListener('input',e=>{
-    const value=Number(e.target.value);
-    if(state.searchMode==='travel'){state.minKm=0;state.targetKm=value;state.activeDistanceBand=null}
-    else state.localRadiusKm=value;
-    syncDistanceUI();
-    try{navigator.vibrate?.(5)}catch{}
-  });
+  distanceMin?.addEventListener('input',e=>setRangeBoundary('min',e.target.value));
+  distanceMax?.addEventListener('input',e=>setRangeBoundary('max',e.target.value));
   window.addEventListener('tripquest:linked-place-search',e=>{
     const detail=e.detail||{};
     const next=detail.mode==='food'?'food':'cafe';
@@ -279,7 +333,7 @@ export function initSearchFlow({state,travelService,setOrigin,hideMainLanding,sh
   });
 
   function reset(){
-    state.searchMode='travel';state.searchRegion=null;state.localRadiusKm=2;state.moodKeywords=[];state.placeResults=[];pendingLaunch='manual';
+    state.searchMode='travel';state.searchRegion=null;state.localMinRadiusKm=0;state.localRadiusKm=2;state.moodKeywords=[];state.placeResults=[];pendingLaunch='manual';
     document.body.classList.remove('tq-search-ready','tq-category-open','tq-local-search-mode');
     if(categoryScreen)categoryScreen.hidden=true;
     syncModeUI();
