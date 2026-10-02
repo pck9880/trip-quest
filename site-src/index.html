@@ -11,13 +11,13 @@
   <meta name="format-detection" content="telephone=no" />
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>TRIP QUEST · 국내여행 AI 플래너</title>
+  <title>TRIP QUEST · 국내여행 스마트 플래너</title>
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="./css/base.css?v=110" />
   <link rel="stylesheet" href="./css/product.css?v=151" />
   <link rel="stylesheet" href="./css/landing.css?v=101" />
-  <link rel="stylesheet" href="./css/search.css?v=100" />
+  <link rel="stylesheet" href="./css/search.css?v=160" />
   <link rel="preload" as="image" href="./assets/tq-cover-main-v044.webp" fetchpriority="high" />
 </head>
 <body>
@@ -26,20 +26,28 @@
     <div class="main-landing-inner">
       <div class="main-cover-brand"><span>TQ</span><b>TRIP QUEST</b></div>
       <div class="main-cover-copy">
-        <p class="main-cover-eyebrow">DOMESTIC TRAVEL AI</p>
-        <h1 id="mainLandingTitle">오늘의 여행을<br>내 위치에서 시작하세요.</h1>
-        <p>현재 위치를 기준으로 거리, 취향, 날씨를 분석해 갈 만한 여행지를 찾습니다.</p>
+        <p class="main-cover-eyebrow">TRIP QUEST SEARCH</p>
+        <h1 id="mainLandingTitle">오늘 어디를<br>찾아볼까요?</h1>
+        <p>여행지, 카페, 맛집 중 먼저 고르고 내 위치나 원하는 동네에서 검색하세요.</p>
       </div>
       <div class="main-cover-action">
-        <button id="mainLocateBtn" class="main-locate-btn" type="button"><span class="loc-dot"></span>내 위치 검색하기</button>
-        <p id="mainLocationStatus">내 위치를 확인하면 여행 검색 화면으로 바로 이동합니다.</p>
-        <button id="mainManualBtn" class="main-manual-btn" type="button">출발지 직접 입력</button>
+        <div class="main-search-mode">
+          <small>먼저 검색 종류 선택</small>
+          <div>
+            <button type="button" data-search-mode="travel" class="active" aria-pressed="true">여행지</button>
+            <button type="button" data-search-mode="cafe" aria-pressed="false">카페</button>
+            <button type="button" data-search-mode="food" aria-pressed="false">맛집</button>
+          </div>
+        </div>
+        <button id="mainLocateBtn" class="main-locate-btn" type="button"><span class="loc-dot"></span>내 위치에서 찾기</button>
+        <p id="mainLocationStatus">검색 종류를 고른 뒤 현재 위치 또는 원하는 지역으로 시작하세요.</p>
+        <button id="mainManualBtn" class="main-manual-btn" type="button">지역 직접 입력</button>
       </div>
     </div>
   </section>
   <div class="app-shell">
     <header class="topbar">
-      <a class="brand" href="#" aria-label="TRIP QUEST 처음으로"><span class="brand-mark">TQ</span><span><b>TRIP QUEST</b><small>국내여행 AI 플래너</small></span></a>
+      <a class="brand" href="#" aria-label="TRIP QUEST 처음으로"><span class="brand-mark">TQ</span><span><b>TRIP QUEST</b><small>국내여행 스마트 플래너</small></span></a>
       <div class="top-actions"><button id="installBtn" class="btn ghost small mobile-action" hidden>앱 설치</button><button id="topShareBtn" class="btn ghost small mobile-action">공유</button></div>
       <div class="system-status" aria-label="실시간 상태"><span class="status-pill"><i></i><b id="weatherNow">날씨 확인 중</b><small id="weatherMeta">—</small></span><span class="status-pill"><i></i><b id="trafficNow">교통 확인 중</b><small id="trafficMeta">—</small></span><span class="status-pill"><i></i><b id="providerNow">데이터 준비 중</b><small id="updatedAt">—</small></span></div>
     </header>
@@ -47,13 +55,29 @@
       <section id="sharedTripBanner" class="shared-trip panel" hidden><div><span>공유 받은 여행</span><strong id="sharedTripTitle">—</strong><small id="sharedTripMeta">—</small></div><button id="sharedTripUseBtn" class="btn primary small">내 위치로 다시 계산</button></section>
       <section class="ai-hero panel tq-search-page" aria-labelledby="aiTitle">
         <div class="ai-copy tq-search-head">
-          <div class="eyebrow">TRIP QUEST AI</div>
+          <div class="eyebrow">TRIP QUEST 추천</div>
           <h1 id="aiTitle">오늘 어디로 떠날까요?</h1>
-          <p>현재 위치에서 취향에 맞는 여행지를 빠르게 찾아드려요.</p>
+          <p>거리와 취향을 분석해 갈 만한 여행지를 추천합니다.</p>
         </div>
 
+        <div id="searchModeChooser" class="tq-search-mode-chooser" aria-label="검색 종류">
+          <button type="button" data-search-mode="travel" class="active" aria-pressed="true"><span>여행지</span><small>추천 · 코스 · QUEST</small></button>
+          <button type="button" data-search-mode="cafe" aria-pressed="false"><span>카페</span><small>동네 주변 카페</small></button>
+          <button type="button" data-search-mode="food" aria-pressed="false"><span>맛집</span><small>주변 음식점</small></button>
+        </div>
+
+        <section id="searchRegionPanel" class="tq-search-region-panel" hidden>
+          <div class="tq-search-region-head"><span>검색 지역</span><strong id="searchRegionLabel">내 위치 또는 지역을 선택하세요.</strong></div>
+          <div class="tq-search-region-row">
+            <input id="searchRegionInput" type="search" placeholder="예: 부산진구 가야동, 전포동, 광안리" autocomplete="off" />
+            <button id="searchRegionBtn" class="btn secondary" type="button">지역 찾기</button>
+            <button id="searchUseCurrentBtn" class="btn ghost" type="button">내 위치</button>
+          </div>
+          <div id="searchRegionResults" class="tq-search-region-results" hidden></div>
+        </section>
+
         <div class="ai-composer tq-search-composer">
-          <label class="sr-only" for="aiInput">AI에게 여행 요청</label>
+          <label class="sr-only" for="aiInput">TRIP QUEST 검색 요청</label>
           <textarea id="aiInput" rows="2" placeholder="예: 조용한 바다, 힙한 동네, 분위기 좋은 카페"></textarea>
           <button id="aiSend" class="btn primary ai-send" type="button">여행지 찾기</button>
         </div>
@@ -73,9 +97,21 @@
           <p>양쪽 핸들을 드래그해 원하는 거리 범위를 맞춰보세요.</p>
         </div>
 
+        <div id="localRadiusControl" class="tq-local-radius" hidden>
+          <span>검색 반경</span>
+          <div>
+            <button type="button" data-radius-km="0.5">500m</button>
+            <button type="button" data-radius-km="1">1km</button>
+            <button type="button" data-radius-km="2" class="active">2km</button>
+            <button type="button" data-radius-km="5">5km</button>
+            <button type="button" data-radius-km="10">10km</button>
+          </div>
+        </div>
+        <div id="placeSearchResults" class="tq-place-results" hidden></div>
+
         <div id="aiSearchStatus" class="ai-search-status" role="status" aria-live="polite" hidden></div>
-        <div id="aiProgress" class="ai-progress" hidden><div class="ai-progress-top"><span>AI 추천 검색</span><b id="aiProgressText">0%</b></div><div class="ai-progress-track"><i id="aiProgressFill"></i></div><small id="aiEta">예상 1~3초</small></div>
-        <div id="aiConversation" class="ai-conversation" hidden><div class="ai-answer-row"><span class="ai-avatar">AI</span><div><div class="ai-mode" id="aiMode">여행 전용 AI</div><p id="aiReply"></p><div id="aiAnalysisTags" class="ai-analysis-tags" hidden></div><div id="aiChoices" class="ai-choices"></div></div></div></div>
+        <div id="aiProgress" class="ai-progress" hidden><div class="ai-progress-top"><span>스마트 추천 검색</span><b id="aiProgressText">0%</b></div><div class="ai-progress-track"><i id="aiProgressFill"></i></div><small id="aiEta">예상 1~3초</small></div>
+        <div id="aiConversation" class="ai-conversation" hidden><div class="ai-answer-row"><span class="ai-avatar">AI</span><div><div class="ai-mode" id="aiMode">TRIP QUEST 추천</div><p id="aiReply"></p><div id="aiAnalysisTags" class="ai-analysis-tags" hidden></div><div id="aiChoices" class="ai-choices"></div></div></div></div>
 
         <button id="openAdvancedSearch" class="tq-manual-input-bar" type="button" aria-expanded="false" aria-controls="progress">
           <span><b>직접 입력</b><small>방향 · 취향 · 시간 조건을 직접 설정</small></span>
@@ -85,7 +121,7 @@
             <nav class="progress panel" id="progress" aria-label="여행 계획 단계"><button class="progress-step active" data-step="1"><b>1</b><span>출발지</span></button><span></span><button class="progress-step" data-step="2"><b>2</b><span>취향</span></button><span></span><button class="progress-step" data-step="3"><b>3</b><span>시간</span></button><span></span><button class="progress-step" data-step="4"><b>4</b><span>추천</span></button><span></span><button class="progress-step" data-step="5"><b>5</b><span>코스</span></button></nav>
       <section class="wizard panel"><div class="wizard-head"><div><div class="eyebrow" id="stepEyebrow">STEP 1 / 5</div><h2 id="stepTitle">어디에서 출발하나요?</h2><p id="stepDescription">현재 위치를 사용하거나 출발지를 직접 검색하세요.</p></div><button id="resetBtn" class="btn ghost small">처음부터</button></div>
         <div class="step-view active" data-step-view="1"><div class="location-card"><div class="location-icon">◎</div><div class="location-main"><span>현재 출발지</span><strong id="originLabel">위치를 아직 선택하지 않았습니다.</strong></div><button id="locateBtn" class="btn primary">내 위치 사용</button></div><div class="or-line"><span>또는 직접 검색</span></div><div class="search-box"><input id="originSearch" placeholder="예: 진주역, 경상대, 사천공항" autocomplete="off" /><button id="searchOriginBtn" class="btn secondary">검색</button></div><div id="originResults" class="search-results"></div><div class="tip-box">위치 권한을 허용하지 않아도 출발지를 직접 검색해서 사용할 수 있습니다.</div></div>
-        <div class="step-view" data-step-view="2"><div class="manual-search-intro"><div><span>AI 검색이 기본입니다</span><strong>직접 고르고 싶을 때만 펼쳐보세요.</strong></div><button id="manualToggle" class="btn secondary manual-toggle" type="button" aria-expanded="false">직접 선택으로 찾기 ↓</button></div><div id="manualOptions" class="manual-options" hidden><div class="section-block"><div class="section-title"><div><span>찾고 싶은 방향</span><strong id="directionValue">상관없음</strong></div><small>원하는 방향이 없으면 전체를 선택하세요.</small></div><div class="direction-grid" id="directionChoices"><button data-value="북서">↖<small>북서</small></button><button data-value="북">↑<small>북</small></button><button data-value="북동">↗<small>북동</small></button><button data-value="서">←<small>서</small></button><button data-value="전체" class="selected center">●<small>전체</small></button><button data-value="동">→<small>동</small></button><button data-value="남서">↙<small>남서</small></button><button data-value="남">↓<small>남</small></button><button data-value="남동">↘<small>남동</small></button></div></div><div class="section-block"><div class="section-title"><div><span>여행 취향</span><strong id="categoryCount">1개 선택</strong></div><small>복수 선택 가능합니다.</small></div><div class="category-grid" id="categoryChoices"><button data-value="바다"><b>≈</b><span>바다</span></button><button data-value="카페"><b>☕</b><span>카페</span></button><button data-value="관광지" class="selected"><b>⌖</b><span>관광지</span></button><button data-value="산"><b>△</b><span>산</span></button><button data-value="뮤지엄"><b>▣</b><span>뮤지엄</span></button><button data-value="체험마을"><b>◇</b><span>체험</span></button><button data-value="소품샵"><b>☆</b><span>소품샵</span></button><button data-value="공원"><b>♧</b><span>공원</span></button><button data-value="맛집"><b>●</b><span>맛집</span></button><button data-value="전통시장"><b>▤</b><span>시장</span></button><button data-value="온천"><b>♨</b><span>온천</span></button><button data-value="캠핑"><b>⌂</b><span>캠핑</span></button></div></div></div></div>
+        <div class="step-view" data-step-view="2"><div class="manual-search-intro"><div><span>스마트 추천이 기본입니다</span><strong>직접 고르고 싶을 때만 펼쳐보세요.</strong></div><button id="manualToggle" class="btn secondary manual-toggle" type="button" aria-expanded="false">직접 선택으로 찾기 ↓</button></div><div id="manualOptions" class="manual-options" hidden><div class="section-block"><div class="section-title"><div><span>찾고 싶은 방향</span><strong id="directionValue">상관없음</strong></div><small>원하는 방향이 없으면 전체를 선택하세요.</small></div><div class="direction-grid" id="directionChoices"><button data-value="북서">↖<small>북서</small></button><button data-value="북">↑<small>북</small></button><button data-value="북동">↗<small>북동</small></button><button data-value="서">←<small>서</small></button><button data-value="전체" class="selected center">●<small>전체</small></button><button data-value="동">→<small>동</small></button><button data-value="남서">↙<small>남서</small></button><button data-value="남">↓<small>남</small></button><button data-value="남동">↘<small>남동</small></button></div></div><div class="section-block"><div class="section-title"><div><span>여행 취향</span><strong id="categoryCount">1개 선택</strong></div><small>복수 선택 가능합니다.</small></div><div class="category-grid" id="categoryChoices"><button data-value="바다"><b>≈</b><span>바다</span></button><button data-value="카페"><b>☕</b><span>카페</span></button><button data-value="관광지" class="selected"><b>⌖</b><span>관광지</span></button><button data-value="산"><b>△</b><span>산</span></button><button data-value="뮤지엄"><b>▣</b><span>뮤지엄</span></button><button data-value="체험마을"><b>◇</b><span>체험</span></button><button data-value="소품샵"><b>☆</b><span>소품샵</span></button><button data-value="공원"><b>♧</b><span>공원</span></button><button data-value="맛집"><b>●</b><span>맛집</span></button><button data-value="전통시장"><b>▤</b><span>시장</span></button><button data-value="온천"><b>♨</b><span>온천</span></button><button data-value="캠핑"><b>⌂</b><span>캠핑</span></button></div></div></div></div>
         <div class="step-view" data-step-view="3"><div class="time-cards"><label class="field-card"><span>출발 시간</span><input id="departTime" type="datetime-local" /><small>출발 예정 시간</small></label><label class="field-card"><span>귀가 목표</span><input id="returnTime" type="datetime-local" /><small>집에 돌아오고 싶은 시간</small></label><label class="field-card"><span>휘발유 가격</span><div class="input-unit"><input id="gasPrice" type="number" min="1000" max="3000" step="10" /><b>원/L</b></div><small>캐스퍼 연비 11km/L 기준</small></label></div><div class="schedule-preview" id="schedulePreview"></div><div class="tip-box">추천 결과는 왕복 운전시간과 사용 가능한 시간을 함께 비교합니다.</div></div>
         <div class="step-view" data-step-view="4"><div class="result-toolbar"><div><strong>추천 여행지</strong><span id="resultCaption">조건을 기준으로 후보를 정렬합니다.</span></div><div class="result-toolbar-actions"><div id="resultSort" class="result-sort" aria-label="추천 결과 정렬"><button type="button" data-sort="recommend" class="active">추천순</button><button type="button" data-sort="near">가까운순</button><button type="button" data-sort="far">먼거리순</button></div><button id="editConditionsBtn" class="btn secondary small">조건 수정</button></div></div><div class="result-layout"><div id="ranking" class="ranking empty-state">추천지를 찾고 있습니다.</div><div class="map-card"><div id="map"></div><div class="map-caption"><span id="mapStatus">지도 준비 중</span><span>OpenStreetMap</span></div></div></div><div class="no-match-actions" id="noMatchActions" hidden><button class="btn primary" data-no-match="similar">±20km 비슷한 거리에서 추천</button><button class="btn secondary" data-no-match="refine">검색 내용 다시 입력</button></div></div>
         <div class="step-view" data-step-view="5"><div class="selected-place-head"><div><span>선택한 여행지</span><h2 id="selectedPlaceName">—</h2><p id="selectedPlaceMeta">—</p></div><div class="selected-place-actions"><button id="shareTripBtn" class="btn primary small">여행 공유</button><button id="changePlaceBtn" class="btn secondary small">다른 여행지</button></div></div><div id="tripSummary" class="summary-box empty-state">여행지 정보를 계산하고 있습니다.</div><div class="course-head"><div><span>날씨 맞춤 코스</span><h3>A 도보 근거리 / B 드라이브 중 원하는 코스를 선택하세요.</h3></div><p id="courseWeather"></p></div><div id="courseList" class="course-list empty-state">코스를 만들고 있습니다.</div><section id="courseDetailPanel" class="course-detail-panel" hidden><div class="course-detail-head"><div><span>SELECTED ROUTE</span><h3>선택한 코스 동선</h3><p>출발지는 제외하고 선택한 지역의 코스만 확대합니다. 위치 아이콘과 장소 유형을 함께 표시합니다.</p></div><small id="courseMapStatus">코스를 선택하면 동선이 표시됩니다.</small></div><div class="course-route-map-card"><div id="courseMap"></div><div class="course-map-legend"><span><i class="legend-route"></i> 지역 코스</span><span>⌖ 위치 아이콘 · 장소 유형 표시</span></div></div><div class="nearby-head"><div><span>NEARBY</span><h3>경유지 주변 카페 · 음식점</h3></div><p>네이버 플레이스 검색으로 연결됩니다. 리뷰·평점은 네이버 화면에서 최신 정보를 확인하세요.</p></div><div id="nearbyPlaces" class="nearby-places"></div></section></div>
@@ -93,11 +129,11 @@
       </section>
     </main>
   </div>
-  <footer class="app-version-footer">TRIP QUEST · v1.5.1</footer>
+  <footer class="app-version-footer">TRIP QUEST · v1.6.0</footer>
   <div id="iosInstallTip" class="install-sheet" hidden><div class="install-card"><button id="closeInstallTip" class="install-close" aria-label="닫기">×</button><b>iPhone / iPad에 설치</b><p>Safari 하단의 공유 버튼을 누른 뒤 <strong>홈 화면에 추가</strong>를 선택하세요.</p></div></div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script type="module" src="./app.js?v=20261002-v151"></script>
-  <script src="./app-chrome.js?v=151" defer></script>
+  <script type="module" src="./app.js?v=20261002-v160"></script>
+  <script src="./app-chrome.js?v=160" defer></script>
 </body>
 </html>

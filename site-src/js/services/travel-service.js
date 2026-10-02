@@ -7,11 +7,14 @@ import { localRecommend } from '../domain/recommendation.js';
 import { refineRoadDistanceResults } from '../usecases/search-destinations.js';
 import { localAI } from '../domain/intent-parser.js';
 import { coursePack } from '../domain/course-planner.js';
+import { createPlaceSearchService } from './place-search-service.js';
 
 export function createTravelService(){
+  const placeSearchService=createPlaceSearchService();
+
   async function getConfig(){
     return {
-      providers:{kakao:false,tmap:false,openai:false,weather:true},
+      providers:{kakao:false,tmap:false,openai:false,weather:true,placeSearch:'osm-fallback',secureProxy:false},
       defaultGasPrice:1858,
       fuelEconomyKmL:11,
       publicBaseUrl:''
@@ -20,6 +23,14 @@ export function createTravelService(){
 
   async function geocode(query){
     return {items:await localGeocode(query||'')};
+  }
+
+  async function searchRegion(query){
+    return {items:await placeSearchService.resolveRegion(query||''),source:'OpenStreetMap / Nominatim'};
+  }
+
+  async function searchPlaces(body={}){
+    return placeSearchService.searchPlaces(body);
   }
 
   async function bootstrap(origin){
@@ -101,5 +112,5 @@ export function createTravelService(){
     return result;
   }
 
-  return {getConfig,geocode,bootstrap,recommend,tripSummary,courses,aiSearch};
+  return {getConfig,geocode,searchRegion,searchPlaces,bootstrap,recommend,tripSummary,courses,aiSearch};
 }

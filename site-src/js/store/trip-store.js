@@ -10,7 +10,11 @@ const INITIAL_SECTIONS={
     resultSort:'recommend',
     lastSearchMode:'ai',
     lastAIMessage:'',
-    activeDistanceBand:null
+    activeDistanceBand:null,
+    searchMode:'travel',
+    searchRegion:null,
+    localRadiusKm:2,
+    placeResults:[]
   },
   selection:{
     selected:null,
@@ -38,6 +42,10 @@ const FIELD_MAP={
   lastSearchMode:['search','lastSearchMode'],
   lastAIMessage:['search','lastAIMessage'],
   activeDistanceBand:['search','activeDistanceBand'],
+  searchMode:['search','searchMode'],
+  searchRegion:['search','searchRegion'],
+  localRadiusKm:['search','localRadiusKm'],
+  placeResults:['search','placeResults'],
   selected:['selection','selected'],
   selectedCourse:['selection','selectedCourse'],
   selectedCourseData:['selection','selectedCourseData'],
@@ -52,7 +60,7 @@ function cloneInitial(){
   return {
     navigation:{...INITIAL_SECTIONS.navigation},
     origin:{...INITIAL_SECTIONS.origin},
-    search:{...INITIAL_SECTIONS.search,categories:[...INITIAL_SECTIONS.search.categories],recommendations:[]},
+    search:{...INITIAL_SECTIONS.search,categories:[...INITIAL_SECTIONS.search.categories],recommendations:[],placeResults:[]},
     selection:{...INITIAL_SECTIONS.selection},
     runtime:{...INITIAL_SECTIONS.runtime}
   };
@@ -99,6 +107,10 @@ export function createTripStore(seed={}){
       lastSearchMode:INITIAL_SECTIONS.search.lastSearchMode,
       lastAIMessage:INITIAL_SECTIONS.search.lastAIMessage,
       activeDistanceBand:null,
+      searchMode:INITIAL_SECTIONS.search.searchMode,
+      searchRegion:null,
+      localRadiusKm:INITIAL_SECTIONS.search.localRadiusKm,
+      placeResults:[],
       selected:null,
       selectedCourse:null,
       selectedCourseData:null,

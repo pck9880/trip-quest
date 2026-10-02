@@ -13,15 +13,11 @@ import { initKeepPanel } from './js/ui/keep-panel.js';
 import { initMyPage } from './js/ui/my-page.js';
 import { initQuestPanel } from './js/ui/quest-panel.js';
 import { initQuestIsland } from './js/ui/quest-island.js';
+import { initSearchMode } from './js/ui/search-mode.js';
 const store=createTripStore();
 const state=store.state;
 const travelService=createTravelService();
-
-
-
-
-
-
+let searchModeUI=null;
 
 const wizardUI=createWizardUI(state);
 const {setStep,syncDistanceUI,setDistanceBoundary,syncCategoriesUI,syncDirectionUI,validateUIRuntime,bindChoices}=wizardUI;
@@ -83,7 +79,7 @@ function initPWA(){
 
 async function loadConfig(){
   state.config=await travelService.getConfig();$('#gasPrice').value=state.config.defaultGasPrice;
-  setText('#providerNow','모바일 즉시실행');setText('#updatedAt','v1.5.1 · 보상받기 · 코스 아일랜드');
+  setText('#providerNow','검색 엔진 준비');setText('#updatedAt','v1.6.0 · 여행지/카페/맛집 모드');
 }
 
 
@@ -95,6 +91,7 @@ function resetTrip(){
   const manualBar=$('#openAdvancedSearch');
   if(manualBar){manualBar.setAttribute('aria-expanded','false');manualBar.classList.remove('open')}
   store.resetJourney();
+  searchModeUI?.reset();
   syncDistanceUI();
   all('#directionChoices button').forEach(b=>b.classList.toggle('selected',b.dataset.value==='전체'));
   syncCategoriesUI();
@@ -263,13 +260,19 @@ function handleAIChoice(c){if(!c)return;if(c.action==='search'){if(c.patch)apply
 
 function currentAISearchMessage(){
   const text=$('#aiInput')?.value.trim()||'';
-  return text||'오늘 가기 좋은 여행지를 추천해줘';
+  if(text)return text;
+  if(state.searchMode==='cafe')return '카페';
+  if(state.searchMode==='food')return '맛집';
+  return '오늘 가기 좋은 여행지를 추천해줘';
 }
 
-
+async function primarySearch(){
+  if(state.searchMode==='travel')return askAI(currentAISearchMessage());
+  return searchModeUI?.searchLocalPlaces(currentAISearchMessage());
+}
 
 function bindActions(){
-  bindAppActions({state,startFromMainLocation,hideMainLanding,setStep,sortRecommendations,useLocation,searchOrigin,updateSchedulePreview,resetTrip,recommend,searchSimilarDistance,askAI,currentAISearchMessage});
+  bindAppActions({state,startFromMainLocation,hideMainLanding,setStep,sortRecommendations,useLocation,searchOrigin,updateSchedulePreview,resetTrip,recommend,searchSimilarDistance,primarySearch});
 }
 
 function showSafeRuntimeError(){
@@ -290,5 +293,5 @@ if(typeof window!=='undefined'){
     if(state.step===4)showSafeRuntimeError();
   });
 }
-async function boot(){initTimes();initMap();initKeepPanel({onOpenCourse:openKeptCourse});initQuestPanel();initQuestIsland();initMyPage({onOpenHistoryCourse:openHistoryCourse});validateUIRuntime();bindChoices();bindActions();initPWA();syncDistanceUI();syncDirectionUI();syncCategoriesUI();setStep(1);showMainLanding();try{await loadConfig()}catch{setText('#providerNow','설정 확인 필요')}setInterval(refreshLive,10*60*1000)}
+async function boot(){initTimes();initMap();initKeepPanel({onOpenCourse:openKeptCourse});initQuestPanel();initQuestIsland();initMyPage({onOpenHistoryCourse:openHistoryCourse});searchModeUI=initSearchMode({state,travelService});validateUIRuntime();bindChoices();bindActions();initPWA();syncDistanceUI();syncDirectionUI();syncCategoriesUI();setStep(1);showMainLanding();try{await loadConfig()}catch{setText('#providerNow','설정 확인 필요')}setInterval(refreshLive,10*60*1000)}
 if(typeof document!=='undefined')boot();
