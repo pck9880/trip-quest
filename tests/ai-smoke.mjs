@@ -1,8 +1,24 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-await import('../site-src/app.js');
-const {localAI,localRecommend,coursePack,activeVehicleProfile,estimateRoundTripToll}=globalThis.__TQ_TEST__;
-assert.ok(localAI&&localRecommend&&coursePack&&activeVehicleProfile&&estimateRoundTripToll,'test hooks missing');
+import { localAI } from '../site-src/js/domain/intent-parser.js';
+import { localRecommend } from '../site-src/js/domain/recommendation.js';
+import { coursePack } from '../site-src/js/domain/course-planner.js';
+import { activeVehicleProfile } from '../site-src/js/services/vehicle-settings.js';
+import { estimateRoundTripToll } from '../site-src/js/domain/trip-cost.js';
+import { createTripStore } from '../site-src/js/store/trip-store.js';
+import { createTravelService } from '../site-src/js/services/travel-service.js';
+
+const store=createTripStore();
+assert.equal(store.state.step,1);
+assert.equal(store.sections.search.targetKm,100);
+store.update({minKm:40,targetKm:120,selected:{name:'테스트'}});
+store.resetJourney();
+assert.equal(store.state.minKm,0);
+assert.equal(store.state.targetKm,100);
+assert.equal(store.state.selected,null);
+const travelService=createTravelService();
+assert.equal(typeof travelService.recommend,'function');
+assert.equal(typeof travelService.aiSearch,'function');
 const defaultVehicle=activeVehicleProfile({gasPrice:1858});
 assert.equal(defaultVehicle.vehicleLabel,'캐스퍼');
 assert.equal(defaultVehicle.efficiency,11);
@@ -63,4 +79,4 @@ assert.ok(!appSource.includes('function localRecommend('),'recommendation engine
 assert.ok(!appSource.includes('function localAI('),'intent parser must not remain embedded in app.js');
 assert.ok(coursePlannerSource.includes('export async function coursePack('),'course planner module missing');
 assert.ok(!appSource.includes('function coursePack('),'course planner must not remain embedded in app.js');
-console.log('TRIP QUEST v0.52 UI/controller, course planner, recommendation, route, and vehicle tests passed');
+console.log('TRIP QUEST v0.53 store/service, course planner, recommendation, route, and vehicle tests passed');

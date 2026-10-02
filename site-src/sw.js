@@ -1,5 +1,5 @@
-const CACHE='trip-quest-v0.52-ui-controllers-20261002';
-const SHELL=['./','./index.html','./styles.css?v=20261002-1300','./app.js?v=20261002-refactor5','./app-chrome.css?v=047','./app-chrome.js?v=047','./landing-touch-fix.css?v=20261002-1300','./assets/tq-cover-main-v044.webp','./js/core/dom.js','./js/core/format.js','./js/data/ui-options.js','./js/data/places.js','./js/data/recommendation-data.js','./js/data/course-data.js','./js/data/intent-rules.js','./js/domain/geo.js','./js/domain/schedule.js','./js/domain/trip-cost.js','./js/domain/recommendation.js','./js/domain/intent-parser.js','./js/services/vehicle-settings.js','./js/services/routing.js','./js/services/weather.js','./js/services/geocoding.js','./js/usecases/search-destinations.js','./js/domain/course-planner.js','./js/ui/main-map.js','./js/ui/course-map.js','./js/ui/time-controls.js','./js/ui/course-actions.js','./js/ui/landing.js','./js/ui/wizard.js','./js/ui/results.js','./js/controllers/search-controller.js','./js/controllers/origin-controller.js','./js/controllers/app-controller.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/apple-touch-icon.png'];
+const CACHE='trip-quest-v0.53-store-service-20261002';
+const SHELL=['./','./index.html','./styles.css?v=20261002-1300','./app.js?v=20261002-refactor6','./app-chrome.css?v=047','./app-chrome.js?v=047','./landing-touch-fix.css?v=20261002-1300','./assets/tq-cover-main-v044.webp','./js/core/dom.js','./js/core/format.js','./js/data/ui-options.js','./js/data/places.js','./js/data/recommendation-data.js','./js/data/course-data.js','./js/data/intent-rules.js','./js/domain/geo.js','./js/domain/schedule.js','./js/domain/trip-cost.js','./js/domain/recommendation.js','./js/domain/intent-parser.js','./js/services/vehicle-settings.js','./js/services/routing.js','./js/services/weather.js','./js/services/geocoding.js','./js/usecases/search-destinations.js','./js/domain/course-planner.js','./js/ui/main-map.js','./js/ui/course-map.js','./js/ui/time-controls.js','./js/ui/course-actions.js','./js/ui/landing.js','./js/ui/wizard.js','./js/ui/results.js','./js/controllers/search-controller.js','./js/controllers/origin-controller.js','./js/controllers/app-controller.js','./js/store/trip-store.js','./js/services/travel-service.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/apple-touch-icon.png'];
 
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()));
@@ -19,7 +19,7 @@ async function decorateNavigation(response){
   if(!type.includes('text/html'))return response;
   let html=await response.text();
   html=html.replace(/\.\/styles\.css\?v=[^"']+/g,'./styles.css?v=20261002-1300');
-  html=html.replace(/\.\/app\.js\?v=[^"']+/g,'./app.js?v=20261002-refactor5');
+  html=html.replace(/\.\/app\.js\?v=[^"']+/g,'./app.js?v=20261002-refactor6');
   html=html.replace(/\.\/app-chrome\.css\?v=[^"']+/g,'./app-chrome.css?v=047');
   html=html.replace(/\.\/app-chrome\.js\?v=[^"']+/g,'./app-chrome.js?v=047');
   html=html.replace(/\.\/landing-touch-fix\.css\?v=[^"']+/g,'./landing-touch-fix.css?v=20261002-1300');
