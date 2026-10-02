@@ -25,7 +25,7 @@ function dedupe(items=[]){
   });
 }
 function normalizePlace(item,mode,center,source='OpenStreetMap / Nominatim'){
-  const lat=Number(item.lat),lng=Number(item.lng);
+  const lat=Number(item.lat),lng=Number(item.lng??item.lon);
   const validCenter=Number.isFinite(Number(center?.lat))&&Number.isFinite(Number(center?.lng));
   return {
     id:item.place_id?String(item.place_id):`osm-${lat}-${lng}`,
