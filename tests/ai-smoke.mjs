@@ -35,6 +35,7 @@ const context={
 const oceanCafe=localAI('부산에서 바다보이는 카페',context);
 assert.equal(oceanCafe.intent,'travel_search');
 assert.equal(oceanCafe.focusQuery,'','region words must not become generic focusQuery');
+assert.equal(oceanCafe.patch.direction,undefined,'Korean particle 에서 must not be misread as west direction');
 assert.equal(oceanCafe.semanticProfile.regionConstraint,'부산');
 assert.equal(oceanCafe.semanticProfile.flags.wantsCafe,true);
 assert.equal(oceanCafe.semanticProfile.flags.oceanView,true);
