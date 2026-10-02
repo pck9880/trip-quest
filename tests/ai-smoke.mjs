@@ -32,6 +32,33 @@ const context={
   departure:'',returnTime:'',gasPrice:1700
 };
 
+const oceanCafe=localAI('부산에서 바다보이는 카페',context);
+assert.equal(oceanCafe.intent,'travel_search');
+assert.equal(oceanCafe.focusQuery,'','region words must not become generic focusQuery');
+assert.equal(oceanCafe.semanticProfile.regionConstraint,'부산');
+assert.equal(oceanCafe.semanticProfile.flags.wantsCafe,true);
+assert.equal(oceanCafe.semanticProfile.flags.oceanView,true);
+assert.ok(oceanCafe.semanticProfile.hardCategories.includes('바다'));
+assert.ok(oceanCafe.analysisKeywords.includes('부산'));
+assert.ok(oceanCafe.analysisKeywords.includes('CAFE 연계'));
+const oceanCafeItems=localRecommend({...context,...oceanCafe.patch,semanticProfile:oceanCafe.semanticProfile});
+assert.ok(oceanCafeItems.length>0,'Busan ocean-view cafe-linked TRIP query should return candidates');
+assert.ok(oceanCafeItems.every(x=>x.name.includes('부산')),'Busan-constrained query must not leak to Ulsan/Changwon');
+assert.ok(oceanCafeItems.every(x=>x.category==='바다'),'ocean-view TRIP query should prioritize sea destinations');
+
+const crossRegion=localAI('부산에서 경주 쪽으로 드라이브 갈만한 바다',context);
+assert.equal(crossRegion.semanticProfile.originRegion,'부산');
+assert.equal(crossRegion.semanticProfile.regionConstraint,'경주');
+const crossRegionItems=localRecommend({...context,...crossRegion.patch,semanticProfile:crossRegion.semanticProfile});
+assert.ok(crossRegionItems.length>0,'Busan to Gyeongju directional query should find Gyeongju candidates');
+assert.ok(crossRegionItems.every(x=>x.name.includes('경주')),'target region must win over origin-region wording');
+assert.ok(crossRegionItems.every(x=>x.category==='바다'),'Gyeongju directional sea query must stay in sea category');
+
+const textDistance=localAI('부산에서 150km 안에서 바다 보고 싶어',context);
+assert.equal(textDistance.patch.minKm,0);
+assert.equal(textDistance.patch.targetKm,150);
+assert.ok(textDistance.analysisKeywords.includes('0~150km'));
+
 const hip=localAI('힙한 번화가 가고 싶어. 젊은 사람 많고 카페랑 쇼핑할 곳 많은 곳',context);
 assert.equal(hip.intent,'travel_search');
 assert.equal(hip.semanticProfile.flags.trendy,true);
@@ -63,6 +90,7 @@ const domSource=fs.readFileSync(new URL('../site-src/js/core/dom.js',import.meta
 const recommendationSource=fs.readFileSync(new URL('../site-src/js/domain/recommendation.js',import.meta.url),'utf8');
 const intentSource=fs.readFileSync(new URL('../site-src/js/domain/intent-parser.js',import.meta.url),'utf8');
 const intentRulesSource=fs.readFileSync(new URL('../site-src/js/data/intent-rules.js',import.meta.url),'utf8');
+const queryPlannerSource=fs.readFileSync(new URL('../site-src/js/domain/query-planner.js',import.meta.url),'utf8');
 const coursePlannerSource=fs.readFileSync(new URL('../site-src/js/domain/course-planner.js',import.meta.url),'utf8');
 assert.ok(courseData.includes("export const CURATED_COURSES="),'curated nationwide route graph required');
 assert.ok(courseData.includes("'seoul-hongdae'"),'Hongdae route preset required');
@@ -75,8 +103,9 @@ assert.ok(!appSource.includes("const CURATED_COURSES="),'course data must not re
 assert.ok(recommendationSource.includes('export function localRecommend('),'recommendation engine module missing');
 assert.ok(intentSource.includes('export function localAI('),'intent parser module missing');
 assert.ok(intentRulesSource.includes('export const INTENT_RULES='),'intent rule dataset missing');
+assert.ok(queryPlannerSource.includes('export function planTravelQuery('),'structured query planner missing');
 assert.ok(!appSource.includes('function localRecommend('),'recommendation engine must not remain embedded in app.js');
 assert.ok(!appSource.includes('function localAI('),'intent parser must not remain embedded in app.js');
 assert.ok(coursePlannerSource.includes('export async function coursePack('),'course planner module missing');
 assert.ok(!appSource.includes('function coursePack('),'course planner must not remain embedded in app.js');
-console.log('TRIP QUEST v0.53 store/service, course planner, recommendation, route, and vehicle tests passed');
+console.log('TRIP QUEST v1.8 query planner, recommendation, course, route, and vehicle tests passed');
