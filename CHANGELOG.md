@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.1 — AI patch + KEEP detail hotfix
+
+- Restored the missing AI `applyPatch()` runtime handler that caused Step 4 recommendation errors
+- Preserved destination distance/reason/route context in newly saved KEEP courses
+- Replaced misleading 0 km / 0 min labels for single-stop courses with single-place/visit labels
+- Added destination context and a map shortcut to KEEP detail
+- Increased the KEEP detail back-to-list button size and visibility
+- Added regression checks for the AI patch handler and KEEP detail UX
+
+
 ## 1.1.0 — KEEP course library
 
 - Added star-toggle KEEP controls beside A/B course selection
