@@ -15,7 +15,7 @@ export function bindAppActions({state,setStep,sortRecommendations,useLocation,se
   $('#nextBtn')?.addEventListener('click',async()=>{if(state.step===4&&state.selected)setStep(5);else if(state.step===5)resetTrip()});
   $('#editConditionsBtn')?.addEventListener('click',()=>{document.body.classList.add('tq-search-ready');setStep(1);document.querySelector('#tripExplorer')?.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>$('#aiInput')?.focus(),160)});
   $('#changePlaceBtn')?.addEventListener('click',()=>{document.body.classList.add('tq-search-ready');setStep(1);document.querySelector('#tripExplorer')?.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>$('#aiInput')?.focus(),160)});
-  $('#noMatchActions')?.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.noMatch==='similar')searchSimilarDistance();else{document.querySelector('.ai-hero')?.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>$('#aiInput')?.focus(),160)}});
+  $('#noMatchActions')?.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.noMatch==='similar')searchSimilarDistance();else{document.body.classList.add('tq-search-ready');document.querySelector('#tripExplorer')?.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>$('#aiInput')?.focus(),160)}});
   $('#aiSend')?.addEventListener('click',()=>primarySearch());
   $('#aiInput')?.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')primarySearch()});
 }
