@@ -31,60 +31,142 @@
   function writeVehicle(v){localStorage.setItem(VEHICLE_KEY,JSON.stringify(v))}
   function forceVisibleMotion(scene){
     if(!scene)return;
-    scene.classList.add('tq-drive-active');
+    scene.classList.add('tq-cinematic-active');
   }
   function addCoverMotion(){
     const bg=$('.main-landing-bg');
     if(!bg)return;
     let existing=bg.querySelector('.tq-geo-scene');
-    if(existing&&!existing.classList.contains('tq-drive-scene')){existing.remove();existing=null}
+    if(existing&&!existing.classList.contains('tq-cinematic-scene')){existing.remove();existing=null}
     if(existing){forceVisibleMotion(existing);return}
-    const scene=el('div','tq-geo-scene tq-drive-scene');
+
+    const scene=el('div','tq-geo-scene tq-cinematic-scene');
     scene.setAttribute('aria-hidden','true');
     scene.innerHTML=`
-      <div class="tq-drive-glow"></div>
-      <div class="tq-drive-horizon"></div>
+      <svg class="tq-night-landscape" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <linearGradient id="tqSky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#07111f"/>
+            <stop offset=".55" stop-color="#0a1a2c"/>
+            <stop offset="1" stop-color="#071018"/>
+          </linearGradient>
+          <linearGradient id="tqMountainBack" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#18304c"/>
+            <stop offset="1" stop-color="#0a1725"/>
+          </linearGradient>
+          <linearGradient id="tqMountainFront" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#10253a"/>
+            <stop offset="1" stop-color="#050b11"/>
+          </linearGradient>
+          <linearGradient id="tqRoad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#152330"/>
+            <stop offset=".6" stop-color="#0b131a"/>
+            <stop offset="1" stop-color="#05080c"/>
+          </linearGradient>
+          <linearGradient id="tqRoadGlow" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#79cfff" stop-opacity=".05"/>
+            <stop offset=".35" stop-color="#c9ff45" stop-opacity=".95"/>
+            <stop offset=".68" stop-color="#f4ffb5" stop-opacity=".82"/>
+            <stop offset="1" stop-color="#79cfff" stop-opacity=".08"/>
+          </linearGradient>
+          <filter id="tqSoftGlow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="6"/>
+          </filter>
+        </defs>
 
-      <div class="tq-gps-network">
-        <i class="tq-gps-link l1"></i><i class="tq-gps-link l2"></i><i class="tq-gps-link l3"></i>
-        <i class="tq-gps-node n1"><b></b></i>
-        <i class="tq-gps-node n2"><b></b></i>
-        <i class="tq-gps-node n3"><b></b></i>
-        <i class="tq-gps-node n4"><b></b></i>
-        <i class="tq-gps-node n5"><b></b></i>
-        <i class="tq-gps-node n6"><b></b></i>
+        <rect width="1000" height="720" fill="url(#tqSky)"/>
+
+        <g class="tq-scene-cloud tq-cloud-a">
+          <ellipse cx="185" cy="190" rx="60" ry="24" fill="#273e61"/>
+          <ellipse cx="155" cy="185" rx="28" ry="25" fill="#38537a"/>
+          <ellipse cx="205" cy="176" rx="34" ry="31" fill="#324d73"/>
+          <ellipse cx="239" cy="194" rx="34" ry="18" fill="#233956"/>
+          <ellipse cx="177" cy="200" rx="87" ry="9" fill="#c9ff45" opacity=".07"/>
+        </g>
+        <g class="tq-scene-cloud tq-cloud-b">
+          <ellipse cx="805" cy="215" rx="57" ry="21" fill="#293f62"/>
+          <ellipse cx="777" cy="211" rx="25" ry="24" fill="#365078"/>
+          <ellipse cx="819" cy="200" rx="32" ry="28" fill="#314b72"/>
+          <ellipse cx="850" cy="218" rx="31" ry="16" fill="#213650"/>
+          <ellipse cx="815" cy="224" rx="80" ry="8" fill="#c9ff45" opacity=".06"/>
+        </g>
+
+        <path d="M0 395 95 330l75 44 115-105 102 91 105-83 112 101 108-72 108 64 76-51 104 77v128H0Z" fill="url(#tqMountainBack)" opacity=".86"/>
+        <path d="M0 452 120 349l99 93 111-77 117 96 103-80 110 69 122-91 119 102 99-82v179H0Z" fill="url(#tqMountainFront)"/>
+
+        <path d="M0 520 C180 468 315 470 445 512 C612 566 748 546 1000 478 L1000 720 L0 720Z" fill="url(#tqRoad)"/>
+        <path class="tq-road-glow tq-road-glow-a" d="M-30 570 C180 496 327 505 465 546 C622 594 748 571 1030 487" fill="none" stroke="url(#tqRoadGlow)" stroke-width="10" stroke-linecap="round"/>
+        <path class="tq-road-glow tq-road-glow-b" d="M-20 620 C187 545 348 553 482 590 C645 635 790 605 1020 533" fill="none" stroke="#79cfff" stroke-opacity=".44" stroke-width="3" stroke-linecap="round"/>
+        <path class="tq-road-glow tq-road-glow-c" d="M-25 655 C196 588 350 600 508 630 C676 662 820 636 1030 574" fill="none" stroke="#c9ff45" stroke-opacity=".62" stroke-width="5" stroke-linecap="round"/>
+        <path d="M0 543 C181 489 324 497 458 535 C622 582 759 562 1000 493" fill="none" stroke="#f2ffd0" stroke-opacity=".15" stroke-width="1"/>
+      </svg>
+
+      <div class="tq-road-speed">
+        <i class="s1"></i><i class="s2"></i><i class="s3"></i><i class="s4"></i>
       </div>
 
-      <div class="tq-car-hud">
-        <svg class="tq-car-front" viewBox="0 0 360 190" fill="none" aria-hidden="true">
-          <path class="tq-car-line tq-car-roof" d="M82 88 108 51c9-13 22-20 38-22h68c16 2 29 9 38 22l26 37"/>
-          <path class="tq-car-line tq-car-shoulder" d="M58 104c18-10 38-16 60-18h124c22 2 42 8 60 18"/>
-          <path class="tq-car-line tq-car-glass" d="m118 82 18-34h88l18 34"/>
-          <path class="tq-car-line tq-car-bumper" d="M70 130c33 11 70 16 110 16s77-5 110-16"/>
-          <path class="tq-car-line tq-car-lower" d="M93 151h174"/>
-          <path class="tq-car-line tq-car-detail" d="M150 116h60"/>
-          <path class="tq-car-line tq-car-side left" d="M70 105 54 126v28"/>
-          <path class="tq-car-line tq-car-side right" d="m290 105 16 21v28"/>
-          <path class="tq-headlight tq-headlight-left" d="M88 105c18-5 36-7 54-6l-9 18c-18 2-34 0-49-5l4-7Z"/>
-          <path class="tq-headlight tq-headlight-right" d="M272 105c-18-5-36-7-54-6l9 18c18 2 34 0 49-5l-4-7Z"/>
-          <circle class="tq-sensor-dot" cx="180" cy="116" r="3"/>
+      <div class="tq-moving-car">
+        <i class="tq-car-trail"></i>
+        <svg class="tq-toy-car" viewBox="0 0 520 300" aria-hidden="true">
+          <defs>
+            <linearGradient id="tqCarBody" x1=".14" y1=".08" x2=".82" y2=".95">
+              <stop offset="0" stop-color="#f5ffbc"/>
+              <stop offset=".2" stop-color="#ddff66"/>
+              <stop offset=".52" stop-color="#b9f42f"/>
+              <stop offset=".82" stop-color="#78bd1f"/>
+              <stop offset="1" stop-color="#4d7d17"/>
+            </linearGradient>
+            <linearGradient id="tqCarGlass" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#1b2b3b"/>
+              <stop offset=".58" stop-color="#081018"/>
+              <stop offset="1" stop-color="#020609"/>
+            </linearGradient>
+            <linearGradient id="tqBumper" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#edff94"/>
+              <stop offset="1" stop-color="#9dd72e"/>
+            </linearGradient>
+            <radialGradient id="tqLamp">
+              <stop offset="0" stop-color="#fff"/>
+              <stop offset=".55" stop-color="#fffde8"/>
+              <stop offset="1" stop-color="#d7ff6b"/>
+            </radialGradient>
+            <filter id="tqCarGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#c9ff45" flood-opacity=".22"/>
+            </filter>
+            <filter id="tqLampGlow" x="-200%" y="-200%" width="500%" height="500%">
+              <feGaussianBlur stdDeviation="7"/>
+            </filter>
+          </defs>
+
+          <ellipse cx="267" cy="256" rx="170" ry="20" fill="#000" opacity=".38"/>
+          <ellipse cx="255" cy="250" rx="150" ry="12" fill="#c9ff45" opacity=".17" filter="url(#tqLampGlow)"/>
+
+          <g filter="url(#tqCarGlow)">
+            <ellipse cx="145" cy="222" rx="38" ry="50" fill="#22282d"/>
+            <ellipse cx="145" cy="222" rx="24" ry="35" fill="#818991"/>
+            <ellipse cx="145" cy="222" rx="13" ry="25" fill="#d7d7cf"/>
+            <ellipse cx="397" cy="221" rx="36" ry="48" fill="#20272c"/>
+            <ellipse cx="397" cy="221" rx="23" ry="34" fill="#858d92"/>
+            <ellipse cx="397" cy="221" rx="12" ry="24" fill="#d9d9cf"/>
+
+            <path d="M71 197c7-55 28-104 70-133 31-21 72-29 126-29 63 0 114 16 145 53 23 27 34 58 39 98l-31 37H92l-21-26Z" fill="url(#tqCarBody)"/>
+            <path d="M142 83c26-30 60-41 111-42 52-1 94 13 121 49l19 32-273-3 22-36Z" fill="url(#tqCarGlass)"/>
+            <path d="M267 43v76" stroke="#d7ff71" stroke-opacity=".8" stroke-width="7" stroke-linecap="round"/>
+            <path d="M380 91c24 21 39 50 45 84l-55-12-26-72h36Z" fill="#101820"/>
+            <path d="M91 189c55-11 119-16 192-15 56 1 108 6 158 15l-17 43H95L91 189Z" fill="url(#tqBumper)"/>
+            <path d="M98 228c88 18 216 20 324 2" fill="none" stroke="#f3ffc3" stroke-opacity=".5" stroke-width="5" stroke-linecap="round"/>
+
+            <circle cx="134" cy="164" r="29" fill="url(#tqLamp)"/>
+            <circle cx="134" cy="164" r="42" fill="#e9ff8d" opacity=".18" filter="url(#tqLampGlow)"/>
+            <circle cx="336" cy="166" r="28" fill="url(#tqLamp)"/>
+            <circle cx="336" cy="166" r="41" fill="#e9ff8d" opacity=".18" filter="url(#tqLampGlow)"/>
+
+            <path d="M77 174c-7-13-6-29 8-38l22 4-2 33-28 1Z" fill="#9ed42d"/>
+            <path d="M408 125c16-5 29-1 34 12l-3 20-29 2-2-34Z" fill="#86c925"/>
+            <path d="M164 56c12-13 22-19 35-23" stroke="#fff" stroke-opacity=".52" stroke-width="5" stroke-linecap="round"/>
+          </g>
         </svg>
-        <div class="tq-car-shadow"></div>
       </div>
-
-      <div class="tq-road-flow">
-        <i class="tq-road-edge left"></i><i class="tq-road-edge right"></i>
-        <i class="tq-road-line r1"></i>
-        <i class="tq-road-line r2"></i>
-        <i class="tq-road-line r3"></i>
-        <i class="tq-road-line r4"></i>
-        <i class="tq-road-center c1"></i>
-        <i class="tq-road-center c2"></i>
-        <i class="tq-road-center c3"></i>
-      </div>
-
-      <div class="tq-drive-scan"></div>
-      <div class="tq-drive-marker"><i></i></div>
     `;
     bg.appendChild(scene);
     forceVisibleMotion(scene);
@@ -189,6 +271,6 @@
   function enhanceTripSummaryToll(){const summary=$('#tripSummary');if(!summary||!summary.querySelector('.metric-grid'))return;const metrics=[...summary.querySelectorAll('.metric')],find=l=>metrics.find(m=>m.querySelector('span')?.textContent.trim()===l),dm=find('왕복 거리'),tm=find('통행료')||find('예상 통행료'),total=find('교통비 합계'),fuel=find('기름값');if(!dm||!tm)return;const distance=parseKm(dm.querySelector('strong')?.textContent),estimated=estimateToll(distance),label=tm.querySelector('span'),value=tm.querySelector('strong');if(label)label.textContent='예상 통행료';if(value)value.textContent=estimated?`약 ${fmtWon(estimated)}`:'0원';if(total){const f=parseWon(fuel?.querySelector('strong')?.textContent);total.querySelector('strong').textContent=fmtWon(f+estimated)}}
   function observeTripSummary(){const summary=$('#tripSummary');if(!summary)return;new MutationObserver(()=>requestAnimationFrame(enhanceTripSummaryToll)).observe(summary,{childList:true,subtree:true,characterData:true});enhanceTripSummaryToll()}
   function runtimeHealthCheck(){document.querySelectorAll('#categoryChoices button,#directionChoices button,.progress-step').forEach(b=>b.type='button')}
-  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();addManualSearchButton();observeTripSummary();createVehicleSetup();watchFirstLocation();applyVehicleSettings();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.34';document.documentElement.classList.add('tq-chrome-ready')}
+  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();addManualSearchButton();observeTripSummary();createVehicleSetup();watchFirstLocation();applyVehicleSettings();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v0.35';document.documentElement.classList.add('tq-chrome-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootChrome,{once:true});else bootChrome();
 })();

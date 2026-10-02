@@ -399,3 +399,93 @@ body.tq-modal-open{overflow:hidden}.tq-setup-overlay[hidden]{display:none!import
   .tq-road-line.r3,.tq-road-line.r4{display:none}
   .tq-drive-scan{display:none}
 }
+
+
+/* v0.35 — cinematic toy-car cover */
+.tq-cinematic-scene{
+  position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:1;opacity:1;
+}
+.tq-night-landscape{position:absolute;inset:0;width:100%;height:100%;display:block}
+.tq-cinematic-scene:after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(5,9,14,.08) 0%,rgba(5,9,14,0) 40%,rgba(5,9,14,.34) 72%,rgba(5,9,14,.68) 100%);
+  pointer-events:none;
+}
+.tq-scene-cloud{transform-box:fill-box;transform-origin:center;animation:tqCloudDrift 12s ease-in-out infinite}
+.tq-cloud-b{animation-delay:-5s;animation-duration:14s}
+.tq-road-glow{filter:drop-shadow(0 0 9px rgba(201,255,69,.22))}
+.tq-road-glow-a{stroke-dasharray:80 24;animation:tqRoadDash 2.4s linear infinite}
+.tq-road-glow-b{stroke-dasharray:44 28;animation:tqRoadDash 2s linear infinite}
+.tq-road-glow-c{stroke-dasharray:96 38;animation:tqRoadDash 2.8s linear infinite}
+
+.tq-road-speed{position:absolute;inset:0;overflow:hidden;opacity:.8}
+.tq-road-speed i{
+  position:absolute;left:-35%;top:66%;width:46%;height:3px;border-radius:999px;
+  transform:rotate(-7deg);background:linear-gradient(90deg,transparent,rgba(201,255,69,.8),transparent);
+  filter:blur(.2px);animation:tqSpeedLine 2.6s linear infinite;
+}
+.tq-road-speed .s2{top:71%;width:38%;animation-delay:-.7s;background:linear-gradient(90deg,transparent,rgba(121,207,255,.65),transparent)}
+.tq-road-speed .s3{top:76%;width:52%;animation-delay:-1.4s}
+.tq-road-speed .s4{top:81%;width:35%;animation-delay:-2.05s;background:linear-gradient(90deg,transparent,rgba(255,255,255,.42),transparent)}
+
+.tq-moving-car{
+  position:absolute;left:50%;top:49%;width:min(54vw,410px);z-index:3;
+  will-change:transform,opacity;
+  animation:tqCarPass 7.6s cubic-bezier(.31,.02,.19,1) infinite;
+  filter:drop-shadow(0 18px 32px rgba(0,0,0,.42));
+}
+.tq-toy-car{display:block;width:100%;height:auto;overflow:visible}
+.tq-car-trail{
+  position:absolute;right:72%;top:58%;width:190px;height:20px;
+  background:linear-gradient(90deg,transparent,rgba(201,255,69,.3),rgba(121,207,255,.18),transparent);
+  filter:blur(8px);opacity:.65;transform:skewX(-20deg);
+  animation:tqTrailPulse 1.2s ease-in-out infinite;
+}
+.tq-moving-car:after{
+  content:"";position:absolute;left:27%;right:12%;bottom:3%;height:14px;border-radius:50%;
+  background:rgba(201,255,69,.18);filter:blur(13px);z-index:-1;
+}
+
+@keyframes tqCarPass{
+  0%{opacity:0;transform:translate3d(-68vw,-50%,0) scale(.82) rotate(-1.8deg)}
+  8%{opacity:1}
+  28%{transform:translate3d(-38vw,-52%,0) scale(.9) rotate(-1deg)}
+  51%{transform:translate3d(-7vw,-49%,0) scale(1) rotate(.2deg)}
+  73%{transform:translate3d(21vw,-52%,0) scale(1.03) rotate(.8deg)}
+  91%{opacity:1;transform:translate3d(48vw,-49%,0) scale(.96) rotate(1.2deg)}
+  100%{opacity:0;transform:translate3d(67vw,-50%,0) scale(.9) rotate(1.4deg)}
+}
+@keyframes tqCloudDrift{
+  0%,100%{transform:translateX(-8px) translateY(0);opacity:.9}
+  50%{transform:translateX(12px) translateY(-4px);opacity:1}
+}
+@keyframes tqRoadDash{to{stroke-dashoffset:-104}}
+@keyframes tqSpeedLine{
+  0%{transform:translateX(-15vw) rotate(-7deg);opacity:0}
+  15%{opacity:.75}
+  80%{opacity:.45}
+  100%{transform:translateX(155vw) rotate(-7deg);opacity:0}
+}
+@keyframes tqTrailPulse{
+  0%,100%{opacity:.3;transform:scaleX(.82) skewX(-20deg)}
+  50%{opacity:.72;transform:scaleX(1.12) skewX(-20deg)}
+}
+
+/* Keep all cover UI above scenery and readable. */
+.main-landing-inner{z-index:12!important}
+.main-cover-brand,.main-cover-copy,.main-cover-action{position:relative;z-index:15}
+.main-cover-copy{text-shadow:0 2px 18px rgba(0,0,0,.55)}
+
+@media(max-width:680px){
+  .tq-moving-car{top:47%;width:min(66vw,345px)}
+  .tq-car-trail{width:130px}
+  .tq-night-landscape{transform:scale(1.08);transform-origin:center}
+}
+@media(max-width:430px){
+  .tq-moving-car{top:45%;width:72vw}
+}
+@media(prefers-reduced-motion:reduce){
+  .tq-cinematic-scene *{animation:none!important}
+  .tq-moving-car{opacity:.92;transform:translate3d(-50%,-50%,0) scale(.92);left:50%;top:47%}
+  .tq-road-speed{display:none}
+}
