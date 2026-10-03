@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 844" shape-rendering="crispEdges">
+<rect width="390" height="844" fill="#07111f"/>
+<!-- stars / moon -->
+<g fill="#f5f7f2"><rect x="30" y="48" width="2" height="2"/><rect x="73" y="85" width="2" height="2"/><rect x="160" y="42" width="2" height="2"/><rect x="226" y="72" width="2" height="2"/><rect x="335" y="52" width="2" height="2"/></g>
+<g fill="#c9ff45"><rect x="204" y="57" width="6" height="6"/><rect x="202" y="59" width="10" height="2"/><rect x="206" y="55" width="2" height="10"/><rect x="61" y="103" width="3" height="7"/><rect x="59" y="105" width="7" height="3"/></g>
+<g transform="translate(304 76)" fill="#c9ff45"><rect x="8" y="0" width="20" height="36"/><rect x="0" y="8" width="36" height="20"/><rect x="4" y="4" width="28" height="28"/></g>
+<!-- clouds -->
+<g fill="#102a49"><rect x="18" y="66" width="58" height="8"/><rect x="27" y="58" width="42" height="13"/><rect x="38" y="51" width="24" height="18"/><rect x="313" y="116" width="56" height="7"/><rect x="322" y="109" width="38" height="12"/></g>
+<!-- far mountains -->
+<path d="M0 302 44 260 83 286 127 232 173 284 219 248 262 287 315 239 390 292V408H0Z" fill="#0c2039"/>
+<path d="M0 334 55 292 94 318 142 270 190 322 238 282 286 323 336 286 390 321V420H0Z" fill="#123154"/>
+<!-- waterfront city -->
+<rect y="355" width="390" height="74" fill="#09203a"/>
+<g fill="#f6dc65"><rect x="18" y="344" width="3" height="8"/><rect x="30" y="351" width="3" height="5"/><rect x="56" y="341" width="4" height="9"/><rect x="72" y="348" width="3" height="6"/><rect x="252" y="343" width="4" height="7"/><rect x="268" y="350" width="3" height="6"/><rect x="281" y="338" width="4" height="10"/><rect x="296" y="347" width="3" height="7"/><rect x="314" y="340" width="4" height="9"/><rect x="334" y="349" width="3" height="6"/><rect x="350" y="342" width="4" height="8"/></g>
+<g fill="#15395e"><rect x="8" y="361" width="46" height="5"/><rect x="64" y="365" width="50" height="4"/><rect x="260" y="361" width="44" height="4"/><rect x="315" y="365" width="55" height="4"/></g>
+<!-- road -->
+<path d="M0 430 390 430 390 844 0 844Z" fill="#0a1724"/>
+<path d="M0 430C78 418 132 420 195 431c71 12 132 12 195-3v40c-68 17-129 18-197 5-65-12-122-13-193 1Z" fill="#10243a"/>
+<!-- guard rails -->
+<path d="M0 472C70 452 126 451 188 463" fill="none" stroke="#c9ff45" stroke-width="5"/>
+<path d="M390 475C322 457 267 457 207 467" fill="none" stroke="#c9ff45" stroke-width="5"/>
+<!-- lane perspective -->
+<path d="M92 844 169 476" stroke="#f4df54" stroke-width="7"/>
+<path d="M298 844 221 476" stroke="#f4df54" stroke-width="7"/>
+<path d="M195 806v-26M195 730v-20M195 666v-16M195 612v-12M195 566v-9M195 526v-7" stroke="#e8edf0" stroke-width="5"/>
+<!-- lamps -->
+<g stroke="#dbe5eb" stroke-width="3" fill="none"><path d="M36 466v-88h15"/><path d="M352 470v-84h-15"/></g><g fill="#f8df61"><rect x="47" y="374" width="9" height="6"/><rect x="332" y="382" width="9" height="6"/></g>
+<!-- car, larger like board -->
+<g transform="translate(132 500)">
+<rect x="25" y="8" width="76" height="38" fill="#173450"/><rect x="33" y="13" width="28" height="27" fill="#07111f"/><rect x="66" y="13" width="27" height="27" fill="#07111f"/>
+<rect x="12" y="39" width="102" height="44" fill="#162838"/><rect x="7" y="49" width="112" height="30" fill="#1b2c3d"/><rect x="17" y="54" width="92" height="18" fill="#152333"/>
+<rect x="18" y="55" width="23" height="12" fill="#f05e58"/><rect x="85" y="55" width="23" height="12" fill="#f05e58"/><rect x="49" y="56" width="29" height="11" fill="#e5edf1"/>
+<rect x="17" y="78" width="25" height="18" fill="#03080d"/><rect x="85" y="78" width="25" height="18" fill="#03080d"/>
+</g>
+</svg>

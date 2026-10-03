@@ -6,17 +6,15 @@ export function initSearchFlow({state,travelService,setOrigin,hideMainLanding,sh
   async function start(launch='manual'){
     state.searchMode='travel';
     hideMainLanding?.();
-    document.body.classList.add('tq-search-ready');
+    document.body.classList.remove('tq-search-ready');
     explorer.clearCandidates();
     explorer.syncOrigin();
-    document.querySelector('#tripExplorer')?.scrollIntoView({behavior:'smooth',block:'start'});
+    document.querySelector('.wizard')?.scrollIntoView({behavior:'auto',block:'start'});
     if(launch==='gps'){
-      const origin=await explorer.useGpsOrigin();
-      if(origin)explorer.focusSearch();
-      else explorer.openStartPicker();
-    }else{
-      explorer.openStartPicker();
+      await explorer.useGpsOrigin();
+      explorer.syncOrigin();
     }
+    document.body.dataset.tripStep='1';
   }
 
   function reset(){
