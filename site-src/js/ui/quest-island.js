@@ -24,7 +24,7 @@ export function initQuestIsland(){
     const item=snapshotMarkup();
     if(!item){island.hidden=true;return}
     island.hidden=false;
-    island.innerHTML=`<button type="button" class="tq-quest-island-main" aria-label="현재 QUEST 열기"><span><i></i><small>ACTIVE COURSE</small><strong>${esc(item.courseId)}코스 · ${esc(item.title)}</strong></span><b>${esc(item.target)}</b></button>`;
+    island.innerHTML=`<button type="button" class="tq-quest-island-main" aria-label="현재 QUEST 열기"><span><i></i><small>QUEST</small><strong>${esc(item.courseId)}코스 · ${esc(item.title)}</strong></span><b>${esc(item.target)} <em>›</em></b></button>`;
   }
   function showCoursePopup(){
     const item=snapshotMarkup();if(!item)return;
