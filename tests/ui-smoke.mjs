@@ -10,6 +10,7 @@ const chrome=read('app-chrome.js');
 const searchCss=read('css/search.css');
 const productCss=read('css/product.css');
 const landingCss=read('css/landing.css');
+const pixelCss=read('css/pixel.css');
 const sw=read('sw.js');
 const manifest=JSON.parse(read('manifest.webmanifest'));
 const geoExplorer=read('js/ui/geo-explorer.js');
@@ -23,7 +24,7 @@ for(const id of ['mainLanding','mainLocateBtn','mainManualBtn','tripExplorer','g
   assert.ok(html.includes(`id="${id}"`),`required UI id missing: ${id}`);
 }
 for(const removed of ['geoCanvas','geoTarget','geoVector','geoJoystick','geoStickKnob','geoScanBtn','geoLocationPopup'])assert.ok(!html.includes(`id="${removed}"`),`map-game UI must be removed: ${removed}`);
-assert.ok(html.includes('AI TRIP SEARCH'),'AI trip search heading missing');
+assert.ok(html.includes('SEARCH QUEST'),'pixel search heading missing');
 assert.ok(html.includes('어디로 떠나고 싶나요?'),'AI trip search title missing');
 assert.ok(!html.includes('TRIP GEO')&&!html.includes('SCAN')&&!html.includes('TARGET LOCK'),'map-game copy must be removed');
 
@@ -56,10 +57,17 @@ assert.ok(searchCss.includes('.tq-geo-explorer'),'GEO explorer styles missing');
 assert.ok(geoExplorer.includes('.tq-search-only-panel'),'search-only layout style missing');
 assert.ok(productCss.includes('.tq-bottom-nav'),'bottom navigation styles missing');
 assert.ok(landingCss.includes('.main-landing'),'landing styles missing');
-assert.ok(sw.includes("const CACHE='trip-quest-v1.12.1-search-only-20261003'"),'service worker v1.12.1 cache version missing');
+assert.ok(sw.includes("const CACHE='trip-quest-v1.13.0-pixel-journey-20261003'"),'service worker v1.13.0 cache version missing');
+assert.ok(sw.includes('./css/pixel.css?v=1300'),'pixel design system must be cached');
 assert.equal(manifest.display,'standalone','PWA display must be standalone');
 assert.ok(Array.isArray(manifest.icons)&&manifest.icons.length>=2,'PWA icons missing');
-assert.ok(chrome.includes("probe.src='./assets/tq-cover-main-v044.webp'"),'landing artwork preload missing');
+assert.ok(chrome.includes("probe.src='./assets/tq-pixel-night-drive-v113.svg'"),'pixel landing artwork preload missing');
+assert.ok(html.includes('./assets/tq-pixel-night-drive-v113.svg'),'pixel cover preload missing');
+assert.ok(pixelCss.includes('PIXEL JOURNEY'),'pixel design system marker missing');
+assert.ok(pixelCss.includes('tq-pixel-night-drive-v113.svg'),'pixel cover background missing');
+assert.ok(pixelCss.includes('.tq-bottom-nav'),'bottom navigation pixel treatment missing');
+assert.ok(pixelCss.includes('.tq-quest-island-main'),'mission HUD pixel treatment missing');
+assert.ok(pixelCss.includes('.tq-setup-card'),'setup modal pixel treatment missing');
 
-assert.ok(chrome.includes("footer.textContent='TRIP QUEST · v1.12.1'"),'chrome runtime version must match v1.12.1');
-console.log('TRIP QUEST v1.12.1 clean search-only, start location, GPS, recommendations, and PWA smoke tests passed');
+assert.ok(chrome.includes("footer.textContent='TRIP QUEST · v1.13.0'"),'chrome runtime version must match v1.13.0');
+console.log('TRIP QUEST v1.13.0 Pixel Journey cover, search, chrome, mission UI, GPS, recommendations, and PWA smoke tests passed');
