@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="./css/base.css?v=110" />
   <link rel="stylesheet" href="./css/product.css?v=200" />
   <link rel="stylesheet" href="./css/landing.css?v=101" />
-  <link rel="stylesheet" href="./css/search.css?v=1200" />
+  <link rel="stylesheet" href="./css/search.css?v=1210" />
   <link rel="preload" as="image" href="./assets/tq-cover-main-v044.webp" fetchpriority="high" />
 </head>
 <body>
@@ -45,103 +45,17 @@
     </header>
     <main>
       <section id="sharedTripBanner" class="shared-trip panel" hidden><div><span>공유 받은 여행</span><strong id="sharedTripTitle">—</strong><small id="sharedTripMeta">—</small></div><button id="sharedTripUseBtn" class="btn primary small">내 위치로 다시 계산</button></section>
-      <section id="tripExplorer" class="tq-geo-explorer" aria-labelledby="aiTitle">
-        <div class="tq-geo-stage">
-          <div class="tq-geo-topline">
-            <div><span>TRIP GEO</span><b>EXPLORE VECTOR</b></div>
-            <div class="tq-geo-coordinates"><small>RANGE</small><strong id="geoExploreDistance">100 km</strong></div>
-          </div>
-
-          <svg id="geoCanvas" class="tq-geo-canvas" viewBox="80 0 840 760" role="img" aria-label="조이스틱으로 방향을 조준하고 SCAN하여 여행지를 찾는 게임형 탐색판">
-            <defs>
-              <radialGradient id="geoGlow" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#c9ff45" stop-opacity=".13"></stop>
-                <stop offset="55%" stop-color="#c9ff45" stop-opacity=".025"></stop>
-                <stop offset="100%" stop-color="#c9ff45" stop-opacity="0"></stop>
-              </radialGradient>
-              <linearGradient id="geoVectorGradient" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stop-color="#c9ff45" stop-opacity=".22"></stop>
-                <stop offset="100%" stop-color="#c9ff45" stop-opacity=".92"></stop>
-              </linearGradient>
-              <filter id="geoSoftGlow"><feGaussianBlur stdDeviation="10"></feGaussianBlur></filter>
-            </defs>
-            <rect class="tq-geo-field" width="1000" height="760"></rect>
-            <circle class="tq-geo-ambient" cx="500" cy="318" r="300" fill="url(#geoGlow)"></circle>
-            <g class="tq-geo-grid" aria-hidden="true">
-              <path d="M70 318H930M500 38V598"></path>
-              <path d="M128 92L872 544M872 92L128 544"></path>
-              <circle cx="500" cy="318" r="64"></circle>
-              <circle cx="500" cy="318" r="127"></circle>
-              <circle cx="500" cy="318" r="191"></circle>
-              <circle cx="500" cy="318" r="254"></circle>
-              <circle cx="500" cy="318" r="286"></circle>
-            </g>
-            <g class="tq-geo-ring-labels" aria-hidden="true">
-              <text x="512" y="258">100</text>
-              <text x="512" y="194">200</text>
-              <text x="512" y="130">300</text>
-              <text x="512" y="69">400 KM</text>
-            </g>
-            <g class="tq-geo-cardinals" aria-hidden="true">
-              <text x="500" y="30" text-anchor="middle">N</text>
-              <text x="947" y="323" text-anchor="middle">E</text>
-              <text x="500" y="627" text-anchor="middle">S</text>
-              <text x="53" y="323" text-anchor="middle">W</text>
-            </g>
-            <g class="tq-geo-contours" aria-hidden="true">
-              <path d="M120 210C220 154 294 202 354 170S498 106 586 148 720 220 882 172"></path>
-              <path d="M98 430C210 374 304 408 386 392S536 356 628 402 774 478 906 424"></path>
-              <path d="M176 520C286 476 366 518 462 492S650 468 826 526"></path>
-            </g>
-            <line id="geoVector" class="tq-geo-vector" x1="500" y1="318" x2="596" y2="254"></line>
-            <g id="geoCandidateLayer"></g>
-            <g class="tq-geo-origin" transform="translate(500 318)">
-              <circle class="halo" r="29"></circle><circle class="core" r="12"></circle>
-              <text y="48" text-anchor="middle">START</text>
-            </g>
-            <g id="geoTargetPulse" class="tq-geo-target-pulse" transform="translate(596 254)"><circle r="34"></circle></g>
-            <g id="geoTarget" class="tq-geo-target" transform="translate(596 254)" role="button" aria-label="조이스틱으로 이동하는 탐색 TARGET" tabindex="0">
-              <circle class="grab" r="36"></circle><circle class="outer" r="22"></circle><circle class="inner" r="9"></circle>
-              <path d="M0-45V-30M0 30V45M-45 0H-30M30 0H45"></path>
-              <text y="60" text-anchor="middle">TARGET</text>
-            </g>
-          </svg>
-          <div class="tq-geo-game-controls" aria-label="GEO 게임 컨트롤">
-            <div class="tq-geo-control-block">
-              <div id="geoJoystick" class="tq-geo-joystick" role="application" aria-label="방향 조이스틱">
-                <b class="n">N</b><b class="e">E</b><b class="s">S</b><b class="w">W</b><i id="geoStickKnob" class="tq-geo-stick-knob"></i>
-              </div>
-              <small>DIRECTION</small>
-            </div>
-            <div class="tq-geo-control-block">
-              <button id="geoScanBtn" class="tq-geo-scan" type="button"><strong>SCAN</strong><span>SEARCH</span></button>
-              <small>TARGET SEARCH</small>
-            </div>
-          </div>
-
-          <div class="tq-geo-readout">
-            <span><small>DIRECTION</small><b id="geoExploreDirection">북동 · 56°</b></span>
-            <span><small>LOCATION</small><b id="geoExplorePlace">조이스틱으로 방향을 조준한 뒤 SCAN 하세요.</b></span>
-          </div>
-
-          <div id="geoLocationPopup" class="tq-geo-location-popup" hidden>
-            <div><small>LOCATION FOUND</small><strong id="geoPopupTitle">위치 분석 중…</strong><span id="geoPopupMeta">—</span></div>
-            <button id="geoPopupUse" type="button">TARGET LOCK →</button>
-          </div>
-        </div>
-
-        <section id="geoSearchSheet" class="tq-geo-search-sheet" data-state="mid">
-          <button id="geoSheetHandle" class="tq-geo-sheet-handle" type="button" aria-label="검색 패널을 위아래로 드래그"><i></i></button>
+      <section id="tripExplorer" class="tq-geo-explorer tq-search-only" aria-labelledby="aiTitle">
+        <section id="geoSearchSheet" class="tq-geo-search-sheet tq-search-only-panel">
           <div class="tq-geo-sheet-top">
             <div class="tq-geo-start">
               <span><small>START</small><strong id="geoStartLabel">시작 위치를 설정하세요.</strong></span>
-              <div><button id="geoStartQuickGps" type="button">현재 위치</button><button id="geoStartChange" type="button">직접 입력</button></div>
+              <div><button id="geoStartQuickGps" type="button">현재 위치</button><button id="geoStartChange" type="button">지역 선택</button></div>
             </div>
-            <button id="geoSheetExpand" class="tq-geo-sheet-expand" type="button" aria-label="검색 패널 펼치기">↕</button>
           </div>
           <div class="tq-geo-search-copy">
             <div><span>AI TRIP SEARCH</span><h1 id="aiTitle">어디로 떠나고 싶나요?</h1></div>
-            <p id="geoSearchContext">조이스틱 방향과 SCAN 위치, 자연어 조건을 함께 분석합니다.</p>
+            <p id="geoSearchContext">원하는 여행을 자연스럽게 입력하면 조건에 맞는 여행지를 찾아드립니다.</p>
           </div>
           <div class="ai-composer tq-geo-composer">
             <label class="sr-only" for="aiInput">TRIP QUEST 검색 요청</label>
@@ -165,11 +79,11 @@
       </section>
     </main>
   </div>
-  <footer class="app-version-footer">TRIP QUEST · v1.12.0</footer>
+  <footer class="app-version-footer">TRIP QUEST · v1.12.1</footer>
   <div id="iosInstallTip" class="install-sheet" hidden><div class="install-card"><button id="closeInstallTip" class="install-close" aria-label="닫기">×</button><b>iPhone / iPad에 설치</b><p>Safari 하단의 공유 버튼을 누른 뒤 <strong>홈 화면에 추가</strong>를 선택하세요.</p></div></div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script type="module" src="./app.js?v=20261003-v1120"></script>
+  <script type="module" src="./app.js?v=20261003-v1121"></script>
   <script src="./app-chrome.js?v=1200" defer></script>
 </body>
 </html>
