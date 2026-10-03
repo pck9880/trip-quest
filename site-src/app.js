@@ -141,7 +141,7 @@ function applyPatch(patch={}){
 
 function showAI(result){
   $('#aiConversation').hidden=false;
-  setText('#aiMode','TRIP SEARCH ANALYSIS');
+  setText('#aiMode','QUEST FOUND');
   setText('#aiReply',result.message||'요청을 처리했습니다.');
   const tags=$('#aiAnalysisTags');
   if(tags){
@@ -172,10 +172,10 @@ async function askAI(message,options={}){
   state.aiBusy=true;
   const btn=$('#aiSend'),status=$('#aiSearchStatus'),finishGauge=startAIProgressGauge();
   $('#aiConversation').hidden=false;$('#aiChoices').innerHTML='';
-  setText('#aiMode','SEARCH ANALYSIS');
+  setText('#aiMode','SEARCH QUEST');
   setText('#aiReply','여행 조건을 분석하고 있습니다…');
   if(status){status.hidden=false;status.className='ai-search-status working';status.textContent='1/2 · 여행 의도 분석 중…'}
-  btn.disabled=true;btn.classList.remove('ai-done','ai-error');btn.textContent='분석 중…';
+  btn.disabled=true;btn.classList.remove('ai-done','ai-error');btn.textContent='SEARCHING…';
   state.selected=null;
   searchUI?.clearCandidates?.();
   searchUI?.setSheetState?.('mid',true);
@@ -184,7 +184,7 @@ async function askAI(message,options={}){
   try{
     await ensureAIOrigin();
     await new Promise(r=>setTimeout(r,360));
-    btn.textContent='추천지 찾는 중…';
+    btn.textContent='QUEST SEARCH…';
     if(status)status.textContent='2/2 · 출발 위치와 취향으로 추천지 계산 중…';
 
     const result=await travelService.aiSearch(message.trim(),{...currentPayload(),distanceBand:state.activeDistanceBand});
@@ -200,10 +200,10 @@ async function askAI(message,options={}){
     }
 
     btn.classList.add('ai-done');
-    btn.textContent=count?`추천 완료 ✓ · ${count}곳`:'분석 완료 ✓';
+    btn.textContent=count?`QUEST FOUND · ${count}곳`:'SEARCH COMPLETE';
     if(status){status.className='ai-search-status done';status.textContent=count?`완료 · GEO CANVAS에 추천지 ${count}곳을 표시했습니다.`:'완료 · 조건을 다시 조정해보세요.'}
     finishGauge(true);
-    setTimeout(()=>{if(!state.aiBusy){btn.classList.remove('ai-done');btn.textContent='여행지 찾기'}},1800);
+    setTimeout(()=>{if(!state.aiBusy){btn.classList.remove('ai-done');btn.textContent='SEARCH QUEST'}},1800);
   }catch(e){
     btn.classList.add('ai-error');btn.textContent='검색 준비 필요';
     if(status){status.className='ai-search-status error';status.textContent=e.message||'검색을 시작할 수 없습니다.'}
