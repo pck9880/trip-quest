@@ -15,9 +15,9 @@
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="./css/base.css?v=110" />
-  <link rel="stylesheet" href="./css/product.css?v=190" />
+  <link rel="stylesheet" href="./css/product.css?v=200" />
   <link rel="stylesheet" href="./css/landing.css?v=101" />
-  <link rel="stylesheet" href="./css/search.css?v=1100" />
+  <link rel="stylesheet" href="./css/search.css?v=1200" />
   <link rel="preload" as="image" href="./assets/tq-cover-main-v044.webp" fetchpriority="high" />
 </head>
 <body>
@@ -52,7 +52,7 @@
             <div class="tq-geo-coordinates"><small>RANGE</small><strong id="geoExploreDistance">100 km</strong></div>
           </div>
 
-          <svg id="geoCanvas" class="tq-geo-canvas" viewBox="0 0 1000 760" role="img" aria-label="출발점에서 탐색 포인트를 드래그해 여행 방향을 선택하는 인터랙티브 탐색판">
+          <svg id="geoCanvas" class="tq-geo-canvas" viewBox="80 0 840 760" role="img" aria-label="조이스틱으로 방향을 조준하고 SCAN하여 여행지를 찾는 게임형 탐색판">
             <defs>
               <radialGradient id="geoGlow" cx="50%" cy="50%" r="50%">
                 <stop offset="0%" stop-color="#c9ff45" stop-opacity=".13"></stop>
@@ -103,18 +103,30 @@
             <g id="geoTarget" class="tq-geo-target" transform="translate(596 254)" role="button" aria-label="탐색 포인트. 드래그해서 이동하세요." tabindex="0">
               <circle class="grab" r="36"></circle><circle class="outer" r="22"></circle><circle class="inner" r="9"></circle>
               <path d="M0-45V-30M0 30V45M-45 0H-30M30 0H45"></path>
-              <text y="60" text-anchor="middle">DRAG</text>
+              <text y="60" text-anchor="middle">TARGET</text>
             </g>
           </svg>
+          <div class="tq-geo-game-controls" aria-label="GEO 게임 컨트롤">
+            <div class="tq-geo-control-block">
+              <div id="geoJoystick" class="tq-geo-joystick" role="application" aria-label="방향 조이스틱">
+                <b class="n">N</b><b class="e">E</b><b class="s">S</b><b class="w">W</b><i id="geoStickKnob" class="tq-geo-stick-knob"></i>
+              </div>
+              <small>DIRECTION</small>
+            </div>
+            <div class="tq-geo-control-block">
+              <button id="geoScanBtn" class="tq-geo-scan" type="button"><strong>SCAN</strong><span>SEARCH</span></button>
+              <small>TARGET SEARCH</small>
+            </div>
+          </div>
 
           <div class="tq-geo-readout">
             <span><small>DIRECTION</small><b id="geoExploreDirection">북동 · 56°</b></span>
-            <span><small>LOCATION</small><b id="geoExplorePlace">포인트를 드래그해 탐색 방향을 정하세요.</b></span>
+            <span><small>LOCATION</small><b id="geoExplorePlace">조이스틱으로 방향을 조준한 뒤 SCAN 하세요.</b></span>
           </div>
 
           <div id="geoLocationPopup" class="tq-geo-location-popup" hidden>
             <div><small>LOCATION FOUND</small><strong id="geoPopupTitle">위치 분석 중…</strong><span id="geoPopupMeta">—</span></div>
-            <button id="geoPopupUse" type="button">이 주변 탐색 →</button>
+            <button id="geoPopupUse" type="button">TARGET LOCK →</button>
           </div>
         </div>
 
@@ -129,7 +141,7 @@
           </div>
           <div class="tq-geo-search-copy">
             <div><span>AI TRIP SEARCH</span><h1 id="aiTitle">어디로 떠나고 싶나요?</h1></div>
-            <p id="geoSearchContext">지도 탐색 포인트와 자연어 조건을 함께 분석합니다.</p>
+            <p id="geoSearchContext">조이스틱 방향과 SCAN 위치, 자연어 조건을 함께 분석합니다.</p>
           </div>
           <div class="ai-composer tq-geo-composer">
             <label class="sr-only" for="aiInput">TRIP QUEST 검색 요청</label>
@@ -153,11 +165,11 @@
       </section>
     </main>
   </div>
-  <footer class="app-version-footer">TRIP QUEST · v1.11.1</footer>
+  <footer class="app-version-footer">TRIP QUEST · v1.12.0</footer>
   <div id="iosInstallTip" class="install-sheet" hidden><div class="install-card"><button id="closeInstallTip" class="install-close" aria-label="닫기">×</button><b>iPhone / iPad에 설치</b><p>Safari 하단의 공유 버튼을 누른 뒤 <strong>홈 화면에 추가</strong>를 선택하세요.</p></div></div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script type="module" src="./app.js?v=20261003-v1111"></script>
-  <script src="./app-chrome.js?v=1100" defer></script>
+  <script type="module" src="./app.js?v=20261003-v1120"></script>
+  <script src="./app-chrome.js?v=1200" defer></script>
 </body>
 </html>
