@@ -60,7 +60,7 @@
     probe.fetchPriority='high';
     probe.onload=()=>{landing.classList.add('tq-photo-ready');landing.classList.remove('tq-photo-error')};
     probe.onerror=()=>{landing.classList.remove('tq-photo-ready');landing.classList.add('tq-photo-error')};
-    probe.src='./assets/tq-pixel-night-drive-v114.svg';
+    probe.src='./assets/tq-board-cover-v116.svg';
     if(probe.complete){
       if(probe.naturalWidth)probe.onload();
       else probe.onerror();
@@ -287,54 +287,27 @@
     if($('.tq-bottom-nav'))return;
     const nav=el('nav','tq-bottom-nav');
     nav.setAttribute('aria-label','앱 하단 메뉴');
-    nav.innerHTML=`<button type="button" data-tab="explore" class="active"><i>${iconSvg('ai','tq-icon tq-nav-icon')}</i><span>탐색</span></button><button type="button" data-tab="quest"><i>${iconSvg('quest','tq-icon tq-nav-icon')}</i><span>QUEST</span></button><button type="button" data-tab="keep"><i>${iconSvg('star','tq-icon tq-nav-icon')}</i><span>KEEP</span><b class="tq-keep-badge" hidden>0</b></button><button type="button" data-tab="my"><i>${iconSvg('user','tq-icon tq-nav-icon')}</i><span>MY</span></button>`;
+    nav.innerHTML=`<button type="button" data-tab="home"><i>${iconSvg('home','tq-icon tq-nav-icon')}</i><span>홈</span></button><button type="button" data-tab="explore" class="active"><i>${iconSvg('ai','tq-icon tq-nav-icon')}</i><span>검색</span></button><button type="button" data-tab="course"><i>${iconSvg('route','tq-icon tq-nav-icon')}</i><span>코스</span></button><button type="button" data-tab="quest"><i>${iconSvg('quest','tq-icon tq-nav-icon')}</i><span>퀘스트</span></button><button type="button" data-tab="my"><i>${iconSvg('user','tq-icon tq-nav-icon')}</i><span>마이</span></button>`;
     document.body.appendChild(nav);
-
     let activeTab='explore';
-    const setActive=tab=>{
-      activeTab=tab;
-      nav.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
-    };
-    const updateKeepBadge=count=>{
-      const badge=nav.querySelector('.tq-keep-badge');
-      if(!badge)return;
-      const n=Math.max(0,Number(count)||0);
-      badge.textContent=n>99?'99+':String(n);
-      badge.hidden=n===0;
-    };
-    const closePanels=except=>{
-      if(except!=='quest')window.dispatchEvent(new CustomEvent('tripquest:close-quest'));
-      if(except!=='keep')window.dispatchEvent(new CustomEvent('tripquest:close-keep'));
-      if(except!=='my')window.dispatchEvent(new CustomEvent('tripquest:close-my'));
-    };
-
+    const setActive=tab=>{activeTab=tab;nav.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab))};
+    const closePanels=except=>{if(except!=='quest')window.dispatchEvent(new CustomEvent('tripquest:close-quest'));if(except!=='keep')window.dispatchEvent(new CustomEvent('tripquest:close-keep'));if(except!=='my')window.dispatchEvent(new CustomEvent('tripquest:close-my'))};
     nav.onclick=e=>{
-      const b=e.target.closest('button');if(!b)return;
-      const tab=b.dataset.tab;
-      if(tab==='explore'){
-        closePanels('explore');setActive('explore');
-        document.body.classList.add('tq-search-ready');scrollToTarget('#tripExplorer');$('#aiInput')?.focus({preventScroll:true});
-      }else if(tab==='quest'){
-        closePanels('quest');window.dispatchEvent(new CustomEvent('tripquest:open-quest'));setActive('quest');
-      }else if(tab==='keep'){
-        closePanels('keep');window.dispatchEvent(new CustomEvent('tripquest:open-keep'));setActive('keep');
-      }else if(tab==='my'){
-        closePanels('my');window.dispatchEvent(new CustomEvent('tripquest:open-my'));setActive('my');
-      }
+      const b=e.target.closest('button');if(!b)return;const tab=b.dataset.tab;
+      if(tab==='home'){closePanels('home');setActive('home');showCover()}
+      else if(tab==='explore'){closePanels('explore');setActive('explore');document.body.classList.add('tq-search-ready');scrollToTarget('#tripExplorer');$('#aiInput')?.focus({preventScroll:true})}
+      else if(tab==='course'){closePanels('course');setActive('course');scrollToTarget('[data-step-view="5"]')}
+      else if(tab==='quest'){closePanels('quest');window.dispatchEvent(new CustomEvent('tripquest:open-quest'));setActive('quest')}
+      else if(tab==='my'){closePanels('my');window.dispatchEvent(new CustomEvent('tripquest:open-my'));setActive('my')}
     };
-
-    window.addEventListener('tripquest:keep-change',e=>updateKeepBadge(e.detail?.count));
-    window.addEventListener('tripquest:keep-count',e=>updateKeepBadge(e.detail?.count));
     window.addEventListener('tripquest:quest-closed',()=>{if(activeTab==='quest')setActive('explore')});
-    window.addEventListener('tripquest:keep-closed',()=>{if(activeTab==='keep')setActive('explore')});
     window.addEventListener('tripquest:my-closed',()=>{if(activeTab==='my')setActive('explore')});
-    window.dispatchEvent(new CustomEvent('tripquest:keep-request-count'));
   }
   function enhanceTopbar(){const top=$('.topbar');if(!top||top.querySelector('.tq-top-label'))return;top.classList.add('tq-appbar');const label=el('div','tq-top-label','<small>TRIP QUEST</small><strong>여행 찾기</strong>');$('.brand')?.after(label);const share=$('#topShareBtn');if(share){share.setAttribute('aria-label','여행 공유');share.textContent='↗';share.classList.add('tq-icon-btn')}}
   function observeLanding(){const landing=$('#mainLanding'),category=$('#categorySelect'),nav=$('.tq-bottom-nav');if(!landing)return;const sync=()=>nav?.classList.toggle('cover-open',!landing.hidden||!!category&&!category.hidden);const observer=new MutationObserver(sync);observer.observe(landing,{attributes:true,attributeFilter:['hidden','class']});if(category)observer.observe(category,{attributes:true,attributeFilter:['hidden','class']});sync()}
   function enforceCourseDetailOrder(){const panel=$('#courseDetailPanel'),map=panel?.querySelector('.course-route-map-card'),actions=panel?.querySelector('#courseActionButtons');if(panel&&map&&actions&&map.nextElementSibling!==actions)map.insertAdjacentElement('afterend',actions)}
   function observeCourseDetailOrder(){const panel=$('#courseDetailPanel');if(!panel)return;enforceCourseDetailOrder();new MutationObserver(()=>requestAnimationFrame(enforceCourseDetailOrder)).observe(panel,{childList:true,subtree:false})}
   function runtimeHealthCheck(){document.querySelectorAll('#categoryChoices button,#directionChoices button,.progress-step').forEach(b=>b.type='button')}
-  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();bindLandingPressFeedback();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();createVehicleSetup();window.addEventListener('tripquest:open-vehicle-settings',openVehicleSetup);watchFirstLocation();applyVehicleSettings();refreshEnergyPrices();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v1.15.0';document.documentElement.classList.add('tq-chrome-ready')}
+  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();bindLandingPressFeedback();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();createVehicleSetup();window.addEventListener('tripquest:open-vehicle-settings',openVehicleSetup);watchFirstLocation();applyVehicleSettings();refreshEnergyPrices();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST · v1.16.0';document.documentElement.classList.add('tq-chrome-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootChrome,{once:true});else bootChrome();
 })();
