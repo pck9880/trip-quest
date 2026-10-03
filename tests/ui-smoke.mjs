@@ -19,44 +19,23 @@ const searchFlow=read('js/ui/search-flow.js');
 const appController=read('js/controllers/app-controller.js');
 const tripStore=read('js/store/trip-store.js');
 
-for(const id of ['mainLanding','mainLocateBtn','mainManualBtn','tripExplorer','geoCanvas','geoTarget','geoVector','geoLocationPopup','geoPopupTitle','geoPopupUse','geoSearchSheet','geoStartLabel','geoStartQuickGps','geoStartChange','geoJoystick','geoStickKnob','geoScanBtn','aiInput','aiSend','geoResults']){
+for(const id of ['mainLanding','mainLocateBtn','mainManualBtn','tripExplorer','geoSearchSheet','geoStartLabel','geoStartQuickGps','geoStartChange','aiInput','aiSend','geoResults']){
   assert.ok(html.includes(`id="${id}"`),`required UI id missing: ${id}`);
 }
-
-assert.ok(html.includes('TRIP GEO'),'GEO canvas heading missing');
-assert.ok(html.includes('EXPLORE VECTOR'),'GEO canvas vector label missing');
+for(const removed of ['geoCanvas','geoTarget','geoVector','geoJoystick','geoStickKnob','geoScanBtn','geoLocationPopup'])assert.ok(!html.includes(`id="${removed}"`),`map-game UI must be removed: ${removed}`);
+assert.ok(html.includes('AI TRIP SEARCH'),'AI trip search heading missing');
 assert.ok(html.includes('어디로 떠나고 싶나요?'),'AI trip search title missing');
+assert.ok(!html.includes('TRIP GEO')&&!html.includes('SCAN')&&!html.includes('TARGET LOCK'),'map-game copy must be removed');
 
-assert.ok(geoExplorer.includes('const KOREA='),'South Korea map bounds missing');
 assert.ok(geoExplorer.includes('const REGIONS=['),'17-region source missing');
 assert.equal((geoExplorer.match(/\['[^']+','[^']+',\d/g)||[]).length,17,'all 17 first-level regions must be defined');
-assert.ok(geoExplorer.includes('const LAND=['),'dotted Korea land boundary missing');
-assert.ok(geoExplorer.includes('installKoreaCanvas'),'dotted Korea map renderer missing');
-assert.ok(geoExplorer.includes('tq-dot-land'),'dotted Korea land layer missing');
-assert.ok(geoExplorer.includes('tq-city-labels'),'major city labels missing');
-assert.ok(geoExplorer.includes('const MAP_LABELS=['),'detailed geographic label source missing');
-for(const city of ['서울','인천','수원','춘천','강릉','청주','대전','전주','광주','대구','포항','울산','창원','부산','여수','제주'])assert.ok(geoExplorer.includes(`'${city}'`),`map label missing: ${city}`);
-assert.ok(geoExplorer.includes("font:800 22px"),'desktop map labels must be readable');
-assert.ok(geoExplorer.includes("font-size:22px"),'mobile map labels must be readable');
-assert.ok(geoExplorer.includes("gpsService.current({enableHighAccuracy:true,timeout:20000,maximumAge:0})"),'GEO current-location flow must use fresh high-accuracy GPS');
-for(const city of ['서울','대전','대구','광주','부산','울산','제주'])assert.ok(geoExplorer.includes(`'${city}'`),`major city label missing: ${city}`);
-assert.ok(geoExplorer.includes('geoToXY')&&geoExplorer.includes('xyToGeo'),'Korea coordinate projection missing');
-assert.ok(geoExplorer.includes('function startStick'),'joystick pointer control missing');
-assert.ok(geoExplorer.includes('requestAnimationFrame(joystickTick)'),'joystick continuous movement loop missing');
-assert.ok(geoExplorer.includes('function updateCityFocus'),'city focus magnification missing');
-assert.ok(geoExplorer.includes("scale=1.38"),'near-city magnification strength missing');
-assert.ok(geoExplorer.includes('async function scanTarget'),'SCAN target search flow missing');
-assert.ok(geoExplorer.includes('await onSearch?.()'),'SCAN must invoke the existing trip search flow');
-assert.ok(!geoExplorer.includes('startTargetDrag'),'direct map target dragging must be removed');
-assert.ok(geoExplorer.includes('travelService.reverseGeocode'),'SCAN place analysis missing');
+assert.ok(!geoExplorer.includes('const KOREA=')&&!geoExplorer.includes('installKoreaCanvas')&&!geoExplorer.includes('startStick')&&!geoExplorer.includes('scanTarget'),'map-game implementation must be removed');
+assert.ok(geoExplorer.includes("gpsService.current({enableHighAccuracy:true,timeout:20000,maximumAge:0})"),'current-location flow must use fresh high-accuracy GPS');
 assert.ok(geoExplorer.includes('tq-start-region-list'),'scrollable region picker missing');
-assert.ok(geoExplorer.includes("changeBtn.textContent='지역 선택'"),'manual start action must be region selection');
 assert.ok(geoExplorer.includes("displayRegion:r[0]"),'selected region must become START display region');
 assert.ok(geoExplorer.includes('origin.displayRegion=cityLabel(origin)'),'GPS origin must resolve to a city/region START label');
-assert.ok(geoExplorer.includes('.tq-geo-search-sheet{position:relative!important'),'AI search panel must use static document flow');
-assert.ok(geoExplorer.includes('.tq-geo-sheet-handle,.tq-geo-sheet-expand{display:none!important}'),'search panel drag controls must stay disabled');
-assert.ok(geoExplorer.includes("popup.classList.add('tq-location-result-bar')"),'location result must stay outside the map overlay');
-assert.ok(!geoExplorer.includes('L.map('),'primary GEO canvas must not use Leaflet tiles');
+assert.ok(geoExplorer.includes('tq-search-only-panel'),'clean search-only panel styles missing');
+assert.ok(!geoExplorer.includes('L.map('),'search panel must not create a map');
 
 assert.ok(geocoding.includes('export async function reverseGeocode'),'reverse geocoder missing');
 assert.ok(geocoding.includes('PLACE_ALIASES'),'place alias resolver missing');
@@ -74,15 +53,13 @@ assert.ok(tripStore.includes('const INITIAL_SECTIONS='),'structured trip state m
 assert.ok(tripStore.includes('function resetJourney()'),'trip reset lifecycle missing');
 
 assert.ok(searchCss.includes('.tq-geo-explorer'),'GEO explorer styles missing');
-assert.ok(searchCss.includes('.tq-geo-target'),'GEO target styles missing');
+assert.ok(geoExplorer.includes('.tq-search-only-panel'),'search-only layout style missing');
 assert.ok(productCss.includes('.tq-bottom-nav'),'bottom navigation styles missing');
 assert.ok(landingCss.includes('.main-landing'),'landing styles missing');
-assert.ok(sw.includes("const CACHE='trip-quest-v1.12.0-geo-gameplay-20261003'"),'service worker v1.12.0 cache version missing');
+assert.ok(sw.includes("const CACHE='trip-quest-v1.12.1-search-only-20261003'"),'service worker v1.12.1 cache version missing');
 assert.equal(manifest.display,'standalone','PWA display must be standalone');
 assert.ok(Array.isArray(manifest.icons)&&manifest.icons.length>=2,'PWA icons missing');
 assert.ok(chrome.includes("probe.src='./assets/tq-cover-main-v044.webp'"),'landing artwork preload missing');
 
-assert.ok(html.includes('viewBox="80 0 840 760"'),'GEO map viewport must enlarge Korea without distorting projection');
-assert.ok(html.includes('TARGET LOCK →'),'target lock action missing');
-assert.ok(chrome.includes("footer.textContent='TRIP QUEST · v1.12.0'"),'chrome runtime version must match v1.12.0');
-console.log('TRIP QUEST v1.12.0 GEO joystick, SCAN, city focus magnification, mission HUD, GPS, and PWA smoke tests passed');
+assert.ok(chrome.includes("footer.textContent='TRIP QUEST · v1.12.1'"),'chrome runtime version must match v1.12.1');
+console.log('TRIP QUEST v1.12.1 clean search-only, start location, GPS, recommendations, and PWA smoke tests passed');
