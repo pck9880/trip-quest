@@ -9,7 +9,6 @@ export function initSearchFlow({state,travelService,setOrigin,hideMainLanding,sh
     document.body.classList.remove('tq-search-ready');
     explorer.clearCandidates();
     explorer.syncOrigin();
-    setOrigin?.(state.origin||null);
     document.querySelector('.wizard')?.scrollIntoView({behavior:'auto',block:'start'});
     if(launch==='gps'){
       await explorer.useGpsOrigin();
