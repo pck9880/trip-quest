@@ -12,7 +12,13 @@ export function bindAppActions({state,setStep,sortRecommendations,useLocation,se
   $('#resetBtn')?.addEventListener('click',resetTrip);
   $('.brand').onclick=e=>{e.preventDefault();resetTrip()};
   $('#backBtn')?.addEventListener('click',()=>setStep(Math.max(1,state.step-1)));
-  $('#nextBtn')?.addEventListener('click',async()=>{if(state.step===4&&state.selected)setStep(5);else if(state.step===5)resetTrip()});
+  $('#nextBtn')?.addEventListener('click',async()=>{
+    if(state.step===1){if(!state.origin){document.querySelector('#originSearch')?.focus();return}setStep(2)}
+    else if(state.step===2){await recommend()}
+    else if(state.step===3){await recommend()}
+    else if(state.step===4&&state.selected)setStep(5);
+    else if(state.step===5)resetTrip();
+  });
   $('#editConditionsBtn')?.addEventListener('click',()=>{document.body.classList.add('tq-search-ready');setStep(1);document.querySelector('#tripExplorer')?.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>$('#aiInput')?.focus(),160)});
   $('#changePlaceBtn')?.addEventListener('click',()=>{document.body.classList.add('tq-search-ready');setStep(1);document.querySelector('#tripExplorer')?.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>$('#aiInput')?.focus(),160)});
   $('#noMatchActions')?.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.noMatch==='similar')searchSimilarDistance();else{document.body.classList.add('tq-search-ready');document.querySelector('#tripExplorer')?.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>$('#aiInput')?.focus(),160)}});
