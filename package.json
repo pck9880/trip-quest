@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/search-mode-smoke.mjs && node tests/ai-smoke.mjs && node tests/keep-smoke.mjs && node tests/user-smoke.mjs && node tests/quest-smoke.mjs && node tests/reference-smoke.mjs && node tests/ui-smoke.mjs && node tests/style-smoke.mjs && node tests/sale-readiness.mjs",
+    "test": "node tests/search-mode-smoke.mjs && node tests/ai-smoke.mjs && node tests/keep-smoke.mjs && node tests/user-smoke.mjs && node tests/quest-smoke.mjs && node tests/reference-smoke.mjs && node tests/ui-smoke.mjs && node tests/style-smoke.mjs && node tests/board-design-smoke.mjs && node tests/sale-readiness.mjs",
     "verify:sale": "npm test"
   }
 }
