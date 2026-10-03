@@ -9,6 +9,16 @@ export function bindAppActions({state,setStep,sortRecommendations,useLocation,se
   $('#originSearch')?.addEventListener('keydown',e=>{if(e.key==='Enter')searchOrigin()});
   $('#departTime')?.addEventListener('change',updateSchedulePreview);
   $('#returnTime')?.addEventListener('change',updateSchedulePreview);
+  $('#boardDurationChoices')?.addEventListener('click',e=>{
+    const b=e.target.closest('button[data-hours]');if(!b)return;
+    document.querySelectorAll('#boardDurationChoices button').forEach(x=>x.classList.toggle('selected',x===b));
+    const depart=$('#departTime'),ret=$('#returnTime');if(!depart||!ret)return;
+    const start=depart.value?new Date(depart.value):new Date();
+    const end=new Date(start.getTime()+Number(b.dataset.hours||10)*3600000);
+    const pad=n=>String(n).padStart(2,'0');
+    ret.value=`${end.getFullYear()}-${pad(end.getMonth()+1)}-${pad(end.getDate())}T${pad(end.getHours())}:${pad(end.getMinutes())}`;
+    updateSchedulePreview();
+  });
   $('#resetBtn')?.addEventListener('click',resetTrip);
   $('.brand').onclick=e=>{e.preventDefault();resetTrip()};
   $('#backBtn')?.addEventListener('click',()=>setStep(Math.max(1,state.step-1)));
