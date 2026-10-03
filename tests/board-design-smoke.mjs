@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const root=new URL('../site-src/',import.meta.url);
+const read=p=>fs.readFileSync(new URL(p,root),'utf8');
+const html=read('index.html'),css=read('css/pixel.css'),geo=read('js/ui/geo-explorer.js');
+assert.ok(css.includes('BOARD MATCH'),'board must be the visual source of truth');
+for(const token of ['--tq-lime:#c9ff45','--tq-navy:#07111f','--tq-panel:#0d1b2a','--tq-white:#f5f7f2']) assert.ok(css.includes(token),'missing board token '+token);
+for(const selector of ['.main-landing.tq-photo-ready #mainLocateBtn','.progress.panel','.category-grid','.ai-progress-track','.result-sort','.tq-quest-island-main','.tq-quest-complete','.tq-bottom-nav']) assert.ok(css.includes(selector),'missing board screen treatment '+selector);
+assert.ok(html.includes('내 위치에서 여행 찾기'),'board splash CTA copy missing');
+assert.ok(html.includes('./css/pixel.css?v=1500'),'board CSS cache token missing');
+assert.ok(!geo.includes('style.textContent='),'runtime search style must not override board CSS');
+assert.ok(!css.includes('border-radius:999px'),'board does not use pill CTA buttons');
+console.log('TRIP QUEST v1.15.0 uploaded-board design checks passed');

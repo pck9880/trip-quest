@@ -35,7 +35,8 @@ assert.ok(geoExplorer.includes("gpsService.current({enableHighAccuracy:true,time
 assert.ok(geoExplorer.includes('tq-start-region-list'),'scrollable region picker missing');
 assert.ok(geoExplorer.includes("displayRegion:r[0]"),'selected region must become START display region');
 assert.ok(geoExplorer.includes('origin.displayRegion=cityLabel(origin)'),'GPS origin must resolve to a city/region START label');
-assert.ok(geoExplorer.includes('tq-search-only-panel'),'clean search-only panel styles missing');
+assert.ok(pixelCss.includes('.tq-search-only-panel'),'board-owned search panel styles missing');
+assert.ok(!geoExplorer.includes('style.textContent='),'runtime search CSS must not override the board');
 assert.ok(!geoExplorer.includes('L.map('),'search panel must not create a map');
 
 assert.ok(geocoding.includes('export async function reverseGeocode'),'reverse geocoder missing');
@@ -54,20 +55,20 @@ assert.ok(tripStore.includes('const INITIAL_SECTIONS='),'structured trip state m
 assert.ok(tripStore.includes('function resetJourney()'),'trip reset lifecycle missing');
 
 assert.ok(searchCss.includes('.tq-geo-explorer'),'GEO explorer styles missing');
-assert.ok(geoExplorer.includes('.tq-search-only-panel'),'search-only layout style missing');
+assert.ok(pixelCss.includes('.tq-search-only-panel'),'board search-only layout style missing');
 assert.ok(productCss.includes('.tq-bottom-nav'),'bottom navigation styles missing');
 assert.ok(landingCss.includes('.main-landing'),'landing styles missing');
-assert.ok(sw.includes("const CACHE='trip-quest-v1.14.0-pixel-travel-20261003'"),'service worker v1.14.0 cache version missing');
-assert.ok(sw.includes('./css/pixel.css?v=1400'),'pixel design system must be cached');
+assert.ok(sw.includes("const CACHE='trip-quest-v1.15.0-board-match-20261003'"),'service worker v1.15.0 cache version missing');
+assert.ok(sw.includes('./css/pixel.css?v=1500'),'pixel design system must be cached');
 assert.equal(manifest.display,'standalone','PWA display must be standalone');
 assert.ok(Array.isArray(manifest.icons)&&manifest.icons.length>=2,'PWA icons missing');
 assert.ok(chrome.includes("probe.src='./assets/tq-pixel-night-drive-v114.svg'"),'redesigned pixel landing artwork preload missing');
 assert.ok(html.includes('./assets/tq-pixel-night-drive-v114.svg'),'pixel cover preload missing');
-assert.ok(pixelCss.includes('PIXEL TRAVEL UI'),'pixel travel design system marker missing');
+assert.ok(pixelCss.includes('BOARD MATCH'),'pixel travel design system marker missing');
 assert.ok(pixelCss.includes('tq-pixel-night-drive-v114.svg'),'pixel cover background missing');
 assert.ok(pixelCss.includes('.tq-bottom-nav'),'bottom navigation pixel treatment missing');
 assert.ok(pixelCss.includes('.tq-quest-island-main'),'mission HUD pixel treatment missing');
 assert.ok(pixelCss.includes('.tq-setup-card'),'setup modal pixel treatment missing');
 
-assert.ok(chrome.includes("footer.textContent='TRIP QUEST · v1.14.0'"),'chrome runtime version must match v1.14.0');
-console.log('TRIP QUEST v1.14.0 Pixel Travel redesign, search, chrome, mission UI, GPS, recommendations, and PWA smoke tests passed');
+assert.ok(chrome.includes("footer.textContent='TRIP QUEST · v1.15.0'"),'chrome runtime version must match v1.15.0');
+console.log('TRIP QUEST v1.15.0 board-match redesign, search, chrome, mission UI, GPS, recommendations, and PWA smoke tests passed');

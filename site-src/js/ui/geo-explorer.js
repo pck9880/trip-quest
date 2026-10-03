@@ -11,16 +11,9 @@ function cityLabel(place){
  return match?.[0]||raw.split(/[ ,]/).filter(Boolean)[0]||'현재 위치';
 }
 function installSearchOnlyStyle(){
- if($('#tqSearchOnlyStyle'))return;
- const style=document.createElement('style');style.id='tqSearchOnlyStyle';style.textContent=`
- .tq-search-only{min-height:0!important;height:auto!important;padding:18px 0 28px!important;overflow:visible!important}
- .tq-search-only-panel{position:relative!important;inset:auto!important;transform:none!important;width:min(760px,calc(100% - 28px))!important;max-height:none!important;margin:0 auto!important;padding:20px!important;overflow:visible!important;border-radius:24px!important}
- .tq-search-only-panel .tq-geo-sheet-top{grid-template-columns:minmax(0,1fr)!important}.tq-search-only-panel .tq-geo-start{margin-bottom:18px}.tq-search-only-panel .tq-geo-search-copy{margin-bottom:14px}
- .tq-search-only-panel .tq-geo-search-copy h1{font-size:clamp(28px,5vw,44px);line-height:1.05}.tq-search-only-panel .tq-geo-search-copy p{max-width:580px;color:#8f9ba4}
- .tq-start-region-list{display:grid;gap:7px;max-height:min(54vh,520px);overflow:auto;padding:2px 3px 12px;overscroll-behavior:contain}.tq-start-region-list button{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:54px;padding:0 16px;border:1px solid #2d3b47;border-radius:15px;background:#101820;color:#eef3f5;text-align:left;font:700 15px inherit}.tq-start-region-list button small{color:#c9ff45;font:700 11px ui-monospace,monospace;letter-spacing:.08em}.tq-start-picker-card .tq-start-divider span{white-space:nowrap}
- @media(max-width:720px){.tq-search-only{padding:10px 0 20px!important}.tq-search-only-panel{width:calc(100% - 16px)!important;padding:16px!important;border-radius:22px!important}.tq-search-only-panel .tq-geo-search-copy h1{font-size:30px}}
- `;document.head.appendChild(style)
+ // v1.15: board layout is owned by css/pixel.css. No runtime style overrides.
 }
+
 
 export function initGeoExplorer({state,travelService,setOrigin,onSelect}){
  installSearchOnlyStyle();
