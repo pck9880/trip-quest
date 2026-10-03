@@ -173,19 +173,19 @@ async function askAI(message,options={}){
   const btn=$('#aiSend'),status=$('#aiSearchStatus'),finishGauge=startAIProgressGauge();
   $('#aiConversation').hidden=false;$('#aiChoices').innerHTML='';
   setText('#aiMode','SEARCH ANALYSIS');
-  setText('#aiReply',state.exploreTarget?'지도 탐색 위치와 여행 조건을 함께 분석하고 있습니다…':'여행 조건을 분석하고 있습니다…');
-  if(status){status.hidden=false;status.className='ai-search-status working';status.textContent='1/2 · 탐색 위치와 여행 의도 분석 중…'}
+  setText('#aiReply','여행 조건을 분석하고 있습니다…');
+  if(status){status.hidden=false;status.className='ai-search-status working';status.textContent='1/2 · 여행 의도 분석 중…'}
   btn.disabled=true;btn.classList.remove('ai-done','ai-error');btn.textContent='분석 중…';
   state.selected=null;
   searchUI?.clearCandidates?.();
   searchUI?.setSheetState?.('mid',true);
-  searchUI?.renderSearchState?.(state.exploreTarget?.name?(state.exploreTarget.name+' 주변 분석 중…'):'여행 조건 분석 중…');
+  searchUI?.renderSearchState?.('여행 조건 분석 중…');
 
   try{
     await ensureAIOrigin();
     await new Promise(r=>setTimeout(r,360));
     btn.textContent='추천지 찾는 중…';
-    if(status)status.textContent='2/2 · 지도 좌표와 취향으로 추천지 계산 중…';
+    if(status)status.textContent='2/2 · 출발 위치와 취향으로 추천지 계산 중…';
 
     const result=await travelService.aiSearch(message.trim(),{...currentPayload(),distanceBand:state.activeDistanceBand});
     await new Promise(r=>setTimeout(r,360));
