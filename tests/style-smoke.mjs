@@ -20,9 +20,9 @@ for(const oldFile of ['styles.css','app-chrome.css','landing-touch-fix.css']){
   assert.ok(!fs.existsSync(new URL(oldFile,root)),'legacy stylesheet should be removed: '+oldFile);
 }
 const landing=read('css/landing.css');
-assert.ok(landing.includes('@keyframes tqLandingButtonRelease'),'landing release animation missing');
-assert.ok(landing.includes('url("../assets/tq-cover-main-v044.webp")'),'cover path must resolve from css/landing.css');
-assert.ok(fs.existsSync(new URL('./assets/tq-cover-main-v044.webp',root)),'active cover asset missing');
+assert.ok(landing.includes('tq-board-cover-v116.svg'),'board cover path must resolve from css/landing.css');
+assert.ok(fs.existsSync(new URL('./assets/tq-board-cover-v116.svg',root)),'board cover asset missing');
+assert.ok(!landing.includes('border-radius:999px'),'board splash must not regress to pill buttons');
 assert.ok(read('css/search.css').includes('.tq-geo-explorer'),'GEO CANVAS shell styles missing');
 assert.ok(read('css/search.css').includes('.tq-geo-search-sheet'),'draggable search sheet styles missing');
 assert.ok(read('css/search.css').includes('@keyframes tqGeoDash'),'animated vector styles missing');
