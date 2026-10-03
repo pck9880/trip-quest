@@ -1,33 +1,33 @@
 /* TRIP QUEST v1.16 — board screen 01 */
 .main-landing{position:fixed;z-index:2000;inset:0;min-height:100dvh;overflow:hidden;background:#07111f;color:#f5f7f2}
-.main-landing[hidden]{display:none!important}
+.main-landing[hidden]{display:none}
 .main-landing-bg{position:absolute;inset:0;background:#07111f url("../assets/tq-board-cover-v116.svg") center/cover no-repeat;image-rendering:pixelated;pointer-events:none}
 .main-landing-bg:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,17,31,.02) 0%,rgba(7,17,31,0) 68%,rgba(7,17,31,.22) 100%);pointer-events:none}
 .main-landing-inner{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;z-index:2;pointer-events:none}
-.main-cover-brand,.tq-cover-points,.tq-cover-trust,#mainLocationStatus{display:none!important}
-.main-cover-copy{position:absolute!important;z-index:3;top:max(88px,12dvh)!important;left:50%!important;transform:translateX(-50%)!important;width:90%!important;margin:0!important;text-align:center!important;display:block!important;pointer-events:none}
-.main-cover-copy h1{position:relative;margin:0!important;color:#f5f7f2!important;font:950 clamp(46px,13.2vw,58px)/.78 ui-monospace,SFMono-Regular,Consolas,monospace!important;letter-spacing:-.09em!important;text-shadow:3px 3px 0 #07111f!important}
+.main-cover-brand,.tq-cover-points,.tq-cover-trust,#mainLocationStatus{display:none}
+.main-cover-copy{position:absolute;z-index:3;top:max(88px,12dvh);left:50%;transform:translateX(-50%);width:90%;margin:0;text-align:center;display:block;pointer-events:none}
+.main-cover-copy h1{position:relative;margin:0;color:#f5f7f2;font:950 clamp(46px,13.2vw,58px)/.78 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:-.09em;text-shadow:3px 3px 0 #07111f}
 .main-cover-copy h1:after{content:"";position:absolute;width:22px;height:22px;left:50%;top:37px;transform:translateX(-1px);border:5px solid #c9ff45;border-radius:50%;box-shadow:0 0 0 3px #07111f}
-.main-cover-eyebrow{display:block!important;position:absolute!important;top:112px!important;left:0!important;right:0!important;margin:0!important;padding:0!important;border:0!important;background:none!important;color:#c6d0d8!important;font:700 8px/1 ui-monospace,SFMono-Regular,monospace!important;letter-spacing:.36em!important;white-space:nowrap}
-.main-cover-copy>p:last-child{display:block!important;margin:72px 0 0!important;color:#f5f7f2!important;font-size:14px!important;font-weight:750!important;line-height:1.3!important;text-shadow:0 2px 8px #07111f!important}
-.main-cover-action{position:absolute!important;z-index:4;left:50%!important;right:auto!important;bottom:max(22px,calc(18px + env(safe-area-inset-bottom,0px)))!important;transform:translateX(-50%)!important;width:min(350px,calc(100% - 40px))!important;margin:0!important;padding:0!important;display:grid!important;gap:10px!important;pointer-events:auto!important;background:none!important;border:0!important;box-shadow:none!important}
-.main-cover-action #mainLocateBtn,.main-cover-action #mainManualBtn{position:relative!important;width:100%!important;min-height:56px!important;height:56px!important;margin:0!important;padding:0 18px!important;border-radius:5px!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:12px!important;font-size:15px!important;font-weight:900!important;letter-spacing:-.025em!important;line-height:1!important;box-shadow:none!important;transform:none!important;opacity:1!important;cursor:pointer!important;touch-action:manipulation!important}
-.main-cover-action #mainLocateBtn{border:1px solid #dfff75!important;background:#c9ff45!important;color:#07111f!important}
-.main-cover-action #mainManualBtn{border:2px solid #dce6ed!important;background:rgba(7,17,31,.9)!important;color:#f5f7f2!important}
-.main-cover-action #mainLocateBtn:before,.main-cover-action #mainManualBtn:before{display:none!important;content:none!important}
-.main-cover-action #mainLocateBtn:after,.main-cover-action #mainManualBtn:after{content:"→"!important;display:block!important;margin-left:auto!important;font-size:22px!important;font-weight:600!important;line-height:1!important}
-.main-cover-action .tq-button-icon{display:block!important;width:24px!important;height:24px!important;flex:0 0 24px!important;stroke-width:2.2!important}
-.main-cover-action #mainLocateBtn .tq-button-icon{color:#07111f!important}.main-cover-action #mainManualBtn .tq-button-icon{color:#f5f7f2!important}
-.main-cover-action #mainLocateBtn:active,.main-cover-action #mainManualBtn:active,.main-cover-action #mainLocateBtn.is-pressed,.main-cover-action #mainManualBtn.is-pressed,.main-cover-action #mainLocateBtn.is-held,.main-cover-action #mainManualBtn.is-held{transform:translateY(1px)!important;box-shadow:none!important;filter:none!important}
-.main-cover-action #mainLocateBtn.is-releasing,.main-cover-action #mainManualBtn.is-releasing{animation:none!important}
+.main-cover-eyebrow{display:block;position:absolute;top:112px;left:0;right:0;margin:0;padding:0;border:0;background:none;color:#c6d0d8;font:700 8px/1 ui-monospace,SFMono-Regular,monospace;letter-spacing:.36em;white-space:nowrap}
+.main-cover-copy>p:last-child{display:block;margin:72px 0 0;color:#f5f7f2;font-size:14px;font-weight:750;line-height:1.3;text-shadow:0 2px 8px #07111f}
+.main-cover-action{position:absolute;z-index:4;left:50%;right:auto;bottom:max(22px,calc(18px + env(safe-area-inset-bottom,0px)));transform:translateX(-50%);width:min(350px,calc(100% - 40px));margin:0;padding:0;display:grid;gap:10px;pointer-events:auto;background:none;border:0;box-shadow:none}
+.main-cover-action #mainLocateBtn,.main-cover-action #mainManualBtn{position:relative;width:100%;min-height:56px;height:56px;margin:0;padding:0 18px;border-radius:5px;display:flex;align-items:center;justify-content:flex-start;gap:12px;font-size:15px;font-weight:900;letter-spacing:-.025em;line-height:1;box-shadow:none;transform:none;opacity:1;cursor:pointer;touch-action:manipulation}
+.main-cover-action #mainLocateBtn{border:1px solid #dfff75;background:#c9ff45;color:#07111f}
+.main-cover-action #mainManualBtn{border:2px solid #dce6ed;background:rgba(7,17,31,.9);color:#f5f7f2}
+.main-cover-action #mainLocateBtn:before,.main-cover-action #mainManualBtn:before{display:none;content:none}
+.main-cover-action #mainLocateBtn:after,.main-cover-action #mainManualBtn:after{content:"→";display:block;margin-left:auto;font-size:22px;font-weight:600;line-height:1}
+.main-cover-action .tq-button-icon{display:block;width:24px;height:24px;flex:0 0 24px;stroke-width:2.2}
+.main-cover-action #mainLocateBtn .tq-button-icon{color:#07111f}.main-cover-action #mainManualBtn .tq-button-icon{color:#f5f7f2}
+.main-cover-action #mainLocateBtn:active,.main-cover-action #mainManualBtn:active,.main-cover-action #mainLocateBtn.is-pressed,.main-cover-action #mainManualBtn.is-pressed,.main-cover-action #mainLocateBtn.is-held,.main-cover-action #mainManualBtn.is-held{transform:translateY(1px);box-shadow:none;filter:none}
+.main-cover-action #mainLocateBtn.is-releasing,.main-cover-action #mainManualBtn.is-releasing{animation:none}
 @media(max-height:760px){
- .main-cover-copy{top:max(54px,8dvh)!important}
- .main-cover-copy h1{font-size:42px!important}
+ .main-cover-copy{top:max(54px,8dvh)}
+ .main-cover-copy h1{font-size:42px}
  .main-cover-copy h1:after{top:32px;width:18px;height:18px;border-width:4px}
- .main-cover-eyebrow{top:91px!important}
- .main-cover-copy>p:last-child{margin-top:58px!important;font-size:12px!important}
- .main-cover-action{bottom:max(12px,env(safe-area-inset-bottom,0px))!important;gap:8px!important}
- .main-cover-action #mainLocateBtn,.main-cover-action #mainManualBtn{height:50px!important;min-height:50px!important;font-size:14px!important}
+ .main-cover-eyebrow{top:91px}
+ .main-cover-copy>p:last-child{margin-top:58px;font-size:12px}
+ .main-cover-action{bottom:max(12px,env(safe-area-inset-bottom,0px));gap:8px}
+ .main-cover-action #mainLocateBtn,.main-cover-action #mainManualBtn{height:50px;min-height:50px;font-size:14px}
 }
 @media(min-width:700px){.main-landing-inner,.main-landing-bg{left:50%;right:auto;width:390px;transform:translateX(-50%)}}
-@media(prefers-reduced-motion:reduce){.main-cover-action button{transition:none!important;animation:none!important}}
+@media(prefers-reduced-motion:reduce){.main-cover-action button{transition:none;animation:none}}
