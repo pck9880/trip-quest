@@ -2,7 +2,7 @@ import { $, esc, toast } from '../core/dom.js';
 import { geoBearing, geoKm, bearingLabel8 } from '../domain/geo.js';
 import { gpsService } from '../services/gps-service.js';
 
-const KOREA={minLat:33.05,maxLat:38.65,minLng:125.0,maxLng:129.75,left:210,right:790,top:42,bottom:690};
+const KOREA={minLat:33.05,maxLat:38.65,minLng:125.0,maxLng:129.75,left:170,right:830,top:42,bottom:702};
 const REGIONS=[
  ['서울특별시','서울',37.5665,126.9780],['부산광역시','부산',35.1796,129.0756],['대구광역시','대구',35.8714,128.6014],['인천광역시','인천',37.4563,126.7052],['광주광역시','광주',35.1595,126.8526],['대전광역시','대전',36.3504,127.3845],['울산광역시','울산',35.5384,129.3114],['세종특별자치시','세종',36.4800,127.2890],['경기도','경기',37.4138,127.5183],['강원특별자치도','강원',37.8228,128.1555],['충청북도','충북',36.6357,127.4917],['충청남도','충남',36.5184,126.8000],['전북특별자치도','전북',35.7175,127.1530],['전라남도','전남',34.8679,126.9910],['경상북도','경북',36.4919,128.8889],['경상남도','경남',35.4606,128.2132],['제주특별자치도','제주',33.4890,126.4983]
 ];
@@ -15,10 +15,10 @@ const LAND=[
  [126.52,37.38],[126.44,37.52],[126.28,37.58]
 ];
 const MAP_LABELS=[
- ['서울',37.5665,126.9780,12,-10],['인천',37.4563,126.7052,-42,5],['수원',37.2636,127.0286,12,17],['춘천',37.8813,127.7298,12,-8],
- ['강릉',37.7519,128.8761,12,4],['청주',36.6424,127.4890,12,-8],['대전',36.3504,127.3845,12,16],['전주',35.8242,127.1480,-38,2],
- ['광주',35.1595,126.8526,-38,4],['대구',35.8714,128.6014,12,-7],['포항',36.0190,129.3435,12,-5],['울산',35.5384,129.3114,12,9],
- ['창원',35.2279,128.6811,-42,16],['부산',35.1796,129.0756,12,18],['여수',34.7604,127.6622,12,18],['제주',33.4996,126.5312,12,6]
+ ['서울',37.5665,126.9780,14,-14,'major'],['인천',37.4563,126.7052,-54,7,'minor'],['수원',37.2636,127.0286,14,22,'minor'],['춘천',37.8813,127.7298,14,-11,'minor'],
+ ['강릉',37.7519,128.8761,14,5,'minor'],['청주',36.6424,127.4890,14,-11,'minor'],['대전',36.3504,127.3845,14,22,'major'],['전주',35.8242,127.1480,-50,3,'minor'],
+ ['광주',35.1595,126.8526,-50,5,'major'],['대구',35.8714,128.6014,-52,-10,'major'],['포항',36.0190,129.3435,15,-12,'minor'],['울산',35.5384,129.3114,15,15,'minor'],
+ ['창원',35.2279,128.6811,-54,22,'minor'],['부산',35.1796,129.0756,16,28,'major'],['여수',34.7604,127.6622,14,24,'minor'],['제주',33.4996,126.5312,14,8,'major']
 ];
 function svgPoint(svg,event){const pt=svg.createSVGPoint();pt.x=event.clientX;pt.y=event.clientY;const matrix=svg.getScreenCTM()?.inverse();return matrix?pt.matrixTransform(matrix):{x:500,y:318}}
 function geoToXY(point){const lng=Math.max(KOREA.minLng,Math.min(KOREA.maxLng,Number(point?.lng)||127.5));const lat=Math.max(KOREA.minLat,Math.min(KOREA.maxLat,Number(point?.lat)||36));return{x:KOREA.left+(lng-KOREA.minLng)/(KOREA.maxLng-KOREA.minLng)*(KOREA.right-KOREA.left),y:KOREA.bottom-(lat-KOREA.minLat)/(KOREA.maxLat-KOREA.minLat)*(KOREA.bottom-KOREA.top)}}
@@ -32,7 +32,7 @@ function installKoreaCanvas(svg){
  const ns='http://www.w3.org/2000/svg',layer=document.createElementNS(ns,'g');layer.id='koreaMapLayer';layer.setAttribute('class','tq-korea-map');
  let dots='';for(let lat=34.42;lat<=38.56;lat+=.14){for(let lng=125.95;lng<=129.55;lng+=.13){if(inside(lng,lat)){const p=geoToXY({lat,lng});dots+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.7"/>`}}}
  for(let lat=33.32;lat<=33.58;lat+=.13){for(let lng=126.15;lng<=126.90;lng+=.14){const dx=(lng-126.52)/.43,dy=(lat-33.45)/.18;if(dx*dx+dy*dy<1){const p=geoToXY({lat,lng});dots+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4.1"/>`}}}
- const labels=MAP_LABELS.map(r=>{const p=geoToXY({lat:r[1],lng:r[2]});return `<g class="tq-map-city" transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})"><circle r="4.8"/><text x="${r[3]}" y="${r[4]}">${r[0]}</text></g>`}).join('');
+ const labels=MAP_LABELS.map(r=>{const p=geoToXY({lat:r[1],lng:r[2]});return `<g class="tq-map-city tq-map-city-${r[5]||'minor'}" data-city="${r[0]}" data-x="${p.x.toFixed(1)}" data-y="${p.y.toFixed(1)}" transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})"><circle r="5.4"/><text x="${r[3]}" y="${r[4]}">${r[0]}</text></g>`}).join('');
  layer.innerHTML=`<g class="tq-dot-land">${dots}</g><g class="tq-city-labels">${labels}</g>`;
  const field=svg.querySelector('.tq-geo-field');field?.after(layer);
  const style=document.createElement('style');style.id='tqKoreaCanvasStyle';style.textContent=`
@@ -43,16 +43,43 @@ function installKoreaCanvas(svg){
 function normalizeLayout(sheet,popup){if(sheet){sheet.removeAttribute('data-state');sheet.classList.add('is-fixed-panel');sheet.querySelector('#geoSheetHandle')?.remove();sheet.querySelector('#geoSheetExpand')?.remove()}const stage=$('.tq-geo-stage');if(popup&&stage&&popup.parentElement===stage){stage.after(popup);popup.classList.add('tq-location-result-bar')}}
 
 export function initGeoExplorer({state,travelService,setOrigin,onSearch,onSelect}){
- const svg=$('#geoCanvas'),target=$('#geoTarget'),vector=$('#geoVector'),pulse=$('#geoTargetPulse'),placeLabel=$('#geoExplorePlace'),distanceLabel=$('#geoExploreDistance'),directionLabel=$('#geoExploreDirection'),popup=$('#geoLocationPopup'),popupTitle=$('#geoPopupTitle'),popupMeta=$('#geoPopupMeta'),popupUse=$('#geoPopupUse'),startLabel=$('#geoStartLabel'),results=$('#geoResults'),sheet=$('#geoSearchSheet'),input=$('#aiInput');let dragging=false,dragPointer=null,lastGeo={lat:36.25,lng:127.8};installKoreaCanvas(svg);normalizeLayout(sheet,popup);const changeBtn=$('#geoStartChange');if(changeBtn)changeBtn.textContent='지역 선택';
+ const svg=$('#geoCanvas'),target=$('#geoTarget'),vector=$('#geoVector'),pulse=$('#geoTargetPulse'),placeLabel=$('#geoExplorePlace'),distanceLabel=$('#geoExploreDistance'),directionLabel=$('#geoExploreDirection'),popup=$('#geoLocationPopup'),popupTitle=$('#geoPopupTitle'),popupMeta=$('#geoPopupMeta'),popupUse=$('#geoPopupUse'),startLabel=$('#geoStartLabel'),results=$('#geoResults'),sheet=$('#geoSearchSheet'),input=$('#aiInput'),joystick=$('#geoJoystick'),knob=$('#geoStickKnob'),scanBtn=$('#geoScanBtn');let lastGeo={lat:36.25,lng:127.8},stickX=0,stickY=0,stickPointer=null,stickFrame=0,scanCount=0;installKoreaCanvas(svg);normalizeLayout(sheet,popup);const changeBtn=$('#geoStartChange');if(changeBtn)changeBtn.textContent='지역 선택';
  function setText(node,value){if(node)node.textContent=value}
- function updateVector(targetPoint){const o=geoToXY(state.origin||{lat:35.18,lng:129.08}),p=geoToXY(targetPoint||lastGeo);if(vector){vector.setAttribute('x1',o.x);vector.setAttribute('y1',o.y);vector.setAttribute('x2',p.x);vector.setAttribute('y2',p.y)}const originNode=svg?.querySelector('.tq-geo-origin');if(originNode)originNode.setAttribute('transform',`translate(${o.x} ${o.y})`);if(target)target.setAttribute('transform',`translate(${p.x} ${p.y})`);if(pulse)pulse.setAttribute('transform',`translate(${p.x} ${p.y})`)}
+ function updateCityFocus(p){svg?.querySelectorAll('.tq-map-city').forEach(node=>{const dx=(Number(node.dataset.x)||0)-p.x,dy=(Number(node.dataset.y)||0)-p.y,d=Math.hypot(dx,dy);let scale=1;if(d<72)scale=1.38-(d/72)*.12;else if(d<155)scale=1.20-(d-72)/83*.20;node.style.setProperty('--city-focus',scale.toFixed(3));node.classList.toggle('is-near',d<82)})}
+ function updateVector(targetPoint){const o=geoToXY(state.origin||{lat:35.18,lng:129.08}),p=geoToXY(targetPoint||lastGeo);if(vector){vector.setAttribute('x1',o.x);vector.setAttribute('y1',o.y);vector.setAttribute('x2',p.x);vector.setAttribute('y2',p.y)}const originNode=svg?.querySelector('.tq-geo-origin');if(originNode)originNode.setAttribute('transform',`translate(${o.x} ${o.y})`);if(target)target.setAttribute('transform',`translate(${p.x} ${p.y})`);if(pulse)pulse.setAttribute('transform',`translate(${p.x} ${p.y})`);updateCityFocus(p)}
  function previewGeo(point){lastGeo={lat:point.lat,lng:point.lng};const origin=state.origin,km=origin?geoKm(origin,lastGeo):0,bearing=origin?geoBearing(origin,lastGeo):0,dir=bearingLabel8(bearing);updateVector(lastGeo);setText(distanceLabel,Math.round(km)+' km');setText(directionLabel,dir+' · '+Math.round(bearing)+'°');return{point:lastGeo,km,bearing,dir}}
  async function resolveTarget(preview){if(!state.origin)return;const point=preview.point;state.minKm=Math.max(0,Math.round(Math.max(0,preview.km-60)/10)*10);state.targetKm=Math.min(450,Math.round(Math.min(450,preview.km+60)/10)*10);state.direction=preview.dir;state.exploreTarget={...point,distanceKm:preview.km,bearing:preview.bearing,direction:preview.dir,name:'위치 분석 중',address:''};if(popup){popup.hidden=false;popup.classList.add('is-loading')}setText(popupTitle,'위치 분석 중…');setText(popupMeta,Math.round(preview.km)+'km · '+preview.dir+' 방향');try{const found=await travelService.reverseGeocode(point.lat,point.lng);if(found)state.exploreTarget={...state.exploreTarget,...found,distanceKm:preview.km,bearing:preview.bearing,direction:preview.dir}}catch{}const name=concisePlace(state.exploreTarget);setText(placeLabel,name);setText(popupTitle,name);setText(popupMeta,Math.round(preview.km)+'km · '+preview.dir+' 방향');popup?.classList.remove('is-loading')}
- function resetTarget(){const base=state.origin?{lat:Math.min(38.2,state.origin.lat+1.25),lng:Math.max(125.4,state.origin.lng-.45)}:{lat:36.25,lng:127.8};previewGeo(base);state.exploreTarget=null;setText(placeLabel,'점 지도에서 포인트를 드래그해 탐색하세요.');if(popup)popup.hidden=true}
+ function resetTarget(){const base=state.origin?{lat:Math.min(38.2,state.origin.lat+1.05),lng:Math.max(125.4,state.origin.lng-.25)}:{lat:36.25,lng:127.8};previewGeo(base);state.exploreTarget=null;target?.classList.remove('is-locked');scanCount=0;if(scanBtn){scanBtn.classList.remove('is-found','is-scanning');scanBtn.disabled=false;scanBtn.innerHTML='<strong>SCAN</strong><span>SEARCH</span>'}setText(placeLabel,'조이스틱으로 방향을 조준한 뒤 SCAN 하세요.');if(popup)popup.hidden=true}
  function syncOrigin(){const origin=state.origin;if(!origin){setText(startLabel,'시작 위치를 설정하세요.');updateVector(lastGeo);return}setText(startLabel,origin.displayRegion||cityLabel(origin));resetTarget()}
- function startTargetDrag(e){if(!state.origin){toast('먼저 시작 위치를 설정해주세요.');openStartPicker();return}dragging=true;dragPointer=e.pointerId;target?.setPointerCapture?.(e.pointerId);target?.classList.add('is-dragging');if(popup)popup.hidden=true;const p=svgPoint(svg,e);previewGeo(xyToGeo(p.x,p.y));e.preventDefault()}
- function moveTarget(e){if(!dragging||e.pointerId!==dragPointer)return;const p=svgPoint(svg,e);previewGeo(xyToGeo(p.x,p.y));e.preventDefault()}
- async function endTargetDrag(e){if(!dragging||e.pointerId!==dragPointer)return;dragging=false;dragPointer=null;target?.classList.remove('is-dragging');const p=svgPoint(svg,e);await resolveTarget(previewGeo(xyToGeo(p.x,p.y)));e.preventDefault()}
+ function setStick(clientX,clientY){
+  if(!joystick||!knob)return;
+  const r=joystick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,max=r.width*.31;
+  let dx=clientX-cx,dy=clientY-cy;const len=Math.hypot(dx,dy)||1;if(len>max){dx=dx/len*max;dy=dy/len*max}
+  stickX=dx/max;stickY=dy/max;knob.style.transform=`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px))`;
+ }
+ function joystickTick(){
+  if(stickPointer===null){stickFrame=0;return}
+  const p=geoToXY(lastGeo),speed=5.2,mag=Math.min(1,Math.hypot(stickX,stickY));
+  if(mag>.08){const next=xyToGeo(p.x+stickX*speed,p.y+stickY*speed);previewGeo(next);state.exploreTarget=null;if(popup)popup.hidden=true;target?.classList.remove('is-locked')}
+  stickFrame=requestAnimationFrame(joystickTick);
+ }
+ function startStick(e){
+  if(!state.origin){toast('먼저 시작 위치를 설정해주세요.');openStartPicker();return}
+  stickPointer=e.pointerId;joystick?.setPointerCapture?.(e.pointerId);joystick?.classList.add('is-active');setStick(e.clientX,e.clientY);if(!stickFrame)stickFrame=requestAnimationFrame(joystickTick);e.preventDefault()
+ }
+ function moveStick(e){if(e.pointerId!==stickPointer)return;setStick(e.clientX,e.clientY);e.preventDefault()}
+ function endStick(e){if(stickPointer===null||e.pointerId!==stickPointer)return;stickPointer=null;stickX=0;stickY=0;joystick?.classList.remove('is-active');if(knob)knob.style.transform='translate(-50%,-50%)';e.preventDefault()}
+ async function scanTarget(){
+  if(!state.origin){toast('먼저 시작 위치를 설정해주세요.');openStartPicker();return}
+  if(scanBtn?.disabled)return;
+  scanBtn.disabled=true;scanBtn.classList.remove('is-found');scanBtn.classList.add('is-scanning');scanBtn.innerHTML='<strong>SCANNING</strong><span>ANALYZING</span>';
+  try{
+   const preview=previewGeo(lastGeo);await resolveTarget(preview);scanCount+=1;target?.classList.add('is-locked');scanBtn.classList.remove('is-scanning');scanBtn.classList.add('is-found');scanBtn.innerHTML='<strong>FOUND</strong><span>TARGET '+String(scanCount).padStart(2,'0')+'</span>';
+   setText(placeLabel,concisePlace(state.exploreTarget));await new Promise(r=>setTimeout(r,260));await onSearch?.();
+  }finally{
+   if(scanBtn){scanBtn.disabled=false;scanBtn.classList.remove('is-scanning');scanBtn.innerHTML=scanCount?'<strong>SCAN AGAIN</strong><span>REROLL</span>':'<strong>SCAN</strong><span>SEARCH</span>'}
+  }
+ }
  function createPicker(){let overlay=$('#geoStartPicker');if(overlay)return overlay;overlay=document.createElement('div');overlay.id='geoStartPicker';overlay.className='tq-start-picker';overlay.hidden=true;overlay.innerHTML=`<section class="tq-start-picker-card" role="dialog" aria-modal="true" aria-labelledby="geoStartPickerTitle"><header><div><small>START REGION</small><h2 id="geoStartPickerTitle">시·도 선택</h2><p>여행을 시작할 지역을 선택하세요.</p></div><button id="geoStartPickerClose" type="button" aria-label="닫기">×</button></header><button id="geoStartUseGps" class="tq-start-gps" type="button"><i></i><span><b>현재 위치 사용</b><small>GPS로 현재 도시를 자동 표시합니다.</small></span><em>→</em></button><div class="tq-start-divider"><span>시·도 직접 선택</span></div><div class="tq-start-region-list">${REGIONS.map((r,i)=>`<button type="button" data-region="${i}"><span>${r[0]}</span><small>${r[1]}</small></button>`).join('')}</div></section>`;document.body.appendChild(overlay);$('#geoStartPickerClose').onclick=closeStartPicker;overlay.addEventListener('click',e=>{if(e.target===overlay)closeStartPicker();const row=e.target.closest('[data-region]');if(row)selectRegion(Number(row.dataset.region))});$('#geoStartUseGps').onclick=useGpsOrigin;return overlay}
  function openStartPicker(){const overlay=createPicker();overlay.hidden=false;document.body.classList.add('tq-modal-open')}
  function closeStartPicker(){const overlay=$('#geoStartPicker');if(overlay)overlay.hidden=true;document.body.classList.remove('tq-modal-open')}
@@ -85,7 +112,7 @@ export function initGeoExplorer({state,travelService,setOrigin,onSearch,onSelect
  function clearCandidates(){const group=$('#geoCandidateLayer');if(group)group.innerHTML='';if(results)results.innerHTML=''}
  function renderRecommendations(items=[]){clearCandidates();if(!state.origin||!Array.isArray(items)||!items.length)return;const group=$('#geoCandidateLayer');if(group){group.innerHTML=items.slice(0,8).map((item,index)=>{const p=geoToXY(item);return `<g class="tq-geo-candidate" data-geo-index="${index}" transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})"><circle r="19"></circle><text text-anchor="middle" dy="4">${String(index+1).padStart(2,'0')}</text></g>`}).join('');group.onclick=e=>{const node=e.target.closest('[data-geo-index]');if(node)onSelect?.(Number(node.dataset.geoIndex))}}if(results){results.innerHTML='<div class="tq-geo-result-head"><span>AI PICKS</span><b>'+items.length+'곳</b></div>'+items.slice(0,8).map((item,index)=>'<button type="button" data-result-index="'+index+'"><b>'+String(index+1).padStart(2,'0')+'</b><span><strong>'+esc(item.name)+'</strong><small>'+esc((item.category||'여행지')+' · '+Math.round(Number(item.distanceKm||item.geoDistanceKm||0))+'km')+'</small></span><em>선택</em></button>').join('');results.onclick=e=>{const row=e.target.closest('[data-result-index]');if(row)onSelect?.(Number(row.dataset.resultIndex))}}}
  function renderEmpty(message='현재 조건에서 추천 가능한 여행지가 부족합니다.'){clearCandidates();if(results)results.innerHTML='<div class="tq-start-empty">'+esc(message)+'</div>'}
- function renderSearchState(label){const node=$('#geoSearchContext');if(node)node.textContent=label||'점 지도 탐색 포인트와 자연어 조건을 함께 분석합니다.'}
+ function renderSearchState(label){const node=$('#geoSearchContext');if(node)node.textContent=label||'조이스틱 방향과 SCAN 위치, 자연어 조건을 함께 분석합니다.'}
  function focusSearch(){input?.scrollIntoView?.({behavior:'smooth',block:'center'});setTimeout(()=>input?.focus({preventScroll:true}),180)}
- target?.addEventListener('pointerdown',startTargetDrag);svg?.addEventListener('pointermove',moveTarget);svg?.addEventListener('pointerup',endTargetDrag);svg?.addEventListener('pointercancel',endTargetDrag);popupUse?.addEventListener('click',focusSearch);changeBtn?.addEventListener('click',openStartPicker);$('#geoStartQuickGps')?.addEventListener('click',useGpsOrigin);syncOrigin();return{syncOrigin,openStartPicker,closeStartPicker,useGpsOrigin,renderRecommendations,renderEmpty,clearCandidates,renderSearchState,setSheetState:()=>normalizeLayout(sheet,popup),focusSearch,resetTarget}
+ joystick?.addEventListener('pointerdown',startStick);joystick?.addEventListener('pointermove',moveStick);joystick?.addEventListener('pointerup',endStick);joystick?.addEventListener('pointercancel',endStick);scanBtn?.addEventListener('click',scanTarget);popupUse?.addEventListener('click',()=>{target?.classList.add('is-locked');focusSearch()});changeBtn?.addEventListener('click',openStartPicker);$('#geoStartQuickGps')?.addEventListener('click',useGpsOrigin);syncOrigin();return{syncOrigin,openStartPicker,closeStartPicker,useGpsOrigin,renderRecommendations,renderEmpty,clearCandidates,renderSearchState,setSheetState:()=>normalizeLayout(sheet,popup),focusSearch,resetTarget}
 }
