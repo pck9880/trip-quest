@@ -94,3 +94,53 @@ main{padding:0 10px 92px}
 }
 @media(min-width:700px){.app-shell{margin-top:18px;margin-bottom:18px;border:1px solid #29445f;border-radius:14px;overflow:hidden;min-height:calc(100dvh - 36px)}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+/* v1.16 board structure — screen composition overrides */
+body:not(.tq-search-ready) #tripExplorer{display:none!important}
+body.tq-search-ready #tripExplorer{display:block!important}
+body[data-trip-step="1"] .progress-step[data-step="1"],
+body[data-trip-step="2"] .progress-step[data-step="2"],
+body[data-trip-step="3"] .progress-step[data-step="2"],
+body[data-trip-step="4"] .progress-step[data-step="4"],
+body[data-trip-step="5"] .progress-step[data-step="4"]{color:#c9ff45}
+.progress.panel{grid-template-columns:1fr 1fr 1fr!important}
+.progress-step[data-step="1"]{grid-column:1}.progress-step[data-step="2"]{grid-column:2}.progress-step[data-step="4"]{grid-column:3}
+.progress-step[data-step="3"],.progress-step[data-step="5"]{display:none!important}
+.progress-step[data-step="2"] span{font-size:0}.progress-step[data-step="2"] span:after{content:"여행 조건";font-size:9px}
+.progress-step[data-step="4"] span{font-size:0}.progress-step[data-step="4"] span:after{content:"추천 결과";font-size:9px}
+body[data-trip-step="2"] .step-view[data-step-view="3"]{display:block!important;padding-top:6px}
+body[data-trip-step="2"] .step-view[data-step-view="3"] .tip-box{display:none}
+body[data-trip-step="2"] .time-cards{display:none}
+body[data-trip-step="2"] .schedule-preview{display:none}
+body[data-trip-step="3"] .step-view[data-step-view="3"]{display:none!important}
+.wizard.panel{padding-top:0!important}
+body[data-trip-step="1"] .wizard:before{content:"출발지 설정";display:block;margin:0 0 10px;padding:12px 10px 8px;color:#f5f7f2;font-size:16px;font-weight:900}
+body[data-trip-step="1"] .wizard:after{content:"최근 설정한 지역";display:block;position:absolute;left:20px;top:214px;color:#9bacbd;font-size:10px;font-weight:800;pointer-events:none}
+body[data-trip-step="2"] .wizard:before{content:"어떤 여행을 찾고 있나요?";display:block;margin:0 0 12px;padding:10px 4px 0;color:#f5f7f2;font-size:15px;font-weight:900}
+body[data-trip-step="4"] .wizard:before{content:"QUEST FOUND!";display:block;margin:0 0 4px;padding:8px 4px 0;color:#c9ff45;font:950 22px ui-monospace,SFMono-Regular,monospace;letter-spacing:-.04em}
+body[data-trip-step="4"] .wizard:after{content:"AI가 찾은 추천 여행지입니다.";display:block;margin:0 0 10px;padding:0 4px;color:#f5f7f2;font-size:11px}
+.location-card{position:relative;display:grid!important;grid-template-columns:28px 1fr 18px!important;align-items:center!important;min-height:62px!important;padding:10px 12px!important;border:1px solid #2a465f!important;border-radius:6px!important;background:#0d1b2a!important}
+.location-card:after{content:"›";grid-column:3;color:#c9ff45;font-size:24px}
+.location-card #locateBtn{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;opacity:0!important;z-index:2!important}
+.location-main strong{font-size:13px!important}.location-main:after{content:"내 위치를 기반으로 추천해요";display:block;margin-top:3px;color:#8fa0ae;font-size:9px}
+.or-line{height:auto!important;margin:10px 0 5px!important;text-align:left!important}.or-line:before,.or-line:after{display:none!important}.or-line span{color:#f5f7f2!important;font-size:0!important;font-weight:900!important}.or-line span:after{content:"지역 직접 선택";font-size:12px}
+.search-box{min-height:60px!important;padding:7px!important;border-radius:6px!important}.search-box input{height:44px!important;border:0!important;background:#0a1725!important}.search-box .btn{height:44px!important;min-height:44px!important}
+.tip-box{display:none!important}
+.category-grid{grid-template-columns:repeat(4,1fr)!important;gap:8px!important}.category-grid button{aspect-ratio:1/1;min-height:0!important;padding:8px 3px!important}.category-grid button b{font-size:23px!important}.category-grid button span{font-size:10px!important}
+.section-title>div span{font-size:0}.section-title>div span:after{content:"어떤 여행을 찾고 있나요?";font-size:0}
+.section-title strong{display:none}
+.wizard-actions{bottom:74px!important}.wizard-actions #nextBtn{border-radius:5px!important;background:#c9ff45!important;color:#07111f!important;font-size:14px!important}
+body[data-trip-step="4"] .wizard-actions{display:none!important}
+.result-toolbar>div:first-child{display:none!important}.result-toolbar-actions{display:block!important}.result-sort{height:36px!important}.result-sort button{min-height:36px!important;height:36px!important;font-size:10px!important}
+.ranking .place-card,.result-card{border:2px solid #f5f7f2!important;border-radius:6px!important;background:#f5f7f2!important;color:#07111f!important}
+.tq-bottom-nav{grid-template-columns:repeat(5,1fr)!important;width:min(370px,calc(100% - 20px))!important}
+.tq-bottom-nav button{min-width:0!important;padding:3px 1px!important}
+.tq-bottom-nav button span{font-size:9px!important}
+.tq-bottom-nav button.active{color:#c9ff45!important}
+.tq-bottom-nav button[data-tab="course"]{display:flex!important}
+@media(max-width:420px){
+ .app-shell{width:100%!important;border:0!important}
+ main{padding-left:10px!important;padding-right:10px!important}
+ .topbar.tq-appbar,.topbar{height:58px!important}
+ .progress.panel{top:58px!important}
+}
