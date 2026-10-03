@@ -144,3 +144,8 @@ body[data-trip-step="4"] .wizard-actions{display:none!important}
  .topbar.tq-appbar,.topbar{height:58px!important}
  .progress.panel{top:58px!important}
 }
+
+.board-duration{margin-top:18px}.board-duration>strong{display:block;margin-bottom:9px;color:#f5f7f2;font-size:12px}
+#boardDurationChoices{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+#boardDurationChoices button{min-height:44px;border:1px solid #2c4860;border-radius:5px;background:#0d1b2a;color:#d7e0e7;font-size:11px;font-weight:850}
+#boardDurationChoices button.selected{border-color:#c9ff45;background:#c9ff45;color:#07111f}
