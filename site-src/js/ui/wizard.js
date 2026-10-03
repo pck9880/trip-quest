@@ -72,6 +72,7 @@ export function createWizardUI(state){
   function bindChoices(){
     $('#directionChoices').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;state.direction=b.dataset.value;syncDirectionUI()});
     $('#categoryChoices').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;b.classList.toggle('selected');state.categories=all('#categoryChoices button.selected').map(x=>x.dataset.value);syncCategoriesUI();setStep(2)});
+    const duration=$('#boardDurationChoices');if(duration)duration.addEventListener('click',e=>{const b=e.target.closest('button[data-hours]');if(!b)return;duration.querySelectorAll('button').forEach(x=>x.classList.toggle('selected',x===b));document.body.dataset.tripDuration=b.dataset.hours;});
   }
   return {setStep,syncDistanceUI,setDistanceBoundary,syncCategoriesUI,syncDirectionUI,validateUIRuntime,bindChoices};
 }
