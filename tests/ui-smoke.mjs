@@ -35,7 +35,8 @@ assert.ok(geoExplorer.includes("gpsService.current({enableHighAccuracy:true,time
 assert.ok(geoExplorer.includes('tq-start-region-list'),'scrollable region picker missing');
 assert.ok(geoExplorer.includes("displayRegion:r[0]"),'selected region must become START display region');
 assert.ok(geoExplorer.includes('origin.displayRegion=cityLabel(origin)'),'GPS origin must resolve to a city/region START label');
-assert.ok(geoExplorer.includes('tq-search-only-panel'),'clean search-only panel styles missing');
+assert.ok(pixelCss.includes('.tq-search-only-panel'),'board-owned search panel styles missing');
+assert.ok(!geoExplorer.includes('style.textContent='),'runtime search CSS must not override the board');
 assert.ok(!geoExplorer.includes('L.map('),'search panel must not create a map');
 
 assert.ok(geocoding.includes('export async function reverseGeocode'),'reverse geocoder missing');
