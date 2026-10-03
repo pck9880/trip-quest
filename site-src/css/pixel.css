@@ -1,101 +1,96 @@
-/* TRIP QUEST v1.14.0 — PIXEL TRAVEL UI
-   Pixel is an accent language. Travel data stays modern and readable. */
+/* TRIP QUEST v1.15.0 — BOARD MATCH
+   Source of truth: uploaded 11-screen design board. */
 :root{
-  --bg:#07111f;--panel:#0b1726;--panel2:#0d1b2a;--line:#20364c;--line2:#31506b;
-  --text:#f5f7f2;--muted:#8fa0ae;--accent:#c9ff45;--accent-ink:#071108;
-  --radius:16px;--shadow:0 18px 46px rgba(0,0,0,.28);
+ --tq-lime:#c9ff45;--tq-navy:#07111f;--tq-panel:#0d1b2a;--tq-panel2:#101f30;
+ --tq-line:#29445f;--tq-line2:#41617e;--tq-white:#f5f7f2;--tq-muted:#9bacbd;
+ --tq-blue:#25588b;
 }
-html{background:#07111f}
-body{background:#07111f;color:var(--text);background-image:linear-gradient(180deg,#07111f,#091522 58%,#07111f)}
+*{box-sizing:border-box}
+html,body{background:var(--tq-navy);color:var(--tq-white)}
+body{background-image:none}
 body,button,input,textarea,select{font-family:Pretendard,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif}
-.eyebrow,.ai-mode,.tq-geo-search-copy span,.tq-geo-start small,.course-detail-head span,.nearby-head span,.tq-quest-island small,.tq-keep-head small,.tq-setup-kicker,.app-version-footer,.tq-pixel-label{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase}
+.app-shell{width:min(390px,100%);margin:0 auto;min-height:100dvh;background:var(--tq-navy);border-left:1px solid rgba(65,97,126,.35);border-right:1px solid rgba(65,97,126,.35)}
+main{padding:0 10px 92px}
+.topbar.tq-appbar,.topbar{height:62px;padding:0 12px;border:0;border-bottom:1px solid #1f3850;background:#07111f;box-shadow:none;position:sticky;top:0;z-index:70}
+.brand{margin:auto;gap:5px}.brand-mark{display:none}.brand span:last-child{display:block}.brand b{font:950 14px ui-monospace,SFMono-Regular,monospace;letter-spacing:-.04em;color:#fff}.brand b:after{content:"✚";color:var(--tq-lime);margin:0 1px}.brand small{display:none}
+.top-actions{position:absolute;right:10px}.top-actions .btn{width:34px;min-height:34px;padding:0;font-size:0;border:0;background:transparent}.top-actions .btn:after{content:"⚙";font-size:20px;color:#f5f7f2}
+.system-status{display:none}
+.btn{border-radius:5px;min-height:44px;border:1px solid var(--tq-line2);background:#0c1928;color:#fff;box-shadow:none;font-weight:850}
+.btn.primary{background:var(--tq-lime);border-color:var(--tq-lime);color:#071108}.btn.primary:before{display:none}.btn.secondary{background:#0b1827;border-color:#36536c}.btn:hover{transform:none}.btn:active{transform:translateY(1px)}
+.panel,.wizard,.map-card,.summary-box,.course-card,.field-card,.tip-box,.schedule-preview,.location-card,.search-box,.tq-search-only-panel,.tq-setup-card,.tq-keep-sheet,.tq-keep-item,.tq-keep-detail-stops{border:1px solid var(--tq-line);border-radius:7px;background:var(--tq-panel);box-shadow:none}
 
-/* Shared surfaces: clean app first, pixel edge only on interactive states */
-.panel,.wizard,.map-card,.summary-box,.course-card,.field-card,.tip-box,.schedule-preview,.location-card,.search-box,.tq-search-only-panel,.tq-setup-card,.tq-keep-sheet,.tq-keep-item,.tq-keep-detail-stops{border-color:var(--line);box-shadow:var(--shadow)}
-.btn{border-radius:10px;min-height:46px;box-shadow:none;transition:transform .1s ease,border-color .14s ease,background .14s ease}
-.btn:hover{transform:translateY(-1px)}.btn:active{transform:translateY(1px)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.btn.primary:before{content:"";display:inline-block;width:6px;height:6px;margin-right:8px;background:currentColor;clip-path:polygon(0 0,100% 50%,0 100%)}
-.btn.secondary{background:#0d1a28;border-color:#2c455c}
-input,textarea,select{border-radius:10px}
-.ai-composer{border-radius:14px;border-color:#29435a;background:#07121e;box-shadow:inset 0 0 0 1px rgba(255,255,255,.015)}
-.ai-composer:focus-within{border-color:rgba(201,255,69,.72);box-shadow:0 0 0 2px rgba(201,255,69,.08)}
-.topbar.tq-appbar{border-color:#1b3044;background:rgba(6,16,27,.94);box-shadow:0 10px 28px rgba(0,0,0,.24)}
-.brand-mark{border-radius:9px;background:var(--accent);box-shadow:none}
-.status-pill{border-radius:10px}.status-pill i{box-shadow:none}
-
-/* Progress: game HUD without sacrificing readability */
-.progress{border-radius:14px;padding:11px 14px;background:#091522}
-.progress>span{height:2px;background:#1e3548}
-.progress-step b{border-radius:5px;background:#0c1b2a;border-color:#31506b}
-.progress-step.active b{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 2px rgba(201,255,69,.09)}
-.progress-step.done b{border-color:#789d2d;background:#182817;color:var(--accent)}
-
-/* Search screen */
-.tq-search-only{padding-top:12px}
-.tq-search-only-panel{position:relative;border:1px solid #1f3549;border-radius:18px;background:linear-gradient(180deg,#0b1827,#091522)}
-.tq-search-only-panel:before{content:"SEARCH QUEST";position:absolute;top:-10px;left:18px;padding:4px 8px;border:1px solid #3d5c74;border-radius:4px;background:#07111f;color:var(--accent);font:800 9px ui-monospace,monospace;letter-spacing:.12em}
-.tq-geo-start{border:1px solid #243d52;border-radius:12px;background:#0a1725}
-.tq-geo-start button{border-radius:8px}.tq-geo-start strong{color:#f5f7f2}
-.tq-geo-search-copy span{color:var(--accent)}
-.tq-geo-search-copy h1{letter-spacing:-.04em}
-.tq-geo-results>button{border-radius:14px;border:1px solid #263f54;background:#0c1a29;box-shadow:none}
-.tq-geo-results>button:hover,.tq-geo-results>button:focus-visible{border-color:#8aad36;outline:none}
-.tq-geo-result-head span:before{content:"";display:inline-block;width:7px;height:7px;margin-right:6px;background:var(--accent)}
-.ai-progress-track{height:13px;border:1px solid #34536b;border-radius:3px;background:#07111c;padding:2px}
-.ai-progress-track i{border-radius:1px;background:repeating-linear-gradient(90deg,var(--accent) 0 12px,#8eb62f 12px 14px)}
-.ai-search-status{border-radius:10px}.ai-avatar{border-radius:7px}
-.category-grid button,.direction-grid button,.result-sort button,.ai-choices button,.quick-prompts button{border-radius:9px}
-.category-grid button.selected,.direction-grid button.selected{border-color:var(--accent);box-shadow:inset 0 0 0 1px rgba(201,255,69,.28)}
-.ranking .place-card,.result-card{border-radius:14px}.course-card{border-radius:14px}.course-card.selected{border-color:var(--accent);box-shadow:0 0 0 2px rgba(201,255,69,.08)}
-.toast{border-radius:10px;border:1px solid #405970;background:#091522;box-shadow:0 14px 34px rgba(0,0,0,.4)}
-
-/* App navigation: flat console HUD */
-.tq-bottom-nav{height:68px;border:1px solid #263e53;border-radius:14px;background:rgba(7,17,31,.96);box-shadow:0 16px 40px rgba(0,0,0,.44);padding:5px}
-.tq-bottom-nav button{border-radius:9px}.tq-bottom-nav button.active{color:var(--accent);background:#0d1b29}
-.tq-bottom-nav button.active:before{content:"";position:absolute;top:4px;width:16px;height:3px;background:var(--accent);box-shadow:0 0 10px rgba(201,255,69,.25)}
-.tq-bottom-nav .tq-nav-icon{transform:none}
-
-/* Course / Quest: stronger game language only where it adds meaning */
-.tq-quest-island-main{border-radius:10px;border:1px solid rgba(201,255,69,.56);background:#081522;box-shadow:0 10px 28px rgba(0,0,0,.36),inset 0 0 0 1px rgba(201,255,69,.06)}
-.tq-quest-island-main i{border-radius:2px;animation:tqPixelBlink 1.1s steps(1,end) infinite}
-@keyframes tqPixelBlink{50%{opacity:.28}}
-.tq-course-ready-popup,.tq-quest-complete,.tq-quest-panel,.install-card{border-radius:14px;box-shadow:0 22px 60px rgba(0,0,0,.48)}
-.tq-setup-card,.tq-keep-sheet{border:1px solid #2b455a;border-radius:18px}
-.tq-setup-head-icon,.tq-choice-grid button,.tq-setup-row select,.tq-unit-input,.tq-setup-info,.tq-setup-save,.tq-switch-ui,.tq-keep-close,.tq-keep-course-id,.tq-keep-detail-star{border-radius:9px}
-
-/* Cover — art owns the scene, HTML owns the logo and controls */
-.main-landing{background:#06111f;image-rendering:auto}
-.main-landing-bg{background:#06111f url("../assets/tq-pixel-night-drive-v114.svg") center bottom/cover no-repeat;image-rendering:pixelated;filter:none}
-.main-landing-bg:after{display:block;content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(2,8,17,.1) 0%,rgba(2,8,17,0) 48%,rgba(2,8,17,.18) 70%,rgba(2,8,17,.62) 100%);opacity:1}
-.main-landing.tq-photo-ready .main-landing-inner{display:flex;flex-direction:column;align-items:center;padding:calc(46px + env(safe-area-inset-top,0px)) 20px calc(24px + env(safe-area-inset-bottom,0px));pointer-events:none}
+/* 01 Splash */
+.main-landing{background:#07111f;overflow:hidden}
+.main-landing-bg{background:#07111f url("../assets/tq-pixel-night-drive-v114.svg") center bottom/cover no-repeat;image-rendering:pixelated;filter:none}
+.main-landing-bg:after{display:block;content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,17,31,.02),rgba(7,17,31,0) 62%,rgba(7,17,31,.22));opacity:1}
+.main-landing.tq-photo-ready .main-landing-inner{position:absolute;inset:0;width:100%;height:100%;padding:calc(100px + env(safe-area-inset-top,0px)) 20px 24px;display:flex;flex-direction:column;align-items:center;pointer-events:none}
 .main-landing.tq-photo-ready .main-cover-brand{display:none}
-.main-landing.tq-photo-ready .main-cover-copy{display:block;margin:0 auto;text-align:center;pointer-events:none}
-.main-landing.tq-photo-ready .main-cover-eyebrow{display:block;margin:0 0 8px;color:#a9b7c3;background:none;border:0;padding:0;font:700 9px ui-monospace,monospace;letter-spacing:.32em;text-shadow:0 2px 10px #02070d}
-.main-landing.tq-photo-ready .main-cover-copy h1{margin:0;color:#f7f8f4;font:950 clamp(46px,11vw,72px)/.82 ui-monospace,SFMono-Regular,monospace;letter-spacing:-.09em;text-shadow:4px 4px 0 #07111f}
-.main-landing.tq-photo-ready .main-cover-copy h1::first-line{color:#f7f8f4}
-.main-landing.tq-photo-ready .main-cover-copy>p:last-of-type{margin:16px auto 0;color:#f2f5f3;font-size:13px;font-weight:700;text-shadow:0 2px 12px #02070d}
-.main-landing.tq-photo-ready .main-cover-action{bottom:max(4.6dvh,calc(18px + env(safe-area-inset-bottom,0px)));width:min(520px,calc(100% - 36px));gap:10px}
+.main-landing.tq-photo-ready .main-cover-copy{display:block;margin:0;text-align:center}
+.main-landing.tq-photo-ready .main-cover-eyebrow{position:absolute;top:calc(270px + env(safe-area-inset-top,0px));left:0;right:0;margin:0;color:#d7dfe6;font:700 9px ui-monospace,monospace;letter-spacing:.38em;background:none;border:0;padding:0}
+.main-landing.tq-photo-ready .main-cover-copy h1{margin:0;color:#fff;font:950 clamp(50px,15vw,72px)/.72 ui-monospace,SFMono-Regular,monospace;letter-spacing:-.1em;text-shadow:4px 4px 0 #07111f}
+.main-landing.tq-photo-ready .main-cover-copy h1:after{content:"";display:inline-block;width:22px;height:22px;margin-left:-27px;margin-bottom:4px;border:5px solid var(--tq-lime);border-radius:50%;box-shadow:0 0 0 3px #07111f}
+.main-landing.tq-photo-ready .main-cover-copy>p:last-child{margin:74px auto 0;color:#f5f7f2;font-size:14px;font-weight:750;text-shadow:0 2px 8px #07111f}
+.main-landing.tq-photo-ready .main-cover-action{position:absolute;left:50%;bottom:max(24px,calc(20px + env(safe-area-inset-bottom,0px)));transform:translateX(-50%);width:min(350px,calc(100% - 36px));display:grid;gap:10px;pointer-events:auto}
 .main-landing.tq-photo-ready #mainLocationStatus{display:none}
-.main-landing.tq-photo-ready #mainLocateBtn,.main-landing.tq-photo-ready #mainManualBtn{min-height:58px;border-radius:10px;font-size:16px;letter-spacing:-.02em;box-shadow:none;transition:transform .1s ease,background .14s ease,border-color .14s ease}
-.main-landing.tq-photo-ready #mainLocateBtn{background:var(--accent);border:1px solid #dcff78;color:#071108}
-.main-landing.tq-photo-ready #mainManualBtn{background:rgba(5,15,27,.88);border:1px solid #7f94a6;color:#f5f7f2;backdrop-filter:blur(8px)}
-.main-landing.tq-photo-ready #mainLocateBtn:after,.main-landing.tq-photo-ready #mainManualBtn:after{content:"→";margin-left:auto;font:800 20px/1 system-ui}
-.main-landing.tq-photo-ready #mainLocateBtn:active,.main-landing.tq-photo-ready #mainManualBtn:active,.main-landing.tq-photo-ready #mainLocateBtn.is-pressed,.main-landing.tq-photo-ready #mainManualBtn.is-pressed{transform:translateY(1px) scale(.995);box-shadow:none}
-.main-landing.tq-photo-ready .tq-cover-trust{display:none}
-@media(max-width:680px){
- .main-landing.tq-photo-ready .main-landing-inner{padding-top:calc(36px + env(safe-area-inset-top,0px))}
- .main-landing.tq-photo-ready .main-cover-copy h1{font-size:48px}
- .main-landing.tq-photo-ready .main-cover-copy>p:last-of-type{font-size:12px}
- .main-landing.tq-photo-ready .main-cover-action{bottom:max(3.2dvh,calc(14px + env(safe-area-inset-bottom,0px)));width:calc(100% - 28px)}
- .main-landing.tq-photo-ready #mainLocateBtn,.main-landing.tq-photo-ready #mainManualBtn{min-height:56px;font-size:15px}
-}
+.main-landing.tq-photo-ready #mainLocateBtn,.main-landing.tq-photo-ready #mainManualBtn{min-height:56px;padding:0 18px;border-radius:5px;font-size:15px;font-weight:900;box-shadow:none;justify-content:flex-start}
+.main-landing.tq-photo-ready #mainLocateBtn{background:var(--tq-lime);border:1px solid #e4ff89;color:#071108}
+.main-landing.tq-photo-ready #mainManualBtn{background:rgba(7,17,31,.88);border:2px solid #d7e1ea;color:#f5f7f2}
+.main-landing.tq-photo-ready #mainLocateBtn:after,.main-landing.tq-photo-ready #mainManualBtn:after{content:"→";margin-left:auto;font-size:22px}
+.main-landing.tq-photo-ready #mainLocateBtn:active,.main-landing.tq-photo-ready #mainManualBtn:active{transform:translateY(1px);box-shadow:none}
+.loc-dot{width:18px;height:18px;border:0;background:#07111f;clip-path:polygon(50% 100%,15% 52%,15% 28%,30% 8%,50% 0,70% 8%,85% 28%,85% 52%)}
+
+/* Board step rail: 01 출발지 / 여행 조건 / 추천 결과 */
+.progress.panel{position:sticky;top:62px;z-index:60;height:60px;margin:0 -1px 12px;padding:8px 18px;border:0;border-bottom:1px solid #1d3449;border-radius:0;background:#07111f;display:grid;grid-template-columns:1fr 1fr 1fr;gap:0}
+.progress>span{display:none}.progress-step{position:relative;display:flex;flex-direction:column;gap:3px;align-items:center;justify-content:flex-end;padding:0;border:0;background:transparent;color:#8ea0b1;font-size:9px}.progress-step b{width:10px;height:10px;padding:0;border:2px solid #6b8297;border-radius:50%;font-size:0;background:#07111f}.progress-step:after{content:"";position:absolute;top:9px;left:50%;width:100%;height:2px;background:#29425a;z-index:-1}.progress-step:nth-of-type(5):after{display:none}.progress-step.active{color:var(--tq-lime)}.progress-step.active b,.progress-step.done b{border-color:var(--tq-lime);background:var(--tq-lime);box-shadow:0 0 8px rgba(201,255,69,.45)}
+.progress-step:nth-of-type(7),.progress-step:nth-of-type(9){display:none}
+
+/* Wizard board shell */
+.wizard.panel{margin:0;padding:0 8px 76px;border:0;border-radius:0;background:transparent;box-shadow:none}.wizard-head{display:none}.step-view{padding:0}
+.location-card{padding:12px;border-color:#263f57;background:#0c1a29;display:grid;grid-template-columns:32px 1fr;gap:8px}.location-icon{color:var(--tq-lime);font-size:24px}.location-main span{display:none}.location-main strong{font-size:15px}.location-card #locateBtn{grid-column:1/-1;min-height:56px;border:2px solid var(--tq-lime);background:#0c1928;color:#fff;text-align:left}
+.or-line{margin:10px 0}.search-box{padding:7px;border-color:#263f57;background:#0c1a29}.tip-box{color:var(--tq-muted);font-size:11px;background:#0a1725}
+.wizard-actions{position:fixed;z-index:65;left:50%;bottom:76px;transform:translateX(-50%);width:min(370px,calc(100% - 20px));padding:8px;background:linear-gradient(180deg,rgba(7,17,31,0),#07111f 30%);display:grid;grid-template-columns:1fr}.wizard-actions #backBtn,.wizard-actions .action-hint{display:none}.wizard-actions #nextBtn{width:100%;min-height:50px;font-size:15px}
+
+/* 03 condition grid */
+.manual-search-intro{display:none}.manual-options[hidden]{display:block!important}.manual-options{display:block!important}.section-block{margin:0 0 18px}.section-title{margin-bottom:8px}.section-title span{font-weight:900;color:#f5f7f2}.section-title small{display:none}
+.direction-grid{display:none}.category-grid{grid-template-columns:repeat(4,1fr);gap:8px}.category-grid button{min-height:70px;border:1px solid #2c4860;border-radius:6px;background:#0c1a29;color:#fff}.category-grid button b{font-size:21px}.category-grid button span{font-size:11px}.category-grid button.selected{border-color:var(--tq-lime);background:#162718;color:var(--tq-lime);box-shadow:inset 0 0 0 1px var(--tq-lime)}
+.time-cards{grid-template-columns:1fr;gap:8px}.field-card{padding:12px}.schedule-preview{font-size:12px}
+
+/* Search-only screen is the board's search/result entry, not a floating modern card */
+.tq-search-only{padding:0;min-height:calc(100dvh - 62px)}.tq-search-only-panel{width:100%!important;max-width:none!important;margin:0!important;padding:12px!important;border:0!important;border-radius:0!important;background:#07111f!important;box-shadow:none!important}
+.tq-search-only-panel:before{display:none}.tq-geo-start{border:1px solid #29455e;border-radius:6px;background:#0d1b2a}.tq-geo-start button{border-radius:4px}.tq-geo-search-copy{padding-top:16px}.tq-geo-search-copy span{color:var(--tq-lime);font:900 10px ui-monospace,monospace}.tq-geo-search-copy h1{font-size:20px!important}.tq-geo-search-copy p{font-size:12px;color:var(--tq-muted)}
+.ai-composer{border:1px solid #31506b;border-radius:6px;background:#0b1827;box-shadow:none}.ai-composer textarea{font-size:13px}.ai-composer .ai-send{border-radius:4px}
+.ai-progress{margin:20vh auto 0;max-width:300px;text-align:center}.ai-progress-top{font:900 18px ui-monospace,monospace;letter-spacing:.03em}.ai-progress-top span{font-size:0}.ai-progress-top span:after{content:"SEARCHING QUEST...";font-size:18px}.ai-progress-track{height:18px;border:2px solid #799d2c;border-radius:3px;background:#07111f;padding:3px}.ai-progress-track i{background:repeating-linear-gradient(90deg,var(--tq-lime) 0 16px,#789b2c 16px 18px);border-radius:0}.ai-progress small{color:#d5dde4}
+.ai-search-status{border-radius:5px;background:#0d1b2a;border:1px solid #29455e}.ai-conversation{border-radius:6px}.ai-avatar{border-radius:3px;background:var(--tq-lime);color:#07111f}.ai-mode{color:var(--tq-lime);font-family:ui-monospace,monospace}
+.tq-geo-results{display:grid;gap:10px}.tq-geo-result-head{padding:4px 0;color:var(--tq-lime);font:900 12px ui-monospace,monospace}.tq-geo-results>button{min-height:74px;padding:10px;border:1px solid #2d4b64;border-radius:6px;background:#0d1b2a;box-shadow:none}.tq-geo-results>button>b{color:var(--tq-lime);font:950 20px ui-monospace,monospace}.tq-geo-results>button em{color:#07111f;background:var(--tq-lime);border-radius:3px;padding:5px 7px;font-style:normal;font-weight:900}
+
+/* 05 results / 06 course / 07 detail */
+.result-toolbar{margin-bottom:8px}.result-toolbar>div:first-child strong{font:950 18px ui-monospace,monospace;color:var(--tq-lime)}.result-toolbar>div:first-child strong:before{content:"QUEST FOUND! ";}.result-toolbar>div:first-child span{font-size:11px;color:var(--tq-muted)}
+.result-toolbar-actions{width:100%}.result-sort{display:grid;grid-template-columns:repeat(3,1fr);width:100%;gap:4px}.result-sort button{border-radius:4px;background:#102033;border-color:#1e3950}.result-sort button.active{background:var(--tq-lime);color:#07111f}.result-toolbar #editConditionsBtn{display:none}
+.result-layout{display:block}.ranking{display:grid;gap:10px}.ranking .place-card,.result-card{border:2px solid #eaf1f3;border-radius:6px;background:#f5f7f2;color:#07111f;overflow:hidden;box-shadow:none}.map-card{display:none}
+.place-card .btn.primary,.result-card .btn.primary{background:var(--tq-lime);color:#07111f}
+.selected-place-head{padding:8px 0}.selected-place-head span{font:800 10px ui-monospace,monospace;color:var(--tq-lime)}.selected-place-head h2{font-size:20px}.summary-box{background:#f5f7f2;color:#07111f;border-color:#fff;border-radius:6px}.course-head{margin-top:10px}.course-head span{color:var(--tq-lime);font:900 10px ui-monospace,monospace}.course-head h3{font-size:14px}.course-list{display:grid;gap:8px}.course-card{border-radius:6px;background:#0d1b2a}.course-card.selected{border-color:var(--tq-lime);box-shadow:inset 0 0 0 1px var(--tq-lime)}
+.course-detail-panel{border-color:#29445f}.course-route-map-card{border-radius:6px;overflow:hidden}
+
+/* 08/09/10 Quest HUD, complete and failure */
+.tq-quest-island-main{border:2px solid var(--tq-lime);border-radius:5px;background:#091624;box-shadow:none}.tq-quest-island-main small{color:var(--tq-lime);font-family:ui-monospace,monospace}.tq-quest-island-main i{border-radius:0;background:var(--tq-lime)}
+.tq-quest-panel,.tq-quest-complete,.tq-course-ready-popup,.install-card{border:2px solid var(--tq-line2);border-radius:6px;background:#091624;box-shadow:0 20px 60px rgba(0,0,0,.55)}
+.tq-quest-complete{border-color:var(--tq-lime);box-shadow:0 0 0 2px #07111f,0 0 0 3px var(--tq-lime),0 20px 60px rgba(0,0,0,.6)}
+.tq-quest-complete h2,.tq-quest-complete strong{color:var(--tq-lime);font-family:ui-monospace,monospace}
+.toast{border:1px solid #cdd9e1;border-radius:5px;background:#091624;box-shadow:0 18px 50px rgba(0,0,0,.6)}
+
+/* 11 common bottom nav */
+.tq-bottom-nav{left:50%;bottom:max(8px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(370px,calc(100% - 20px));height:64px;padding:3px;border:1px solid #2c4860;border-radius:6px;background:#07111f;box-shadow:0 12px 34px rgba(0,0,0,.45)}
+.tq-bottom-nav button{border-radius:4px;color:#b8c5d0;font-size:9px}.tq-bottom-nav button.active{color:var(--tq-lime);background:transparent}.tq-bottom-nav button.active:before{display:none}.tq-bottom-nav .tq-nav-icon{width:19px;height:19px;transform:none}
+
+/* setup/keep sheets use board frame */
+.tq-setup-card,.tq-keep-sheet{border:1px solid #31506b;border-radius:7px;background:#0b1827;box-shadow:none}.tq-choice-grid button,.tq-setup-row select,.tq-unit-input,.tq-setup-info,.tq-setup-save,.tq-switch-ui,.tq-keep-close,.tq-keep-course-id,.tq-keep-detail-star{border-radius:5px}
+
 @media(max-height:720px){
- .main-landing.tq-photo-ready .main-landing-inner{padding-top:calc(22px + env(safe-area-inset-top,0px))}
- .main-landing.tq-photo-ready .main-cover-copy{display:block}
- .main-landing.tq-photo-ready .main-cover-copy h1{font-size:40px}
- .main-landing.tq-photo-ready .main-cover-copy>p:last-of-type{margin-top:9px;font-size:11px}
- .main-landing.tq-photo-ready .main-cover-action{bottom:max(10px,env(safe-area-inset-bottom,0px))}
- .main-landing.tq-photo-ready #mainLocateBtn,.main-landing.tq-photo-ready #mainManualBtn{min-height:50px}
+ .main-landing.tq-photo-ready .main-landing-inner{padding-top:calc(58px + env(safe-area-inset-top,0px))}
+ .main-landing.tq-photo-ready .main-cover-copy h1{font-size:44px}
+ .main-landing.tq-photo-ready .main-cover-eyebrow{top:calc(205px + env(safe-area-inset-top,0px))}
+ .main-landing.tq-photo-ready .main-cover-copy>p:last-child{margin-top:60px;font-size:12px}
+ .main-landing.tq-photo-ready #mainLocateBtn,.main-landing.tq-photo-ready #mainManualBtn{min-height:48px}
 }
-@media(prefers-reduced-motion:reduce){.tq-quest-island-main i{animation:none}}
+@media(min-width:700px){.app-shell{margin-top:18px;margin-bottom:18px;border:1px solid #29445f;border-radius:14px;overflow:hidden;min-height:calc(100dvh - 36px)}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
