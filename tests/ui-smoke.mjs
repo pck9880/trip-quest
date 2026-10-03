@@ -55,7 +55,7 @@ assert.ok(tripStore.includes('const INITIAL_SECTIONS='),'structured trip state m
 assert.ok(tripStore.includes('function resetJourney()'),'trip reset lifecycle missing');
 
 assert.ok(searchCss.includes('.tq-geo-explorer'),'GEO explorer styles missing');
-assert.ok(geoExplorer.includes('.tq-search-only-panel'),'search-only layout style missing');
+assert.ok(pixelCss.includes('.tq-search-only-panel'),'board search-only layout style missing');
 assert.ok(productCss.includes('.tq-bottom-nav'),'bottom navigation styles missing');
 assert.ok(landingCss.includes('.main-landing'),'landing styles missing');
 assert.ok(sw.includes("const CACHE='trip-quest-v1.15.0-board-match-20261003'"),'service worker v1.15.0 cache version missing');
