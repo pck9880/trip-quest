@@ -169,8 +169,7 @@ function ensureAIOrigin(){
 async function askAI(message,options={}){
   if(!message.trim()||state.aiBusy)return;
   state.lastSearchMode='ai';state.lastAIMessage=message.trim();state.activeDistanceBand=options.distanceBand||null;
-  state.aiBusy=true;
-  const btn=$('#aiSend'),status=$('#aiSearchStatus'),finishGauge=startAIProgressGauge();
+  state.aiBusy=true;document.body.classList.add('tq-board-searching');\n  const btn=$('#aiSend'),status=$('#aiSearchStatus'),finishGauge=startAIProgressGauge();
   $('#aiConversation').hidden=false;$('#aiChoices').innerHTML='';
   setText('#aiMode','SEARCH QUEST');
   setText('#aiReply','여행 조건을 분석하고 있습니다…');
@@ -209,8 +208,7 @@ async function askAI(message,options={}){
     if(status){status.className='ai-search-status error';status.textContent=e.message||'검색을 시작할 수 없습니다.'}
     searchUI?.renderEmpty?.(e.message||'시작 위치를 설정해주세요.');
     finishGauge(false);
-  }finally{
-    state.aiBusy=false;btn.disabled=false;
+  }finally{\n    document.body.classList.remove('tq-board-searching');\n    state.aiBusy=false;btn.disabled=false;
   }
 }
 function similarDistanceBand(){
