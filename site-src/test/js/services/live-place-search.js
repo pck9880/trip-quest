@@ -53,13 +53,38 @@ export async function resolveRegion(name){
   const key='resolve:'+name,hit=cacheGet(key);if(hit)return hit;
   const params=new URLSearchParams({q:name+', 대한민국',format:'jsonv2',limit:'6',countrycodes:'kr',addressdetails:'1',extratags:'1','accept-language':'ko'});
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),5000);
+  let primaryError=null;
   try{
     const res=await fetch(NOMINATIM+'?'+params.toString(),{headers:{Accept:'application/json'},signal:controller.signal});
     if(!res.ok)throw new Error('지역 정보를 불러오지 못했습니다.');
     const list=await res.json(),choice=list.find(x=>x.osm_type==='relation'&&x.class==='boundary')||list.find(x=>x.osm_type==='relation')||list[0];
     if(!choice)throw new Error(name+' 지역을 찾지 못했습니다.');
     const value=boundaryFromNominatim(choice,name);cacheSet(key,value);return value;
+  }catch(e){
+    primaryError=e;
   }finally{clearTimeout(timer)}
+  const safe=String(name).replaceAll('\\','\\\\').replaceAll('"','\\"');
+  const query='[out:json][timeout:9];(rel["boundary"~"^(administrative|legal)$"]["name"="'+safe+'"];rel["boundary"~"^(administrative|legal)$"]["name:ko"="'+safe+'"];);out center tags qt 10;';
+  try{
+    const json=await overpassJson(query,{timeoutMs:4200,label:'지역 경계'});
+    const rows=(json.elements||[]).filter(x=>x.type==='relation');
+    rows.sort((a,b)=>Math.abs(Number(a.tags?.admin_level||99)-4)-Math.abs(Number(b.tags?.admin_level||99)-4));
+    const choice=rows[0];
+    if(!choice)throw primaryError||new Error(name+' 지역을 찾지 못했습니다.');
+    const value={
+      name,
+      displayName:String(choice.tags?.['name:ko']||choice.tags?.name||name),
+      osmType:'relation',
+      osmId:Number(choice.id),
+      adminLevel:Number(choice.tags?.admin_level||0)||null,
+      lat:Number(choice.center?.lat),
+      lng:Number(choice.center?.lon),
+      bbox:null
+    };
+    cacheSet(key,value);return value;
+  }catch(e){
+    throw primaryError||e||new Error(name+' 지역 정보를 불러오지 못했습니다.');
+  }
 }
 export async function regionChildren(parent,adminLevel){
   const aid=areaId(parent);if(!aid)return [];
