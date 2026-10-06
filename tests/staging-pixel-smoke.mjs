@@ -109,4 +109,17 @@ assert.ok(wizardJs.includes("$('#nextBtn').hidden=n===4"),'final step action mus
 assert.ok(!appControllerJs.includes("$('#resetBtn').onclick=resetTrip"),'reset button binding must stay removed');
 assert.ok(!appControllerJs.includes("preventDefault();resetTrip()"),'brand click must not reset the trip');
 
+assert.ok(html.includes('class="tq-cover-title-fx"'),'cover title fx layer missing');
+assert.ok(html.includes('class="tq-title-q-star"'),'Q star effect node missing');
+assert.ok(html.includes('class="tq-title-i-dot"'),'I dot effect node missing');
+assert.ok(landingCss.includes('TRIP QUEST COVER TITLE FX'),'title fx stylesheet block missing');
+assert.ok(landingCss.includes('pointer-events:none!important'),'title fx must never intercept cover controls');
+assert.ok(landingCss.includes('@keyframes tqQStarPulse'),'Q star animation missing');
+assert.ok(landingCss.includes('@keyframes tqIDotPulse'),'I dot pulse animation missing');
+assert.ok(landingCss.includes('@keyframes tqTitleGlint'),'pixel glint animation missing');
+assert.ok(landingCss.includes('@media(prefers-reduced-motion:reduce)'),'cover title fx reduced-motion guard missing');
+assert.ok(landingCss.includes('.main-landing:not(.tq-photo-ready) .tq-cover-title-fx'),'title fx must hide when artwork fails');
+assert.ok(sw.includes('./css/landing.css?v=20261006-titlefx2'),'title fx stylesheet cache version missing');
+assert.ok(sw.includes('./app-chrome.js?v=20261006-titlefx2'),'title fx app chrome cache version missing');
+
 console.log('TRIP QUEST staging pixel/app-frame regression checks passed');
