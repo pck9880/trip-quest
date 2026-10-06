@@ -1,0 +1,647 @@
+/* TRIP QUEST · PIXEL PHASE 3
+   World + typography integration.
+   Phase 3 scope: cover / auth / signup / region + place selection.
+   Functional JS is intentionally untouched. */
+
+@import url("https://cdn.jsdelivr.net/npm/galmuri@2.40.3/dist/galmuri.css");
+
+:root{
+  --p3-font-display:"Galmuri11","Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  --p3-font-mono:"GalmuriMono11","Galmuri11",ui-monospace,monospace;
+  --p3-font-small:"Galmuri9","Galmuri11","Apple SD Gothic Neo",sans-serif;
+  --p3-grid:8px;
+  --p3-bg:#061017;
+  --p3-bg2:#0a151c;
+  --p3-panel:#0d1820;
+  --p3-panel-hi:#13232c;
+  --p3-line:#31444f;
+  --p3-line-hi:#738792;
+  --p3-lime:#d8ff45;
+  --p3-lime2:#9fc324;
+  --p3-ink:#071006;
+  --p3-white:#f3f8f6;
+  --p3-muted:#95a5ad;
+  --p3-cyan:#71e5dd;
+  --p3-warn:#ffcf54;
+  --p3-danger:#ff786e;
+  --p3-shadow:#020608;
+}
+
+/* ------------------------------
+   TYPOGRAPHY SYSTEM
+------------------------------ */
+html,body{
+  text-rendering:optimizeSpeed;
+}
+
+body,
+button,
+input,
+select,
+textarea{
+  font-family:var(--p3-font-display);
+}
+
+h1,h2,h3,
+.btn,
+.selector-continue,
+.tq-auth-submit,
+.tq-auth-switch,
+.progress-step,
+.result-sort button,
+.selector-chip-grid button,
+.tq-bottom-nav button,
+.tq-auth-env,
+.eyebrow,
+.selector-section-head>span,
+.pixel-loader-head,
+.popular-badge,
+.nearby-popular-badge,
+.tag,
+.rank-number{
+  font-family:var(--p3-font-display)!important;
+  font-weight:700;
+  letter-spacing:-.02em;
+}
+
+.main-cover-eyebrow,
+.tq-auth-head small,
+.app-version-footer,
+.system-status small,
+.status-pill small,
+.result-toolbar,
+.selection-summary,
+#selectionSummary,
+.radius-scale,
+.course-builder-head>strong,
+.selected-place-head>div>span{
+  font-family:var(--p3-font-mono)!important;
+}
+
+p,
+small,
+.tq-auth-message,
+#stepDescription,
+.selector-section-head p,
+.result-toolbar span,
+.rank-card p,
+.course-builder-head p{
+  word-break:keep-all;
+}
+
+/* Strong pixel labels */
+.tq-auth-brand h1,
+.main-cover-brand b,
+.brand b,
+.selector-intro>div>span,
+.eyebrow,
+.selector-section-head>span,
+.pixel-loader-head span,
+.popular-picks::before{
+  text-transform:uppercase;
+  text-shadow:2px 2px 0 rgba(0,0,0,.56);
+}
+
+/* ------------------------------
+   GLOBAL PIXEL WORLD SURFACE
+------------------------------ */
+body:not(.tq-auth-locked){
+  background:
+    linear-gradient(rgba(216,255,69,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(216,255,69,.025) 1px,transparent 1px),
+    radial-gradient(circle at 50% -20%,#19313a 0,#0a151c 38%,#05090d 74%);
+  background-size:16px 16px,16px 16px,100% 100%;
+  background-attachment:fixed;
+}
+
+body:not(.tq-auth-locked)::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  opacity:.32;
+  background:
+    linear-gradient(90deg,transparent 0 24%,rgba(216,255,69,.045) 24% 25%,transparent 25% 74%,rgba(113,229,221,.035) 74% 75%,transparent 75%),
+    linear-gradient(180deg,transparent 0 49%,rgba(255,255,255,.018) 49% 50%,transparent 50%);
+  background-size:64px 64px,32px 32px;
+  image-rendering:pixelated;
+}
+
+.panel{
+  position:relative;
+}
+
+/* Tiny hardware corners across major screens */
+.panel::before,
+.tq-auth-card::before{
+  image-rendering:pixelated;
+}
+
+/* ------------------------------
+   COVER = PIXEL WORLD GATE
+------------------------------ */
+.main-landing{
+  background:#050b10;
+}
+
+.main-landing-bg{
+  image-rendering:pixelated;
+  filter:saturate(.86) contrast(1.06) brightness(.78);
+}
+
+.main-landing-bg::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:2;
+  pointer-events:none;
+  background:
+    linear-gradient(180deg,rgba(4,9,13,.04),rgba(4,9,13,.3)),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.018) 0 1px,transparent 1px 4px),
+    linear-gradient(90deg,rgba(216,255,69,.035) 1px,transparent 1px),
+    linear-gradient(rgba(216,255,69,.035) 1px,transparent 1px);
+  background-size:100% 100%,100% 4px,32px 32px,32px 32px;
+}
+
+.main-landing-bg::after{
+  display:block!important;
+  content:"";
+  position:absolute;
+  inset:18px;
+  z-index:3;
+  pointer-events:none;
+  border:2px solid rgba(216,255,69,.15);
+  clip-path:polygon(
+    12px 0,calc(100% - 12px) 0,calc(100% - 12px) 4px,100% 4px,
+    100% calc(100% - 12px),calc(100% - 4px) calc(100% - 12px),
+    calc(100% - 4px) 100%,12px 100%,12px calc(100% - 4px),0 calc(100% - 4px),
+    0 12px,4px 12px,4px 4px,12px 4px
+  );
+  box-shadow:inset 0 0 0 4px rgba(0,0,0,.16);
+}
+
+.main-landing.tq-photo-ready .main-cover-action{
+  gap:8px!important;
+  border:2px solid rgba(216,255,69,.72)!important;
+  background:
+    linear-gradient(90deg,rgba(216,255,69,.04) 1px,transparent 1px),
+    linear-gradient(rgba(216,255,69,.04) 1px,transparent 1px),
+    rgba(5,12,16,.92)!important;
+  background-size:8px 8px,8px 8px,100% 100%!important;
+  box-shadow:
+    0 6px 0 rgba(0,0,0,.72),
+    6px 12px 0 rgba(0,0,0,.26)!important;
+}
+
+.main-landing.tq-photo-ready .main-cover-action::before{
+  content:"QUEST START";
+  position:absolute;
+  left:12px;
+  top:-10px;
+  height:18px;
+  padding:0 7px;
+  display:flex;
+  align-items:center;
+  background:#09110d;
+  border:1px solid var(--p3-lime);
+  color:var(--p3-lime);
+  font:700 9px/1 var(--p3-font-mono);
+  letter-spacing:.08em;
+}
+
+.main-landing.tq-photo-ready #mainLocateBtn,
+.main-landing.tq-photo-ready #mainManualBtn{
+  font-family:var(--p3-font-display)!important;
+  letter-spacing:.01em;
+  text-shadow:none!important;
+}
+
+.main-landing.tq-photo-ready #mainLocateBtn{
+  color:var(--p3-ink)!important;
+  background:
+    linear-gradient(180deg,#ebff8b 0 14%,var(--p3-lime) 14% 82%,#b5da2a 82%)!important;
+}
+
+.main-landing.tq-photo-ready #mainLocateBtn::after{
+  content:"▶";
+  margin-left:auto;
+  font-family:var(--p3-font-mono);
+  font-size:12px;
+}
+
+/* fallback cover gets a fully game-like text treatment */
+.main-landing:not(.tq-photo-ready) .main-cover-brand,
+.main-landing:not(.tq-photo-ready) .main-cover-copy{
+  font-family:var(--p3-font-display);
+}
+.main-landing:not(.tq-photo-ready) .main-cover-copy h1{
+  font-size:clamp(32px,8vw,54px);
+  line-height:1.25;
+  letter-spacing:-.06em;
+  text-shadow:4px 4px 0 #020508;
+}
+
+/* ------------------------------
+   AUTH = PLAYER TERMINAL
+------------------------------ */
+.tq-auth-gate{
+  background:
+    radial-gradient(circle at 50% 15%,rgba(53,91,99,.28),transparent 34%),
+    linear-gradient(rgba(216,255,69,.032) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(216,255,69,.032) 1px,transparent 1px),
+    #050a0e!important;
+  background-size:100% 100%,16px 16px,16px 16px,100% 100%!important;
+}
+
+.tq-auth-gate::before,
+.tq-auth-gate::after{
+  content:"";
+  position:fixed;
+  pointer-events:none;
+  image-rendering:pixelated;
+}
+
+.tq-auth-gate::before{
+  inset:22px;
+  border:2px solid rgba(216,255,69,.13);
+  clip-path:polygon(
+    12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) calc(100% - 12px),
+    calc(100% - 12px) 100%,0 100%,0 12px,12px 12px
+  );
+}
+
+.tq-auth-gate::after{
+  left:24px;
+  bottom:24px;
+  width:4px;
+  height:4px;
+  background:var(--p3-lime);
+  box-shadow:
+    8px 0 0 rgba(216,255,69,.6),
+    16px 0 0 rgba(216,255,69,.3),
+    calc(100vw - 72px) 0 0 rgba(113,229,221,.5),
+    calc(100vw - 64px) 0 0 rgba(113,229,221,.24);
+}
+
+.tq-auth-shell{
+  position:relative;
+}
+
+.tq-auth-brand{
+  font-family:var(--p3-font-display);
+}
+
+.tq-auth-brand h1{
+  font-family:var(--p3-font-display)!important;
+  letter-spacing:-.04em;
+  color:var(--p3-white);
+}
+
+.tq-auth-env{
+  font-family:var(--p3-font-mono)!important;
+  border-radius:0!important;
+  box-shadow:3px 3px 0 #020507;
+}
+
+.tq-auth-card{
+  border:2px solid #536873!important;
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px),
+    linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+    linear-gradient(180deg,#101c24,#091117)!important;
+  background-size:8px 8px,8px 8px,100% 100%!important;
+  box-shadow:
+    0 0 0 4px #05090d,
+    0 8px 0 #020507,
+    8px 14px 0 rgba(0,0,0,.24)!important;
+}
+
+.tq-auth-card::before{
+  content:"PLAYER TERMINAL"!important;
+  font-family:var(--p3-font-mono)!important;
+  letter-spacing:.08em!important;
+}
+
+.tq-auth-head h2{
+  font-family:var(--p3-font-display)!important;
+  font-size:24px;
+  letter-spacing:-.04em;
+}
+
+.tq-auth-head small{
+  color:var(--p3-cyan)!important;
+  letter-spacing:.08em;
+}
+
+.tq-auth-form>label>span:first-child{
+  font-family:var(--p3-font-small)!important;
+  font-weight:700;
+  letter-spacing:0;
+}
+
+.tq-auth-form input:not([type="checkbox"]){
+  font-family:var(--p3-font-display)!important;
+  font-size:14px!important;
+  letter-spacing:0;
+}
+
+.tq-auth-form input::placeholder{
+  color:#64747c!important;
+  opacity:1;
+}
+
+.tq-auth-submit,
+.tq-auth-switch{
+  font-family:var(--p3-font-display)!important;
+}
+
+.tq-auth-submit{
+  letter-spacing:.02em;
+}
+
+.tq-auth-submit::after{
+  content:"▶";
+  margin-left:8px;
+  font-family:var(--p3-font-mono);
+  font-size:10px;
+}
+
+.tq-auth-message{
+  font-family:var(--p3-font-small)!important;
+  line-height:1.7!important;
+}
+
+/* signup visually reads as a character-registration window without changing fields */
+#signupView .tq-auth-head::before{
+  content:"NEW PLAYER";
+  position:absolute;
+  right:0;
+  bottom:-2px;
+  height:20px;
+  padding:0 6px;
+  display:flex;
+  align-items:center;
+  color:#081006;
+  background:var(--p3-cyan);
+  font:700 8px/1 var(--p3-font-mono);
+  letter-spacing:.08em;
+}
+
+/* ------------------------------
+   APP BAR = HUD
+------------------------------ */
+.topbar{
+  border-bottom:2px solid #263943!important;
+  background:
+    linear-gradient(90deg,rgba(216,255,69,.025) 1px,transparent 1px),
+    rgba(6,13,18,.94)!important;
+  background-size:8px 8px,100% 100%!important;
+}
+
+.brand-mark{
+  font-family:var(--p3-font-mono)!important;
+  font-size:11px!important;
+}
+
+.brand b{
+  font-family:var(--p3-font-display)!important;
+}
+
+.brand small,
+.status-pill{
+  font-family:var(--p3-font-small)!important;
+}
+
+.status-pill{
+  border-radius:0!important;
+  clip-path:polygon(4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) calc(100% - 4px),calc(100% - 4px) 100%,0 100%,0 4px,4px 4px);
+}
+
+/* ------------------------------
+   REGION / PLACE = WORLD SELECT
+------------------------------ */
+.selector-intro{
+  overflow:visible!important;
+}
+
+.selector-intro::before{
+  content:"WORLD SELECT"!important;
+  font-family:var(--p3-font-mono)!important;
+}
+
+.selector-intro>div>span{
+  color:var(--p3-cyan)!important;
+  font-family:var(--p3-font-mono)!important;
+}
+
+.selector-intro h1{
+  font-family:var(--p3-font-display)!important;
+  letter-spacing:-.05em;
+  line-height:1.35;
+}
+
+.selector-intro p{
+  font-family:var(--p3-font-small)!important;
+  line-height:1.65;
+}
+
+#selectionSummary{
+  font-family:var(--p3-font-small)!important;
+  line-height:1.55;
+}
+
+.progress{
+  background:
+    linear-gradient(90deg,rgba(216,255,69,.025) 1px,transparent 1px),
+    #0b151c!important;
+  background-size:8px 8px,100% 100%!important;
+}
+
+.progress-step{
+  font-size:12px!important;
+}
+
+.progress-step b{
+  font-family:var(--p3-font-mono)!important;
+}
+
+.progress-step.active{
+  color:var(--p3-lime)!important;
+  text-shadow:2px 2px 0 #020507;
+}
+
+.progress-step.active b{
+  animation:p3PixelPulse 1.25s steps(2,end) infinite;
+}
+
+@keyframes p3PixelPulse{
+  0%,100%{filter:brightness(1)}
+  50%{filter:brightness(1.28)}
+}
+
+.wizard{
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.012) 1px,transparent 1px),
+    linear-gradient(rgba(255,255,255,.012) 1px,transparent 1px),
+    linear-gradient(180deg,#0e1921,#091117)!important;
+  background-size:8px 8px,8px 8px,100% 100%!important;
+  box-shadow:0 8px 0 rgba(2,6,8,.56)!important;
+}
+
+.wizard-head .eyebrow{
+  color:var(--p3-cyan)!important;
+  font-family:var(--p3-font-mono)!important;
+  letter-spacing:.05em;
+}
+
+.wizard-head h2{
+  font-family:var(--p3-font-display)!important;
+  letter-spacing:-.05em;
+  line-height:1.35;
+}
+
+#stepDescription{
+  font-family:var(--p3-font-small)!important;
+  line-height:1.75;
+}
+
+.selector-section-head>span{
+  font-family:var(--p3-font-mono)!important;
+  letter-spacing:.08em;
+}
+
+.selector-section-head>strong{
+  font-family:var(--p3-font-display)!important;
+  letter-spacing:-.03em;
+}
+
+.selector-section-head p{
+  font-family:var(--p3-font-small)!important;
+  line-height:1.7;
+}
+
+.region-select-grid label>span,
+.region-select-grid label>small{
+  font-family:var(--p3-font-small)!important;
+}
+
+.region-select-grid select{
+  font-family:var(--p3-font-display)!important;
+  font-size:14px!important;
+}
+
+.region-select-grid label{
+  background:
+    linear-gradient(135deg,rgba(216,255,69,.04) 0 8px,transparent 8px),
+    #091218!important;
+}
+
+.selector-chip-grid{
+  gap:10px!important;
+}
+
+.selector-chip-grid button{
+  font-family:var(--p3-font-display)!important;
+  font-size:13px!important;
+  line-height:1.45;
+  letter-spacing:-.03em;
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px),
+    linear-gradient(180deg,#111d25,#0b151b)!important;
+  background-size:8px 8px,100% 100%!important;
+}
+
+.selector-chip-grid button.selected{
+  color:var(--p3-white)!important;
+  background:
+    linear-gradient(90deg,rgba(216,255,69,.075) 1px,transparent 1px),
+    linear-gradient(rgba(216,255,69,.045) 1px,transparent 1px),
+    linear-gradient(180deg,#1a2810,#10190c)!important;
+  background-size:8px 8px,8px 8px,100% 100%!important;
+}
+
+.selector-chip-grid button.selected .p2-chip-label::after{
+  content:" SELECT";
+  display:inline;
+  margin-left:5px;
+  color:var(--p3-lime);
+  font:700 8px/1 var(--p3-font-mono);
+  letter-spacing:.03em;
+}
+
+.selector-continue{
+  font-family:var(--p3-font-display)!important;
+  min-height:52px;
+  letter-spacing:-.02em;
+}
+
+.selector-continue:not(:disabled)::after{
+  content:" ▶";
+  font-family:var(--p3-font-mono);
+  font-size:9px;
+}
+
+/* ------------------------------
+   SEARCH / RESULT TYPOGRAPHY BRIDGE
+   (full result game treatment is phase 4)
+------------------------------ */
+.pixel-loader-head{
+  font-family:var(--p3-font-mono)!important;
+}
+
+#placeLoadText,
+#nearbyLoadStatus p{
+  font-family:var(--p3-font-small)!important;
+}
+
+.result-toolbar strong{
+  font-family:var(--p3-font-display)!important;
+}
+
+.result-toolbar span,
+.result-sort button{
+  font-family:var(--p3-font-small)!important;
+}
+
+.rank-card h3,
+.popular-picks h3{
+  font-family:var(--p3-font-display)!important;
+  letter-spacing:-.04em;
+}
+
+.rank-card p,
+.rank-card small{
+  font-family:var(--p3-font-small)!important;
+}
+
+.app-version-footer{
+  font-family:var(--p3-font-mono)!important;
+  letter-spacing:.03em;
+}
+
+/* ------------------------------
+   MOBILE TUNING
+------------------------------ */
+@media(max-width:680px){
+  .tq-auth-gate::before{inset:10px}
+  .tq-auth-card{
+    box-shadow:0 6px 0 #020507,5px 10px 0 rgba(0,0,0,.2)!important;
+  }
+  .tq-auth-head h2{font-size:21px}
+  .selector-intro h1{font-size:23px!important}
+  .wizard-head h2{font-size:20px!important}
+  .selector-chip-grid button{
+    font-size:12px!important;
+    min-height:58px!important;
+  }
+  .main-landing-bg::after{inset:8px}
+  .main-landing.tq-photo-ready .main-cover-action{
+    width:min(560px,calc(100% - 28px))!important;
+  }
+}
+
+/* Respect accessibility preference. */
+@media(prefers-reduced-motion:reduce){
+  .progress-step.active b{animation:none!important}
+}
