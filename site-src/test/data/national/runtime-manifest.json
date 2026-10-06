@@ -1,33 +1,30 @@
 {
-  "version": 1,
-  "status": "awaiting-upload",
+  "version": 2,
+  "status": "ready",
   "generatedAt": "2026-10-06",
-  "total": 20413,
+  "total": 20365,
   "counts": {
     "공원": 18343,
-    "전통시장": 1393,
-    "대형도서관": 656,
-    "쇼핑거리": 17,
+    "전통시장": 1377,
+    "대형도서관": 631,
+    "쇼핑거리": 10,
     "카페거리": 4
   },
   "parts": [
-    "national-v1.part00.bin",
-    "national-v1.part01.bin",
-    "national-v1.part02.bin",
-    "national-v1.part03.bin",
-    "national-v1.part04.bin",
-    "national-v1.part05.bin",
-    "national-v1.part06.bin",
-    "national-v1.part07.bin",
-    "national-v1.part08.bin",
-    "national-v1.part09.bin",
-    "national-v1.part10.bin",
-    "national-v1.part11.bin",
-    "national-v1.part12.bin",
-    "national-v1.part13.bin",
-    "national-v1.part14.bin",
-    "national-v1.part15.bin"
+    "national-v2.part00.bin",
+    "national-v2.part01.bin",
+    "national-v2.part02.bin",
+    "national-v2.part03.bin",
+    "national-v2.part04.bin",
+    "national-v2.part05.bin",
+    "national-v2.part06.bin",
+    "national-v2.part07.bin"
   ],
   "source": "업로드 전국 표준데이터 4종",
-  "note": "정규화 완료. 런타임 데이터 조각 미배포 시 지도 보조로 자동 전환."
+  "notes": [
+    "좌표 없는 레코드는 지도 검색에서 제외",
+    "대형도서관 운영기준: 건물면적 3000㎡ 이상 또는 좌석 300석 이상 또는 장서 10만권 이상",
+    "카페거리는 공식 특화거리명에 카페/커피가 포함된 항목만 사용",
+    "쇼핑거리는 공식 특화거리명 기준으로 음식/자동차 특화거리를 제외"
+  ]
 }

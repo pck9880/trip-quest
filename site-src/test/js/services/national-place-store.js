@@ -46,6 +46,13 @@ export async function loadNationalDataset(){
 }
 export function officialCategories(){return new Set(OFFICIAL_CATEGORIES)}
 
+function regionAliases(name=''){
+  const s=String(name).trim();
+  const out=new Set([s]);
+  const numbered=s.replace(/(?:제)?\d+동$/,'동');
+  if(numbered!==s)out.add(numbered);
+  return [...out].filter(Boolean);
+}
 function regionMatch(place,path=[]){
   if(!path.length)return true;
   const [top,...rest]=path.filter(Boolean);
@@ -58,7 +65,7 @@ function regionMatch(place,path=[]){
     if(!hay.includes(top))return false;
   }
   const hay=[place.sigungu,place.eupmyeondong,place.address].join(' ');
-  return rest.every(x=>hay.includes(x));
+  return rest.every(x=>regionAliases(x).some(alias=>hay.includes(alias)));
 }
 function facilityMatch(place,filters=[]){
   if(!filters.length)return true;
