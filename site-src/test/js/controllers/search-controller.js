@@ -46,18 +46,67 @@ export function createSearchController({state,travelService,setStep}){
   function currentPayload(){return {origin:state.origin,regionBoundary:state.regionBoundary,regionPath:state.regionPath,categories:state.categories,facilities:[],gasPrice:1858}}
 
   async function recommend(extra={}){
-    state.lastSearchMode='selection';state.activeDistanceBand=null;if(!state.regionBoundary){toast('지역을 먼저 선택하세요.');setStep(1);return}if(!state.categories.length){toast('플레이스를 한 개 이상 선택하세요.');setStep(2);return}
-    hideExpandModal();const payload={...currentPayload(),...extra},scopePath=payload.regionPath||state.regionPath||[],scopeIndex=Number.isInteger(extra.scopeIndex)?extra.scopeIndex:Math.max(0,(state.regionBoundaries||[]).length-1),scopeName=scopePath.at(-1)||'선택 지역';
-    loading(true);setStep(3);startPlaceLoad(scopeName,!!extra.expanded);$('#ranking').className='ranking empty-state';$('#ranking').innerHTML='선택한 지역의 플레이스를 불러오고 있습니다…';$('#noMatchActions').hidden=true;
+    state.lastSearchMode='selection';
+    state.activeDistanceBand=null;
+    if(!state.regionBoundary){toast('지역을 먼저 선택하세요.');setStep(1);return}
+    if(!state.categories.length){toast('플레이스를 한 개 이상 선택하세요.');setStep(2);return}
+
+    hideExpandModal();
+    const boundaries=state.regionBoundaries||[];
+    const originalPath=state.regionPath||[];
+    let scopeIndex=Number.isInteger(extra.scopeIndex)?extra.scopeIndex:Math.max(0,boundaries.length-1);
+    const requestedIndex=scopeIndex;
+    let finalPath=originalPath.slice(0,scopeIndex+1);
+    let finalSource='검색 결과 없음';
+    let found=[];
+
+    loading(true);
+    setStep(3);
+    $('#ranking').className='ranking empty-state';
+    $('#ranking').innerHTML='선택한 지역의 플레이스를 불러오고 있습니다…';
+    $('#noMatchActions').hidden=true;
+
     try{
-      const j=await travelService.selectionSearch(payload);presentRecommendations(j.items||[]);finishPlaceLoad(scopeName,state.recommendations.length);setText('#resultCaption',scopePath.join(' › ')+' · '+state.categories.join(' · ')+' · '+state.recommendations.length+'곳 · '+(j.source||'장소 데이터'));
-      if(!state.recommendations.length){const offered=offerExpandedSearch(scopeIndex);if(!offered){$('#noMatchActions').hidden=false;setText('#resultCaption',scopePath.join(' › ')+' · 조건에 맞는 장소 없음')}}else if(extra.expanded)toast((scopePath.at(-1)||'확대 지역')+' 범위에서 다시 찾았습니다.');
+      while(scopeIndex>=0){
+        const scopePath=originalPath.slice(0,scopeIndex+1);
+        const scopeName=scopePath.at(-1)||'선택 지역';
+        const boundary=boundaries[scopeIndex]||state.regionBoundary;
+        startPlaceLoad(scopeName,scopeIndex<requestedIndex);
+        const j=await travelService.selectionSearch({
+          ...currentPayload(),
+          ...extra,
+          regionBoundary:boundary,
+          regionPath:scopePath
+        });
+        found=j.items||[];
+        finalPath=scopePath;
+        finalSource=j.source||'장소 데이터';
+        if(found.length)break;
+        scopeIndex--;
+      }
+
+      presentRecommendations(found);
+      const scopeName=finalPath.at(-1)||'선택 지역';
+      finishPlaceLoad(scopeName,state.recommendations.length);
+
+      if(state.recommendations.length){
+        const expanded=scopeIndex<requestedIndex;
+        const expansionText=expanded?' · 결과 부족으로 '+scopeName+'까지 자동 확대':'';
+        setText('#resultCaption',finalPath.join(' › ')+' · '+state.categories.join(' · ')+' · '+state.recommendations.length+'곳 · '+finalSource+expansionText);
+        if(expanded)toast(scopeName+'까지 자동으로 범위를 넓혀 찾았습니다.');
+      }else{
+        $('#noMatchActions').hidden=false;
+        setText('#resultCaption',originalPath.join(' › ')+' · 상위 지역까지 검색했지만 조건에 맞는 장소가 없습니다.');
+      }
     }catch(e){
       failPlaceLoad(e.message||'플레이스 검색에 실패했습니다.');
       $('#ranking').className='ranking empty-state';
       $('#ranking').innerHTML='<div><span class="error">'+esc(e.message)+'</span><br><br><button id="retryPlaceSearchBtn" class="btn primary" type="button">검색 다시 시도</button></div>';
       $('#retryPlaceSearchBtn')?.addEventListener('click',()=>recommend(extra));
-    }finally{loading(false);setStep(3)}
+    }finally{
+      loading(false);
+      setStep(3);
+    }
   }
 
   function selectedNearby(){const ids=new Set(state.selectedNearbyIds||[]);return (state.nearbyCandidates||[]).filter(x=>ids.has(x.id))}
