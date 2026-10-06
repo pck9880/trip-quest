@@ -20,10 +20,14 @@ const coverFinalCss=read('cover-phase3-final.css');
 const manifest=read('manifest.webmanifest');
 const wizardJs=read('js/ui/wizard.js');
 const appControllerJs=read('js/controllers/app-controller.js');
+const searchControllerJs=read('js/controllers/search-controller.js');
+const noScrollCss=read('no-scroll-app.css');
+const noScrollJs=read('js/ui/no-scroll-app.js');
 
 for(const [name,source] of [
   ['phase4-app-frame.css',frame],
-  ['phase5-final.css',finalCss]
+  ['phase5-final.css',finalCss],
+  ['no-scroll-app.css',noScrollCss]
 ]){
   assert.equal(
     (source.match(/\{/g)||[]).length,
@@ -47,7 +51,9 @@ for(const asset of [
   './phase4-app-frame.css?v=20261006-phase4a',
   './phase5-final.css?v=20261006-phase5b',
   './js/ui/phase2-pixel.js?v=20261006-phase2',
-  './js/ui/phase5-polish.js?v=20261006-phase5'
+  './js/ui/phase5-polish.js?v=20261006-phase5',
+  './no-scroll-app.css?v=20261006-noscroll1',
+  './js/ui/no-scroll-app.js?v=20261006-noscroll1'
 ]){
   assert.ok(html.includes(asset),'staging HTML asset missing: '+asset);
 }
@@ -59,7 +65,8 @@ assert.ok(frame.includes('position:fixed!important'),'fixed app frame rule missi
 assert.ok(frame.includes('.tq-bottom-nav'),'fixed bottom navigation rule missing');
 assert.ok(frame.includes('overflow:hidden!important'),'document scroll lock missing');
 assert.ok(frame.includes('.wizard>.step-view'),'internal step viewport missing');
-assert.ok(frame.includes('overflow-y:auto'),'internal long-content scrolling missing');
+assert.ok(noScrollCss.includes('.wizard>.step-view'),'no-scroll step viewport rule missing');
+assert.ok(noScrollCss.includes('overflow:hidden!important'),'no-scroll overflow lock missing');
 
 for(const token of [
   '.p5-screen-wipe',
@@ -142,5 +149,35 @@ assert.ok(chromeJs.includes('dot:[318,178]'),'I dot source anchor missing');
 assert.ok(chromeJs.includes('scale=Math.max(w/COVER_SOURCE.w,h/COVER_SOURCE.h)'),'cover geometry scale mapping missing');
 assert.ok(chromeJs.includes('window.visualViewport?.addEventListener'),'visual viewport resize correction missing');
 assert.ok(chromeJs.includes('requestAnimationFrame(syncCoverTitleFx)'),'title fx post-load alignment missing');
+
+assert.ok(html.includes('./no-scroll-app.css?v=20261006-noscroll1'),'no-scroll HTML asset missing');
+assert.ok(html.includes('./js/ui/no-scroll-app.js?v=20261006-noscroll1'),'no-scroll pagination script missing');
+assert.ok(sw.includes('./no-scroll-app.css?v=20261006-noscroll1'),'no-scroll CSS cache missing');
+assert.ok(sw.includes('./js/ui/no-scroll-app.js?v=20261006-noscroll1'),'no-scroll JS cache missing');
+assert.ok(sw.includes('./app.js?v=20261006-noscroll1'),'no-scroll app runtime cache missing');
+assert.ok(sw.includes('./app-chrome.js?v=20261006-noscroll1'),'no-scroll chrome runtime cache missing');
+assert.ok(sw.includes('./auth.js?v=20261006-noscroll1'),'no-scroll auth loader cache missing');
+
+assert.ok(noScrollCss.includes('html,\nbody'),'document-level scroll lock missing');
+assert.ok(noScrollCss.includes('.tq-auth-gate'),'auth one-screen rule missing');
+assert.ok(noScrollCss.includes('#placeChoices'),'place fixed-grid rule missing');
+assert.ok(noScrollCss.includes('#ranking.ranking-with-popular'),'result fixed-page rule missing');
+assert.ok(noScrollCss.includes('#nearbyChoiceList'),'nearby fixed-page rule missing');
+assert.ok(noScrollCss.includes('#courseTimeline'),'course fixed-page rule missing');
+assert.ok(noScrollCss.includes('.tq-page-controls'),'pager UI rule missing');
+
+assert.ok(noScrollJs.includes("pageSize:6,label:'PLACE'"),'place 6-item pagination missing');
+assert.ok(noScrollJs.includes("pageSize:3,label:'RESULT'"),'result 3-item pagination missing');
+assert.ok(noScrollJs.includes("pageSize:3,label:'NEARBY'"),'nearby 3-item pagination missing');
+assert.ok(noScrollJs.includes("pageSize:3,label:'ROUTE'"),'route 3-stop pagination missing');
+assert.ok(noScrollJs.includes('function buildCoursePages()'),'two-page course layout missing');
+assert.ok(noScrollJs.includes("dataset.tqCoursePage='nearby'"),'course nearby page missing');
+assert.ok(noScrollJs.includes("dataset.tqCoursePage='plan'"),'course plan page missing');
+assert.ok(!noScrollJs.includes('preventDefault('),'pagination layer must not intercept business clicks');
+assert.ok(!noScrollJs.includes('stopPropagation('),'pagination layer must not block app handlers');
+assert.ok(!noScrollJs.includes('state.categories'),'pagination layer must not mutate category state');
+
+assert.ok(!wizardJs.includes('scrollIntoView'),'wizard must not request page scrolling');
+assert.ok(!searchControllerJs.includes('scrollIntoView'),'search/course flow must not request page scrolling');
 
 console.log('TRIP QUEST staging pixel/app-frame regression checks passed');
