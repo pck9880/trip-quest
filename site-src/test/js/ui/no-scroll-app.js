@@ -144,12 +144,6 @@ function observe(host,callback){
   new MutationObserver(()=>requestAnimationFrame(callback)).observe(host,{childList:true,subtree:false});
 }
 
-function removeLegacyScrollCalls(){
-  // CSS owns viewport locking; keep current visual position on every step.
-  document.documentElement.scrollTop=0;
-  document.body.scrollTop=0;
-}
-
 function boot(){
   document.documentElement.classList.add('tq-no-scroll');
   buildCoursePages();
@@ -175,12 +169,8 @@ function boot(){
         refreshNearbyPager(false);
         refreshTimelinePager(false);
       }
-      removeLegacyScrollCalls();
     }).observe(wizard,{subtree:true,attributes:true,attributeFilter:['class']});
   }
-
-  window.addEventListener('resize',removeLegacyScrollCalls,{passive:true});
-  window.visualViewport?.addEventListener('resize',removeLegacyScrollCalls,{passive:true});
 }
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
