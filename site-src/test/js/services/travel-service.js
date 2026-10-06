@@ -77,9 +77,11 @@ export function createTravelService(){
     if(prepared&&Date.now()-prepared.at<15*60*1000){
       const wanted=new Set(categories);
       const items=prepared.items.filter(x=>wanted.has(x.category));
-      if(items.length||prepared.items.length){
+      if(items.length){
         return {items,source:prepared.source+' · 사전 분석'};
       }
+      // Cached region analysis may contain other categories only.
+      // A zero match for the user's current category must fall through to a fresh search.
     }
     let officialReady=true;
     const officialPromise=searchOfficialPlaces({regionPath:criteria.regionPath||[],categories,facilities:criteria.facilities||[]})
@@ -89,8 +91,17 @@ export function createTravelService(){
       ?softDeadline(searchRegionPlaces({boundary:criteria.regionBoundary,categories:liveCats,facilities:criteria.facilities||[]}),6200,{items:[],source:'지도 보조 시간 제한'})
       :Promise.resolve({items:[],source:''});
     let [official,live]=await Promise.all([officialPromise,livePromise]);
-    if(!officialReady&&categories.some(x=>officialSet.has(x))){
-      const recovery=await softDeadline(searchRegionPlaces({boundary:criteria.regionBoundary,categories,facilities:criteria.facilities||[]}),3200,{items:[]});
+    const requestedOfficial=categories.filter(x=>officialSet.has(x));
+    if(requestedOfficial.length&&(!officialReady||!(official.items||[]).length)){
+      const recovery=await softDeadline(
+        searchRegionPlaces({
+          boundary:criteria.regionBoundary,
+          categories:requestedOfficial,
+          facilities:criteria.facilities||[]
+        }),
+        5200,
+        {items:[],source:'지도 보조 복구 시간 제한'}
+      );
       live={...live,items:[...(live.items||[]),...(recovery.items||[])]};
     }
     const items=dedupePlaces([...(official.items||[]),...(live.items||[])]);
