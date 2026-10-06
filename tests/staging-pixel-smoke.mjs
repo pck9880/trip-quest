@@ -171,8 +171,8 @@ assert.ok(noScrollCss.includes('#courseTimeline'),'course fixed-page rule missin
 assert.ok(noScrollCss.includes('.tq-page-controls'),'pager UI rule missing');
 
 assert.ok(noScrollJs.includes("pageSize:6,label:'PLACE'"),'place 6-item pagination missing');
-assert.ok(noScrollJs.includes("pageSize:3,label:'RESULT'"),'result 3-item pagination missing');
-assert.ok(noScrollJs.includes("pageSize:3,label:'NEARBY'"),'nearby 3-item pagination missing');
+assert.ok(!noScrollJs.includes("pageSize:3,label:'RESULT'"),'result pagination must stay removed for scrolling lists');
+assert.ok(!noScrollJs.includes("pageSize:3,label:'NEARBY'"),'nearby pagination must stay removed for scrolling lists');
 assert.ok(noScrollJs.includes("pageSize:3,label:'ROUTE'"),'route 3-stop pagination missing');
 assert.ok(noScrollJs.includes('function buildCoursePages()'),'two-page course layout missing');
 assert.ok(noScrollJs.includes("dataset.tqCoursePage='nearby'"),'course nearby page missing');
