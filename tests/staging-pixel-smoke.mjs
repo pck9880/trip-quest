@@ -122,7 +122,7 @@ assert.ok(landingCss.includes('@keyframes tqTitleGlint'),'pixel glint animation 
 assert.ok(landingCss.includes('@media(prefers-reduced-motion:reduce)'),'cover title fx reduced-motion guard missing');
 assert.ok(landingCss.includes('.main-landing:not(.tq-photo-ready) .tq-cover-title-fx'),'title fx must hide when artwork fails');
 assert.ok(sw.includes('./css/landing.css?v=20261006-titlefx2'),'title fx stylesheet cache version missing');
-assert.ok(sw.includes('./app-chrome.js?v=20261006-titlefx2'),'title fx app chrome cache version missing');
+assert.ok(sw.includes('./app-chrome.js?v=20261006-coverfinal3'),'title fx app chrome cache version missing');
 
 assert.ok(html.includes('./cover-phase3-final.css?v=20261006-coverfinal3'),'final cover QA stylesheet missing');
 assert.ok(sw.includes('./cover-phase3-final.css?v=20261006-coverfinal3'),'final cover QA stylesheet cache missing');
