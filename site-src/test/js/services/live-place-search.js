@@ -167,13 +167,22 @@ function parseElements(json,category,facilities,boundary){
   }
   return items;
 }
-export async function searchRegionPlaces({boundary,categories=[],facilities=[]}){
+export async function searchRegionPlaces({boundary,categories=[],facilities=[],onProgress=null}){
   const aid=areaId(boundary);if(!aid)throw new Error('선택한 지역 경계를 확인하지 못했습니다.');
   const selected=[...new Set(categories)].filter(c=>CATEGORY_SELECTORS[c]);if(!selected.length)return {items:[],source:'지도 보조'};
+  let completed=0;
+  const report=(category,status)=>{completed++;try{onProgress?.({completed,total:selected.length,category,status,ratio:completed/selected.length})}catch{}};
   const tasks=selected.map(async category=>{
     const query='[out:json][timeout:10];area('+aid+')->.searchArea;('+CATEGORY_SELECTORS[category].join('')+');out center tags qt 70;';
-    const json=await overpassJson(query,{timeoutMs:2100,label:category});
-    return {category,items:parseElements(json,category,facilities,boundary)};
+    try{
+      const json=await overpassJson(query,{timeoutMs:2100,label:category});
+      const value={category,items:parseElements(json,category,facilities,boundary)};
+      report(category,'fulfilled');
+      return value;
+    }catch(e){
+      report(category,'rejected');
+      throw e;
+    }
   });
   const settled=await Promise.allSettled(tasks),items=[],failed=[];
   for(let i=0;i<settled.length;i++){
