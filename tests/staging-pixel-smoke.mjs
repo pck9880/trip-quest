@@ -15,6 +15,9 @@ const liveSearch=read('js/services/live-place-search.js');
 const chromeJs=read('app-chrome.js');
 const authJs=read('auth.js');
 const authCss=read('auth.css');
+const landingCss=read('css/landing.css');
+const wizardJs=read('js/ui/wizard.js');
+const appControllerJs=read('js/controllers/app-controller.js');
 
 for(const [name,source] of [
   ['phase4-app-frame.css',frame],
@@ -78,7 +81,7 @@ assert.equal(new Set(ids).size,ids.length,'staging HTML ids must remain unique')
 
 for(const ref of [
   './phase4-app-frame.css?v=20261006-phase4a',
-  './phase5-final.css?v=20261006-phase5',
+  './phase5-final.css?v=20261006-phase5b',
   './js/ui/phase5-polish.js?v=20261006-phase5'
 ]){
   assert.ok(sw.includes(ref),'staging service worker cache missing: '+ref);
@@ -94,5 +97,16 @@ assert.ok(chromeJs.includes("'<strong>TRIP QUEST</strong>'"),'simplified enlarge
 
 assert.ok(authJs.includes('accountBar.hidden=true'),'account debug overlay must stay hidden after login');
 assert.ok(authCss.includes('.tq-test-account{display:none!important}'),'account debug overlay CSS hide rule missing');
+
+assert.ok(html.includes('./assets/tq-cover-main-v044.webp?v=20261006-pixelcover1'),'approved pixel cover preload missing');
+assert.ok(landingCss.includes('../assets/tq-cover-main-v044.webp?v=20261006-pixelcover1'),'approved pixel cover CSS missing');
+assert.ok(chromeJs.includes("probe.src='./assets/tq-cover-main-v044.webp?v=20261006-pixelcover1'"),'approved pixel cover probe missing');
+assert.ok(sw.includes('./assets/tq-cover-main-v044.webp?v=20261006-pixelcover1'),'approved pixel cover cache key missing');
+
+assert.ok(!html.includes('id="resetBtn"'),'instant reset button must stay removed');
+assert.ok(!wizardJs.includes("label='새 TRIP QUEST'"),'final-step instant reset label must stay removed');
+assert.ok(wizardJs.includes("$('#nextBtn').hidden=n===4"),'final step action must stay hidden');
+assert.ok(!appControllerJs.includes("$('#resetBtn').onclick=resetTrip"),'reset button binding must stay removed');
+assert.ok(!appControllerJs.includes("preventDefault();resetTrip()"),'brand click must not reset the trip');
 
 console.log('TRIP QUEST staging pixel/app-frame regression checks passed');
