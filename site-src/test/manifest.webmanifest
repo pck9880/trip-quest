@@ -1,7 +1,7 @@
 {
-  "name": "TRIP QUEST · 국내여행 AI 플래너",
-  "short_name": "TRIP QUEST",
-  "description": "현재 위치와 취향, 날씨를 반영하는 국내여행 모바일 플래너",
+  "name": "TRIP QUEST TEST · 국내여행 AI 플래너",
+  "short_name": "TRIP QUEST TEST",
+  "description": "TRIP QUEST 기능 검증용 테스트 서버",
   "lang": "ko-KR",
   "start_url": "./",
   "scope": "./",
