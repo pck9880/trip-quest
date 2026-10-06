@@ -1,0 +1,52 @@
+name: Deploy TRIP QUEST Test
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trip-quest-test
+  cancel-in-progress: true
+
+jobs:
+  deploy-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify test build
+        run: |
+          node --check site-src/app.js
+          node --check site-src/app-chrome.js
+          find site-src/js -name '*.js' -print0 | xargs -0 -n1 node --check
+          npm test
+
+      - name: Build isolated test site
+        run: |
+          rm -rf _test
+          mkdir -p _test
+          cp -a site-src/. _test/
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('_test/index.html')
+          html=p.read_text(encoding='utf-8')
+          marker='<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">'
+          if 'name="robots"' not in html:
+              html=html.replace('<head>','<head>\n  '+marker,1)
+          html=html.replace('</body>','<div style="position:fixed;right:8px;top:8px;z-index:99999;padding:6px 9px;background:#c9ff45;color:#07111f;font:900 11px/1 system-ui;border:1px solid #07111f">TEST / STAGING</div>\n</body>',1)
+          p.write_text(html,encoding='utf-8')
+          Path('_test/robots.txt').write_text('User-agent: *\nDisallow: /\n',encoding='utf-8')
+          Path('_test/.nojekyll').touch()
+          PY
+
+      - name: Publish test snapshot
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages-test
+          publish_dir: ./_test
+          force_orphan: true
