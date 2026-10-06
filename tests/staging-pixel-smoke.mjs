@@ -54,7 +54,7 @@ for(const asset of [
   './js/ui/phase2-pixel.js?v=20261006-phase2',
   './js/ui/phase5-polish.js?v=20261006-phase5',
   './no-scroll-app.css?v=20261006-placescroll1',
-  './js/ui/no-scroll-app.js?v=20261006-course3a'
+  './js/ui/no-scroll-app.js?v=20261006-course3fix1'
 ]){
   assert.ok(html.includes(asset),'staging HTML asset missing: '+asset);
 }
@@ -133,12 +133,12 @@ assert.ok(landingCss.includes('@keyframes tqTitleGlint'),'pixel glint animation 
 assert.ok(landingCss.includes('@media(prefers-reduced-motion:reduce)'),'cover title fx reduced-motion guard missing');
 assert.ok(landingCss.includes('.main-landing:not(.tq-photo-ready) .tq-cover-title-fx'),'title fx must hide when artwork fails');
 assert.ok(sw.includes('./css/landing.css?v=20261006-titlefx2'),'title fx stylesheet cache version missing');
-assert.ok(sw.includes('./app-chrome.js?v=20261006-localfirst1'),'title fx app chrome cache version missing');
+assert.ok(sw.includes('./app-chrome.js?v=20261006-course3fix1'),'title fx app chrome cache version missing');
 
 assert.ok(html.includes('./cover-phase3-final.css?v=20261006-coverfinal3'),'final cover QA stylesheet missing');
 assert.ok(sw.includes('./cover-phase3-final.css?v=20261006-coverfinal3'),'final cover QA stylesheet cache missing');
-assert.ok(sw.includes('./app-chrome.js?v=20261006-localfirst1'),'final cover runtime cache version missing');
-assert.ok(sw.includes('./auth.js?v=20261006-course3a'),'final cover auth cache version missing');
+assert.ok(sw.includes('./app-chrome.js?v=20261006-course3fix1'),'final cover runtime cache version missing');
+assert.ok(sw.includes('./auth.js?v=20261006-course3fix1'),'final cover auth cache version missing');
 assert.ok(coverFinalCss.includes('env(safe-area-inset-bottom,0px)'),'final cover bottom safe area missing');
 assert.ok(coverFinalCss.includes('env(safe-area-inset-left,0px)'),'final cover left safe area missing');
 assert.ok(coverFinalCss.includes('env(safe-area-inset-right,0px)'),'final cover right safe area missing');
@@ -155,12 +155,12 @@ assert.ok(chromeJs.includes('window.visualViewport?.addEventListener'),'visual v
 assert.ok(chromeJs.includes('requestAnimationFrame(syncCoverTitleFx)'),'title fx post-load alignment missing');
 
 assert.ok(html.includes('./no-scroll-app.css?v=20261006-placescroll1'),'no-scroll HTML asset missing');
-assert.ok(html.includes('./js/ui/no-scroll-app.js?v=20261006-course3a'),'no-scroll pagination script missing');
+assert.ok(html.includes('./js/ui/no-scroll-app.js?v=20261006-course3fix1'),'no-scroll pagination script missing');
 assert.ok(sw.includes('./no-scroll-app.css?v=20261006-placescroll1'),'no-scroll CSS cache missing');
-assert.ok(sw.includes('./js/ui/no-scroll-app.js?v=20261006-course3a'),'no-scroll JS cache missing');
-assert.ok(sw.includes('./app.js?v=20261006-localfirst1'),'no-scroll app runtime cache missing');
-assert.ok(sw.includes('./app-chrome.js?v=20261006-localfirst1'),'no-scroll chrome runtime cache missing');
-assert.ok(sw.includes('./auth.js?v=20261006-course3a'),'no-scroll auth loader cache missing');
+assert.ok(sw.includes('./js/ui/no-scroll-app.js?v=20261006-course3fix1'),'no-scroll JS cache missing');
+assert.ok(sw.includes('./app.js?v=20261006-course3fix1'),'no-scroll app runtime cache missing');
+assert.ok(sw.includes('./app-chrome.js?v=20261006-course3fix1'),'no-scroll chrome runtime cache missing');
+assert.ok(sw.includes('./auth.js?v=20261006-course3fix1'),'no-scroll auth loader cache missing');
 
 assert.ok(noScrollCss.includes('html,\nbody'),'document-level scroll lock missing');
 assert.ok(noScrollCss.includes('.tq-auth-gate'),'auth one-screen rule missing');
@@ -227,3 +227,8 @@ assert.ok(searchControllerJs.includes('chosen.length!==3'),'course build exact-t
 assert.ok(searchControllerJs.includes("new CustomEvent('tq:course-page'"),'course completion dialog navigation event missing');
 assert.ok(noScrollJs.includes("count!==3"),'course next button exact-three guard missing');
 assert.ok(noScrollJs.includes("'tq:course-page'"),'course page navigation listener missing');
+
+assert.ok(noScrollJs.includes("$$('.rank-card',host).forEach"),'result scroll runtime must iterate querySelectorAll results');
+assert.ok(noScrollJs.includes("$$('.nearby-choice-card',host).forEach"),'nearby scroll runtime must iterate querySelectorAll results');
+assert.ok(!noScrollJs.includes("$('.rank-card',host).forEach"),'querySelector forEach runtime crash regression');
+assert.ok(!noScrollJs.includes("$('.nearby-choice-card',host).forEach"),'nearby querySelector forEach runtime crash regression');
