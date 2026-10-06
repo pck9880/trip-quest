@@ -13,6 +13,8 @@ const selectorJs=read('js/ui/quest-selector.js');
 const travelService=read('js/services/travel-service.js');
 const liveSearch=read('js/services/live-place-search.js');
 const chromeJs=read('app-chrome.js');
+const authJs=read('auth.js');
+const authCss=read('auth.css');
 
 for(const [name,source] of [
   ['phase4-app-frame.css',frame],
@@ -89,5 +91,8 @@ assert.ok(travelService.includes('async function prepareRegion'),'travel service
 assert.ok(travelService.includes('regionPrepCache'),'region pre-analysis cache missing');
 assert.ok(liveSearch.includes('onProgress=null'),'live place search progress callback missing');
 assert.ok(chromeJs.includes("'<strong>TRIP QUEST</strong>'"),'simplified enlarged header title missing');
+
+assert.ok(authJs.includes('accountBar.hidden=true'),'account debug overlay must stay hidden after login');
+assert.ok(authCss.includes('.tq-test-account{display:none!important}'),'account debug overlay CSS hide rule missing');
 
 console.log('TRIP QUEST staging pixel/app-frame regression checks passed');
