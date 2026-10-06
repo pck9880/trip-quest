@@ -16,6 +16,8 @@ const chromeJs=read('app-chrome.js');
 const authJs=read('auth.js');
 const authCss=read('auth.css');
 const landingCss=read('css/landing.css');
+const coverFinalCss=read('cover-phase3-final.css');
+const manifest=read('manifest.webmanifest');
 const wizardJs=read('js/ui/wizard.js');
 const appControllerJs=read('js/controllers/app-controller.js');
 
@@ -121,5 +123,24 @@ assert.ok(landingCss.includes('@media(prefers-reduced-motion:reduce)'),'cover ti
 assert.ok(landingCss.includes('.main-landing:not(.tq-photo-ready) .tq-cover-title-fx'),'title fx must hide when artwork fails');
 assert.ok(sw.includes('./css/landing.css?v=20261006-titlefx2'),'title fx stylesheet cache version missing');
 assert.ok(sw.includes('./app-chrome.js?v=20261006-titlefx2'),'title fx app chrome cache version missing');
+
+assert.ok(html.includes('./cover-phase3-final.css?v=20261006-coverfinal3'),'final cover QA stylesheet missing');
+assert.ok(sw.includes('./cover-phase3-final.css?v=20261006-coverfinal3'),'final cover QA stylesheet cache missing');
+assert.ok(sw.includes('./app-chrome.js?v=20261006-coverfinal3'),'final cover runtime cache version missing');
+assert.ok(sw.includes('./auth.js?v=20261006-coverfinal3'),'final cover auth cache version missing');
+assert.ok(coverFinalCss.includes('env(safe-area-inset-bottom,0px)'),'final cover bottom safe area missing');
+assert.ok(coverFinalCss.includes('env(safe-area-inset-left,0px)'),'final cover left safe area missing');
+assert.ok(coverFinalCss.includes('env(safe-area-inset-right,0px)'),'final cover right safe area missing');
+assert.ok(coverFinalCss.includes('pointer-events:none!important'),'final cover fx must remain non-interactive');
+assert.ok(coverFinalCss.includes('@media(max-height:700px)'),'short-phone cover rules missing');
+assert.ok(coverFinalCss.includes('@media(max-width:390px)'),'narrow-phone cover rules missing');
+assert.ok(manifest.includes('"orientation": "portrait-primary"'),'installed PWA must prefer portrait orientation');
+
+assert.ok(chromeJs.includes('COVER_SOURCE={w:941,h:1672}'),'cover source coordinate mapping missing');
+assert.ok(chromeJs.includes('q:[486,236]'),'Q star source anchor missing');
+assert.ok(chromeJs.includes('dot:[318,178]'),'I dot source anchor missing');
+assert.ok(chromeJs.includes('scale=Math.max(w/COVER_SOURCE.w,h/COVER_SOURCE.h)'),'cover geometry scale mapping missing');
+assert.ok(chromeJs.includes('window.visualViewport?.addEventListener'),'visual viewport resize correction missing');
+assert.ok(chromeJs.includes('requestAnimationFrame(syncCoverTitleFx)'),'title fx post-load alignment missing');
 
 console.log('TRIP QUEST staging pixel/app-frame regression checks passed');
