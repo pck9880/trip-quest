@@ -1,0 +1,632 @@
+/* TRIP QUEST · PHASE 4A APP FRAME
+   Native-app viewport shell: fixed safe-area header/footer, no document scrolling.
+   Long data lists scroll only inside the center content pane. */
+
+:root{
+  --tq-app-max:820px;
+  --tq-safe-top:env(safe-area-inset-top,0px);
+  --tq-safe-right:env(safe-area-inset-right,0px);
+  --tq-safe-bottom:env(safe-area-inset-bottom,0px);
+  --tq-safe-left:env(safe-area-inset-left,0px);
+  --tq-appbar-h:56px;
+  --tq-bottom-h:64px;
+  --tq-frame-gap:8px;
+  --tq-frame-bg:#050b10;
+}
+
+/* The auth gate remains keyboard-scrollable, but respects the phone cutouts. */
+.tq-auth-gate{
+  padding-top:max(18px,var(--tq-safe-top))!important;
+  padding-right:max(14px,var(--tq-safe-right))!important;
+  padding-bottom:max(18px,var(--tq-safe-bottom))!important;
+  padding-left:max(14px,var(--tq-safe-left))!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+}
+
+/* Once authenticated, the browser document itself never scrolls. */
+html:has(body:not(.tq-auth-locked)){
+  height:100%;
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+
+body:not(.tq-auth-locked){
+  width:100%;
+  height:100dvh;
+  min-height:100svh;
+  overflow:hidden!important;
+  overscroll-behavior:none;
+  padding:0!important;
+}
+
+/* Root app canvas: reserve exact safe header + safe bottom navigation space. */
+body:not(.tq-auth-locked) .app-shell{
+  position:relative;
+  width:min(var(--tq-app-max),100%);
+  max-width:var(--tq-app-max);
+  height:100dvh;
+  min-height:100svh;
+  margin:0 auto;
+  padding:
+    calc(var(--tq-safe-top) + var(--tq-appbar-h))
+    0
+    calc(var(--tq-safe-bottom) + var(--tq-bottom-h))
+    0!important;
+  overflow:hidden;
+  display:block;
+}
+
+/* Safe-area top HUD. It paints behind the OS status area, content starts below it. */
+body:not(.tq-auth-locked) .topbar.tq-appbar{
+  position:fixed!important;
+  z-index:900!important;
+  top:0!important;
+  left:50%!important;
+  right:auto!important;
+  transform:translateX(-50%)!important;
+  width:min(var(--tq-app-max),100%)!important;
+  height:calc(var(--tq-safe-top) + var(--tq-appbar-h))!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:
+    var(--tq-safe-top)
+    max(12px,var(--tq-safe-right))
+    0
+    max(12px,var(--tq-safe-left))!important;
+  display:flex!important;
+  align-items:center!important;
+  border:0!important;
+  border-bottom:2px solid #2a3d46!important;
+  border-radius:0!important;
+  background:
+    linear-gradient(90deg,rgba(216,255,69,.035) 1px,transparent 1px),
+    linear-gradient(180deg,#091218,#071016)!important;
+  background-size:8px 8px,100% 100%!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  box-shadow:0 4px 0 rgba(0,0,0,.44)!important;
+}
+
+body:not(.tq-auth-locked) .topbar.tq-appbar::before{
+  content:"";
+  position:absolute;
+  left:max(8px,var(--tq-safe-left));
+  right:max(8px,var(--tq-safe-right));
+  bottom:-2px;
+  height:2px;
+  pointer-events:none;
+  background:linear-gradient(90deg,var(--p3-lime,#d8ff45) 0 72px,transparent 72px);
+}
+
+body:not(.tq-auth-locked) .tq-appbar .brand{
+  position:relative;
+  z-index:2;
+  min-width:42px!important;
+  height:42px;
+  display:flex;
+  align-items:center;
+}
+
+body:not(.tq-auth-locked) .tq-appbar .brand-mark{
+  width:38px!important;
+  height:38px!important;
+  flex:0 0 38px;
+  border:2px solid #efffa8!important;
+  box-shadow:0 3px 0 #607815!important;
+}
+
+body:not(.tq-auth-locked) .tq-top-label{
+  top:calc(var(--tq-safe-top) + (var(--tq-appbar-h) / 2))!important;
+  transform:translate(-50%,-50%)!important;
+  z-index:1;
+}
+
+body:not(.tq-auth-locked) .tq-top-label small{
+  font-size:8px!important;
+  line-height:1!important;
+}
+
+body:not(.tq-auth-locked) .tq-top-label strong{
+  margin-top:4px!important;
+  font-size:13px!important;
+  line-height:1.1!important;
+}
+
+body:not(.tq-auth-locked) .tq-appbar .top-actions{
+  position:relative;
+  z-index:2;
+}
+
+body:not(.tq-auth-locked) .tq-appbar .tq-icon-btn{
+  width:38px!important;
+  min-width:38px!important;
+  height:38px!important;
+  border-radius:0!important;
+  clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px,5px 5px);
+  box-shadow:0 3px 0 #020608!important;
+}
+
+/* Center viewport. No page scroll; only the active screen pane can scroll internally. */
+body:not(.tq-auth-locked) .app-shell>main{
+  width:100%;
+  height:100%;
+  min-height:0;
+  margin:0;
+  padding:var(--tq-frame-gap) max(10px,var(--tq-safe-right)) var(--tq-frame-gap) max(10px,var(--tq-safe-left));
+  display:flex;
+  flex-direction:column;
+  gap:var(--tq-frame-gap);
+  overflow:hidden!important;
+  overscroll-behavior:none;
+}
+
+body:not(.tq-auth-locked) .app-shell>main>.shared-trip,
+body:not(.tq-auth-locked) .app-shell>main>.selector-intro,
+body:not(.tq-auth-locked) .app-shell>main>.progress{
+  flex:0 0 auto;
+  margin:0!important;
+}
+
+/* Compact context bar: preserve information without consuming a web-page-sized hero. */
+body:not(.tq-auth-locked) .selector-intro{
+  min-height:58px;
+  padding:8px 10px!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center!important;
+  gap:10px!important;
+}
+
+body:not(.tq-auth-locked) .selector-intro>div{
+  min-width:0;
+}
+
+body:not(.tq-auth-locked) .selector-intro>div>span{
+  display:block;
+  margin:0 0 3px;
+  font-size:8px!important;
+  line-height:1;
+}
+
+body:not(.tq-auth-locked) .selector-intro h1{
+  margin:0!important;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  font-size:14px!important;
+  line-height:1.25!important;
+}
+
+body:not(.tq-auth-locked) .selector-intro p{
+  display:none!important;
+}
+
+body:not(.tq-auth-locked) #selectionSummary{
+  max-width:42vw!important;
+  margin:0!important;
+  padding:5px 7px!important;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  text-align:right!important;
+  font-size:9px!important;
+  line-height:1.2!important;
+}
+
+/* Step indicator stays visible but compact. */
+body:not(.tq-auth-locked) .progress{
+  height:42px;
+  min-height:42px;
+  padding:4px 8px!important;
+  align-items:center;
+}
+
+body:not(.tq-auth-locked) .progress-step{
+  min-height:32px;
+  padding:0 4px!important;
+  gap:4px!important;
+}
+
+body:not(.tq-auth-locked) .progress-step b{
+  width:22px!important;
+  height:22px!important;
+  min-width:22px!important;
+  font-size:9px!important;
+}
+
+body:not(.tq-auth-locked) .progress-step span{
+  font-size:9px!important;
+}
+
+/* The wizard owns all remaining pixels between the fixed bars. */
+body:not(.tq-auth-locked) .wizard{
+  flex:1 1 auto;
+  min-height:0!important;
+  margin:0!important;
+  padding:10px!important;
+  overflow:hidden!important;
+  display:grid!important;
+  grid-template-rows:auto minmax(0,1fr) auto;
+  gap:8px;
+}
+
+body:not(.tq-auth-locked) .wizard>.wizard-head{
+  grid-row:1;
+  min-width:0;
+  margin:0!important;
+  padding:0 0 8px!important;
+  align-items:center;
+}
+
+body:not(.tq-auth-locked) .wizard-head h2{
+  margin:3px 0 0!important;
+  font-size:18px!important;
+  line-height:1.28!important;
+}
+
+body:not(.tq-auth-locked) .wizard-head #stepDescription{
+  margin:4px 0 0!important;
+  max-height:2.8em;
+  overflow:hidden;
+  font-size:10px!important;
+  line-height:1.4!important;
+}
+
+body:not(.tq-auth-locked) .wizard-head #resetBtn{
+  min-height:34px!important;
+  height:34px!important;
+  padding:0 9px!important;
+  flex:0 0 auto;
+  font-size:9px!important;
+}
+
+/* JS already marks only the current screen as .active. Keep the app frame deterministic. */
+body:not(.tq-auth-locked) .wizard>.step-view{
+  grid-row:2;
+  min-width:0;
+  min-height:0;
+  height:100%;
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+
+body:not(.tq-auth-locked) .wizard>.step-view::-webkit-scrollbar{
+  display:none;
+}
+
+body:not(.tq-auth-locked) .wizard>.step-view:not(.active){
+  display:none!important;
+}
+
+body:not(.tq-auth-locked) .wizard>.step-view.active{
+  display:block!important;
+}
+
+/* Keep back/next inside the app content area, not floating over the OS/home bar. */
+body:not(.tq-auth-locked) .wizard>.wizard-actions{
+  grid-row:3;
+  position:relative!important;
+  left:auto!important;
+  right:auto!important;
+  top:auto!important;
+  bottom:auto!important;
+  inset:auto!important;
+  width:100%!important;
+  min-height:46px;
+  margin:0!important;
+  padding:6px 0 0!important;
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr) minmax(128px,auto)!important;
+  align-items:center;
+  gap:7px!important;
+  border-top:1px solid #283842;
+  background:linear-gradient(180deg,rgba(7,16,22,.78),#071016);
+  z-index:20!important;
+  box-shadow:none!important;
+}
+
+body:not(.tq-auth-locked) .wizard-actions .action-hint{
+  min-width:0;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  font-size:9px!important;
+}
+
+body:not(.tq-auth-locked) .wizard-actions .btn{
+  min-height:38px!important;
+  height:38px;
+  padding:0 10px!important;
+  font-size:10px!important;
+}
+
+/* Bottom app navigation is locked to the bottom safe area. */
+body:not(.tq-auth-locked) .tq-bottom-nav{
+  position:fixed!important;
+  z-index:950!important;
+  left:50%!important;
+  right:auto!important;
+  bottom:0!important;
+  transform:translateX(-50%)!important;
+  width:min(var(--tq-app-max),100%)!important;
+  height:calc(var(--tq-bottom-h) + var(--tq-safe-bottom))!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:
+    5px
+    max(10px,var(--tq-safe-right))
+    max(5px,var(--tq-safe-bottom))
+    max(10px,var(--tq-safe-left))!important;
+  display:grid!important;
+  grid-template-columns:repeat(3,1fr)!important;
+  gap:4px!important;
+  border:0!important;
+  border-top:2px solid #334750!important;
+  border-radius:0!important;
+  background:
+    linear-gradient(90deg,rgba(216,255,69,.03) 1px,transparent 1px),
+    linear-gradient(180deg,#0a141a,#060d12)!important;
+  background-size:8px 8px,100% 100%!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  box-shadow:0 -4px 0 rgba(0,0,0,.42)!important;
+}
+
+body:not(.tq-auth-locked) .tq-bottom-nav::before{
+  content:"";
+  position:absolute;
+  left:max(8px,var(--tq-safe-left));
+  right:max(8px,var(--tq-safe-right));
+  top:-2px;
+  height:2px;
+  background:linear-gradient(90deg,transparent 0 34%,var(--p3-lime,#d8ff45) 34% 66%,transparent 66%);
+  pointer-events:none;
+}
+
+body:not(.tq-auth-locked) .tq-bottom-nav button{
+  height:52px!important;
+  min-height:52px!important;
+  padding:4px 2px!important;
+  gap:2px!important;
+  border-radius:0!important;
+}
+
+body:not(.tq-auth-locked) .tq-bottom-nav button i{
+  height:24px;
+  display:grid!important;
+  place-items:center;
+}
+
+body:not(.tq-auth-locked) .tq-bottom-nav button span{
+  font-size:9px!important;
+  line-height:1!important;
+}
+
+body:not(.tq-auth-locked) .tq-bottom-nav button.active{
+  background:
+    linear-gradient(180deg,rgba(216,255,69,.10),rgba(216,255,69,.035))!important;
+  box-shadow:inset 0 -3px 0 var(--p3-lime,#d8ff45)!important;
+}
+
+/* The cover owns the whole phone viewport before entering the app. */
+body:not(.tq-auth-locked) .main-landing{
+  position:fixed!important;
+  inset:0!important;
+  z-index:1200!important;
+  width:100%!important;
+  height:100dvh!important;
+  min-height:100svh!important;
+  overflow:hidden!important;
+}
+
+body:not(.tq-auth-locked) .main-landing.tq-photo-ready .main-cover-action{
+  bottom:calc(var(--tq-safe-bottom) + 22px)!important;
+}
+
+/* Footer belongs to web pages; the fixed app shell does not need it. */
+body:not(.tq-auth-locked)>.app-version-footer{
+  display:none!important;
+}
+
+/* Dialogs must also respect display cutouts. */
+body:not(.tq-auth-locked) .range-expand-modal,
+body:not(.tq-auth-locked) .install-sheet{
+  padding-top:max(12px,var(--tq-safe-top))!important;
+  padding-right:max(12px,var(--tq-safe-right))!important;
+  padding-bottom:max(12px,var(--tq-safe-bottom))!important;
+  padding-left:max(12px,var(--tq-safe-left))!important;
+}
+
+/* Phone layout: everything is intentionally tighter so region/place fits without page scroll. */
+@media(max-width:680px){
+  :root{
+    --tq-appbar-h:54px;
+    --tq-bottom-h:62px;
+    --tq-frame-gap:6px;
+  }
+
+  body:not(.tq-auth-locked) .app-shell{
+    width:100%!important;
+  }
+
+  body:not(.tq-auth-locked) .app-shell>main{
+    padding-top:6px;
+    padding-right:max(7px,var(--tq-safe-right));
+    padding-bottom:6px;
+    padding-left:max(7px,var(--tq-safe-left));
+    gap:6px;
+  }
+
+  body:not(.tq-auth-locked) .selector-intro{
+    min-height:52px;
+    padding:6px 8px!important;
+  }
+
+  body:not(.tq-auth-locked) .selector-intro h1{
+    font-size:12px!important;
+  }
+
+  body:not(.tq-auth-locked) #selectionSummary{
+    max-width:44vw!important;
+    font-size:8px!important;
+  }
+
+  body:not(.tq-auth-locked) .progress{
+    height:38px;
+    min-height:38px;
+    padding:3px 5px!important;
+  }
+
+  body:not(.tq-auth-locked) .progress-step{
+    min-height:30px;
+  }
+
+  body:not(.tq-auth-locked) .progress-step b{
+    width:20px!important;
+    height:20px!important;
+    min-width:20px!important;
+  }
+
+  body:not(.tq-auth-locked) .wizard{
+    padding:8px!important;
+    gap:6px;
+  }
+
+  body:not(.tq-auth-locked) .wizard-head h2{
+    font-size:16px!important;
+  }
+
+  body:not(.tq-auth-locked) .wizard-head #stepDescription{
+    font-size:9px!important;
+  }
+
+  body:not(.tq-auth-locked) .wizard>.wizard-actions{
+    min-height:44px;
+    grid-template-columns:auto minmax(0,1fr)!important;
+  }
+
+  body:not(.tq-auth-locked) .wizard-actions .action-hint{
+    display:none!important;
+  }
+
+  body:not(.tq-auth-locked) .wizard-actions #backBtn{
+    grid-column:1!important;
+    grid-row:1!important;
+    min-width:82px!important;
+  }
+
+  body:not(.tq-auth-locked) .wizard-actions #nextBtn{
+    grid-column:2!important;
+    grid-row:1!important;
+    min-width:0!important;
+    width:100%!important;
+  }
+
+  body:not(.tq-auth-locked) .wizard-actions .btn{
+    height:38px!important;
+  }
+
+  body:not(.tq-auth-locked) .selector-section-head{
+    margin-bottom:10px!important;
+  }
+
+  body:not(.tq-auth-locked) .selector-section-head strong{
+    margin-top:2px!important;
+    font-size:15px!important;
+  }
+
+  body:not(.tq-auth-locked) .selector-section-head p{
+    margin-top:4px!important;
+    font-size:9px!important;
+    line-height:1.45!important;
+  }
+
+  body:not(.tq-auth-locked) .region-select-grid{
+    gap:7px!important;
+  }
+
+  body:not(.tq-auth-locked) .region-select-grid label{
+    padding:7px!important;
+    gap:4px!important;
+  }
+
+  body:not(.tq-auth-locked) .region-select-grid select{
+    height:42px!important;
+    font-size:11px!important;
+  }
+
+  body:not(.tq-auth-locked) .pixel-region-loader{
+    margin-top:8px!important;
+    padding:8px!important;
+  }
+
+  body:not(.tq-auth-locked) .pixel-loader-frame{
+    height:24px!important;
+  }
+
+  body:not(.tq-auth-locked) .selector-chip-grid{
+    gap:6px!important;
+  }
+
+  body:not(.tq-auth-locked) .selector-chip-grid button{
+    min-height:48px!important;
+    padding:6px 8px!important;
+    font-size:10px!important;
+  }
+
+  body:not(.tq-auth-locked) .tq-bottom-nav{
+    padding-top:4px!important;
+  }
+
+  body:not(.tq-auth-locked) .tq-bottom-nav button{
+    height:50px!important;
+    min-height:50px!important;
+  }
+}
+
+/* Very short phones / landscape: keep the frame, compress context instead of page-scrolling. */
+@media(max-height:700px){
+  body:not(.tq-auth-locked) .selector-intro{
+    min-height:38px;
+    grid-template-columns:auto minmax(0,1fr);
+  }
+
+  body:not(.tq-auth-locked) .selector-intro>div>span,
+  body:not(.tq-auth-locked) .selector-intro h1{
+    display:none!important;
+  }
+
+  body:not(.tq-auth-locked) #selectionSummary{
+    grid-column:1/-1;
+    max-width:none!important;
+    width:100%;
+    text-align:left!important;
+  }
+
+  body:not(.tq-auth-locked) .progress{
+    height:34px;
+    min-height:34px;
+  }
+
+  body:not(.tq-auth-locked) .wizard-head #stepDescription{
+    display:none!important;
+  }
+
+  body:not(.tq-auth-locked) .wizard-head h2{
+    font-size:14px!important;
+  }
+}
+
+/* Desktop preview looks like a centered app, while phone remains edge-to-edge. */
+@media(min-width:821px){
+  body:not(.tq-auth-locked) .app-shell{
+    border-left:1px solid #1d2d35;
+    border-right:1px solid #1d2d35;
+    box-shadow:0 0 80px rgba(0,0,0,.42);
+  }
+}
