@@ -12,8 +12,8 @@ export function createWizardUI(state){
     if(n===1){label='플레이스 선택으로 →';disabled=!state.regionBoundary;hint=(state.regionPath||[]).length?(state.regionPath||[]).join(' › '):'시·도를 먼저 선택하세요.'}
     if(n===2){label='이 선택으로 장소 보기 →';disabled=!state.categories.length;hint=state.categories.length?state.categories.join(' · '):'플레이스를 한 개 이상 선택하세요.'}
     if(n===3){label=state.selected?'선택 장소 주변 보기 →':'플레이스에서 하나를 선택하세요';disabled=!state.selected;hint=state.selected?state.selected.name+' 선택됨':'각 카드의 “이 여행지 선택” 버튼을 누르세요.'}
-    if(n===4){label='새 TRIP QUEST';hint=state.selectedCourseData?'최적 코스 계산 완료':'주변 추천에서 원하는 장소를 선택하세요.'}
-    $('#nextBtn').textContent=label;$('#nextBtn').disabled=disabled;setText('#actionHint',hint);
+    if(n===4){label='코스 완료';disabled=true;hint=state.selectedCourseData?'최적 코스 계산 완료':'주변 추천에서 원하는 장소를 선택하세요.'}
+    $('#nextBtn').textContent=label;$('#nextBtn').disabled=disabled;$('#nextBtn').hidden=n===4;setText('#actionHint',hint);
     $('.wizard')?.scrollIntoView({behavior:'smooth',block:'start'});
   }
   function syncDistanceUI(){}
