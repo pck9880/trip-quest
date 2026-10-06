@@ -23,11 +23,3 @@ export const REMOVED_PLACE_CATEGORIES=[
   '맛집','숙박','온천','온천 · 스파','캠핑','카페','마트','대형마트','쇼핑몰','해변','도서관','테마파크','문화시설','체험'
 ];
 
-export const FACILITY_FILTERS=[
-  {id:'parking',label:'주차 가능'},
-  {id:'indoor',label:'실내'},
-  {id:'outdoor',label:'실외'},
-  {id:'pet',label:'반려동물'},
-  {id:'wheelchair',label:'무장애'},
-  {id:'toilets',label:'화장실'}
-];

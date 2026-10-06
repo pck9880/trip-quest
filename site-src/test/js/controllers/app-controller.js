@@ -8,13 +8,12 @@ export function bindAppActions({state,hideMainLanding,setStep,sortRecommendation
   $('#backBtn').onclick=()=>setStep(state.step-1);
   $('#nextBtn').onclick=async()=>{
     if(state.step===1)setStep(2);
-    else if(state.step===2)setStep(3);
-    else if(state.step===3)await recommend();
-    else if(state.step===4){if(state.selected)setStep(5)}
+    else if(state.step===2)await recommend();
+    else if(state.step===3){if(state.selected)setStep(4)}
     else resetTrip();
   };
   all('.progress-step').forEach(b=>b.onclick=()=>{const n=Number(b.dataset.step);if(n<=state.step)setStep(n)});
   $('#editConditionsBtn').onclick=()=>setStep(1);
-  $('#changePlaceBtn').onclick=()=>setStep(4);
+  $('#changePlaceBtn').onclick=()=>setStep(3);
   $('#noMatchActions').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.noMatch==='refine')setStep(1)};
 }

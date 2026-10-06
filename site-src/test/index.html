@@ -12,9 +12,7 @@
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png" />
   <title>TRIP QUEST · 국내여행 선택형 플래너</title>
-  <link rel="preconnect" href="https://unpkg.com">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="./css/base.css?v=110" />
+<link rel="stylesheet" href="./css/base.css?v=110" />
   <link rel="stylesheet" href="./css/product.css?v=112" />
   <link rel="stylesheet" href="./css/landing.css?v=101" />
   <link rel="stylesheet" href="./css/search.css?v=100" />
@@ -96,11 +94,11 @@
       <div class="main-cover-copy">
         <p class="main-cover-eyebrow">DOMESTIC TRAVEL QUEST</p>
         <h1 id="mainLandingTitle">하고 싶은 지역부터<br>TRIP QUEST를 시작하세요.</h1>
-        <p>지역을 먼저 고른 뒤 플레이스와 필요한 부가조건을 선택합니다.</p>
+        <p>지역을 먼저 고른 뒤 원하는 플레이스를 선택합니다.</p>
       </div>
       <div class="main-cover-action">
         <button id="mainLocateBtn" class="main-locate-btn" type="button"><span class="loc-dot"></span>TRIP QUEST 시작</button>
-        <p id="mainLocationStatus">지역 → 플레이스 → 부가조건 순서로 선택합니다.</p>
+        <p id="mainLocationStatus">지역 → 플레이스 → 추천 순서로 선택합니다.</p>
         <button id="mainManualBtn" class="main-manual-btn" type="button" hidden>사용 안 함</button>
       </div>
     </div>
@@ -115,10 +113,10 @@
       <section id="sharedTripBanner" class="shared-trip panel" hidden><div><span>공유 받은 여행</span><strong id="sharedTripTitle">—</strong><small id="sharedTripMeta">—</small></div><button id="sharedTripUseBtn" class="btn primary small">내 위치로 다시 계산</button></section>
       <section class="selector-intro panel">
         <div><span>TRIP QUEST SELECT</span><h1>어디에서 무엇을 할지 먼저 고르세요.</h1><p>문장 검색 대신 행정구역과 플레이스 종류를 직접 선택합니다.</p></div>
-        <strong id="selectionSummary">지역 미선택 / 플레이스 미선택 / 부가조건 없음</strong>
+        <strong id="selectionSummary">지역 미선택 / 플레이스 미선택</strong>
       </section>
-      <nav class="progress panel" id="progress" aria-label="트립퀘스트 단계"><button class="progress-step active" data-step="1"><b>1</b><span>지역</span></button><span></span><button class="progress-step" data-step="2"><b>2</b><span>플레이스</span></button><span></span><button class="progress-step" data-step="3"><b>3</b><span>부가조건</span></button><span></span><button class="progress-step" data-step="4"><b>4</b><span>추천</span></button><span></span><button class="progress-step" data-step="5"><b>5</b><span>코스</span></button></nav>
-      <section class="wizard panel"><div class="wizard-head"><div><div class="eyebrow" id="stepEyebrow">STEP 1 / 5</div><h2 id="stepTitle">TRIP QUEST 지역을 선택하세요.</h2><p id="stepDescription">시·도는 필수이고 시·군·구, 읍·면·동은 원하는 범위까지 선택합니다.</p></div><button id="resetBtn" class="btn ghost small">처음부터</button></div>
+      <nav class="progress panel" id="progress" aria-label="트립퀘스트 단계"><button class="progress-step active" data-step="1"><b>1</b><span>지역</span></button><span></span><button class="progress-step" data-step="2"><b>2</b><span>플레이스</span></button><span></span><button class="progress-step" data-step="3"><b>3</b><span>추천</span></button><span></span><button class="progress-step" data-step="4"><b>4</b><span>코스</span></button></nav>
+      <section class="wizard panel"><div class="wizard-head"><div><div class="eyebrow" id="stepEyebrow">STEP 1 / 4</div><h2 id="stepTitle">TRIP QUEST 지역을 선택하세요.</h2><p id="stepDescription">시·도는 필수이고 시·군·구, 읍·면·동은 원하는 범위까지 선택합니다.</p></div><button id="resetBtn" class="btn ghost small">처음부터</button></div>
         <div class="step-view active" data-step-view="1">
           <div class="selector-section-head"><span>REGION</span><strong>지역 선택</strong><p>부산광역시 → 부산진구까지만 선택하면 부산진구 전체, 전포동까지 선택하면 전포동 내부만 조회합니다.</p></div>
           <div class="region-select-grid">
@@ -143,17 +141,12 @@
           <div class="selector-section-head"><span>PLACE</span><strong>플레이스 선택</strong><p>찾고 싶은 장소 종류를 한 개 이상 선택하세요. 복수 선택할 수 있습니다.</p></div>
           <div id="placeChoices" class="selector-chip-grid"></div>
         </div>
-        <div class="step-view" data-step-view="3">
-          <div class="selector-section-head"><span>FACILITY</span><strong>부가조건 선택</strong><p>필수는 아닙니다. 실내와 실외는 둘 중 하나만 선택됩니다.</p></div>
-          <div id="facilityChoices" class="selector-chip-grid facility"></div>
-          <div class="tip-box">주차·반려동물·무장애 같은 정보는 장소 데이터에 명시된 경우만 필터에 포함됩니다.</div>
-        </div>
-        <div class="step-view" data-step-view="4"><div id="placeLoadStatus" class="place-load-status" data-state="idle" hidden aria-live="polite">
+        <div class="step-view" data-step-view="3"><div id="placeLoadStatus" class="place-load-status" data-state="idle" hidden aria-live="polite">
       <div class="pixel-loader-head"><span id="placeLoadTitle">PLACE SEARCH</span><b id="placeLoadPercent">0%</b></div>
       <div class="pixel-loader-frame" aria-hidden="true"><div id="placeLoadBar" class="pixel-loader-fill"></div><div class="pixel-loader-scan"></div></div>
       <p id="placeLoadText">선택한 지역의 플레이스를 준비합니다.</p>
-    </div><div class="result-toolbar"><div><strong>추천 여행지</strong><span id="resultCaption">선택한 지역 경계 안의 플레이스를 표시합니다.</span></div><div class="result-toolbar-actions"><div id="resultSort" class="result-sort" aria-label="추천 결과 정렬"><button type="button" data-sort="recommend" class="active">추천순</button><button type="button" data-sort="name">이름순</button><button type="button" data-sort="category">종류순</button></div><button id="editConditionsBtn" class="btn secondary small">조건 수정</button></div></div><div class="result-layout"><div id="ranking" class="ranking empty-state">추천지를 찾고 있습니다.</div><div class="map-card"><div id="map"></div><div class="map-caption"><span id="mapStatus">지도 준비 중</span><span>OpenStreetMap</span></div></div></div><div class="no-match-actions" id="noMatchActions" hidden><button class="btn primary" data-no-match="refine">조건 다시 선택</button></div></div>
-        <div class="step-view" data-step-view="5">
+    </div><div class="result-toolbar"><div><strong>추천 여행지</strong><span id="resultCaption">선택한 지역 경계 안의 플레이스를 표시합니다.</span></div><div class="result-toolbar-actions"><div id="resultSort" class="result-sort" aria-label="추천 결과 정렬"><button type="button" data-sort="recommend" class="active">추천순</button><button type="button" data-sort="name">이름순</button><button type="button" data-sort="category">종류순</button></div><button id="editConditionsBtn" class="btn secondary small">선택 수정</button></div></div><div class="result-layout result-list-only"><div id="ranking" class="ranking empty-state">추천지를 찾고 있습니다.</div></div><div class="no-match-actions" id="noMatchActions" hidden><button class="btn primary" data-no-match="refine">선택 다시 하기</button></div></div>
+        <div class="step-view" data-step-view="4">
           <div class="selected-place-head"><div><span>기준 목적지</span><h2 id="selectedPlaceName">—</h2><p id="selectedPlaceMeta">—</p></div><div class="selected-place-actions"><button id="shareTripBtn" class="btn primary small">여행 공유</button><button id="changePlaceBtn" class="btn secondary small">다른 여행지</button></div></div>
           <section class="course-builder-panel">
             <div class="course-builder-head"><div><span>NEARBY SELECT</span><h3>주변에서 더 가고 싶은 곳을 직접 선택하세요.</h3><p>자동 코스 생성은 하지 않습니다. 목적지 기준 거리 안의 후보를 추천하고 선택한 장소만 코스에 넣습니다.</p></div><strong id="selectedNearbyCount">0곳 선택</strong></div>
@@ -173,7 +166,7 @@
             </div>
             <div id="courseTimeline" class="course-timeline empty-state">주변 장소를 선택한 뒤 코스를 계산하세요.</div>
           </section>
-          <section id="courseDetailPanel" class="course-detail-panel" hidden><div class="course-detail-head"><div><span>SELECTED ROUTE</span><h3>사용자 선택 단일 코스</h3><p>선택한 장소만 이동거리가 짧아지도록 정렬합니다. 드라이브 A/B 코스는 사용하지 않습니다.</p></div><small id="courseMapStatus">코스를 계산하면 동선이 표시됩니다.</small></div><div class="course-route-map-card"><div id="courseMap"></div><div class="course-map-legend"><span><i class="legend-route"></i> 선택 코스</span><span>도보 예상시간 · 500m 단위 반경 설정</span></div></div></section>
+
         </div>
         <div class="wizard-actions" id="wizardActions"><button id="backBtn" class="btn secondary">← 이전</button><div class="action-hint" id="actionHint"></div><button id="nextBtn" class="btn primary">위치 확인하고 다음 →</button></div>
       </section>
@@ -196,7 +189,6 @@
     </section>
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script type="module" src="./auth.js?v=20261006-auth2"></script>
+<script type="module" src="./auth.js?v=20261006-auth2"></script>
 </body>
 </html>

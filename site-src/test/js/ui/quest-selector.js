@@ -1,8 +1,8 @@
-import { TOP_REGIONS, PLACE_CATEGORIES, FACILITY_FILTERS } from '../data/selection-taxonomy.js';
+import { TOP_REGIONS, PLACE_CATEGORIES } from '../data/selection-taxonomy.js';
 import { resolveRegion, regionChildren } from '../services/live-place-search.js';
 import { $, setText } from '../core/dom.js';
 
-export function createQuestSelector({state,setStep,syncCategoriesUI,syncFacilitiesUI}){
+export function createQuestSelector({state,setStep,syncCategoriesUI}){
   let level1=null,level2=null,level3=null;
   let level2Items=[],level3Items=[];
   let progressTimer=null;
@@ -55,8 +55,7 @@ export function createQuestSelector({state,setStep,syncCategoriesUI,syncFaciliti
     const p=$('#regionLevel1');
     p.innerHTML='<option value="">시·도 선택</option>'+TOP_REGIONS.map(x=>option(x)).join('');
     $('#placeChoices').innerHTML=PLACE_CATEGORIES.map(x=>'<button type="button" data-value="'+x.id+'">'+x.label+'</button>').join('');
-    $('#facilityChoices').innerHTML=FACILITY_FILTERS.map(x=>'<button type="button" data-value="'+x.id+'">'+x.label+'</button>').join('');
-    syncCategoriesUI();syncFacilitiesUI();updateSummary();idleProgress();
+    syncCategoriesUI();updateSummary();idleProgress();
   }
   function currentBoundary(){return level3||level2||level1||null}
   function updateState(){
@@ -70,8 +69,7 @@ export function createQuestSelector({state,setStep,syncCategoriesUI,syncFaciliti
   function updateSummary(){
     const region=(state.regionPath||[]).join(' › ')||'지역 미선택';
     const cats=(state.categories||[]).join(' · ')||'플레이스 미선택';
-    const fac=(state.facilities||[]).map(x=>FACILITY_FILTERS.find(f=>f.id===x)?.label||x).join(' · ')||'부가조건 없음';
-    setText('#selectionSummary',region+' / '+cats+' / '+fac);
+    setText('#selectionSummary',region+' / '+cats);
   }
 
   async function loadLevel2(){
@@ -167,13 +165,6 @@ export function createQuestSelector({state,setStep,syncCategoriesUI,syncFaciliti
       const v=b.dataset.value,arr=new Set(state.categories||[]);
       arr.has(v)?arr.delete(v):arr.add(v);state.categories=[...arr];syncCategoriesUI();updateSummary();setStep(2);
     });
-    $('#facilityChoices').addEventListener('click',e=>{
-      const b=e.target.closest('button[data-value]');if(!b)return;
-      const v=b.dataset.value,arr=new Set(state.facilities||[]);
-      if(v==='indoor'&&arr.has('outdoor'))arr.delete('outdoor');
-      if(v==='outdoor'&&arr.has('indoor'))arr.delete('indoor');
-      arr.has(v)?arr.delete(v):arr.add(v);state.facilities=[...arr];syncFacilitiesUI();updateSummary();setStep(3);
-    });
   }
 
   function reset(){
@@ -184,7 +175,7 @@ export function createQuestSelector({state,setStep,syncCategoriesUI,syncFaciliti
     if($('#regionLevel2')){$('#regionLevel2').innerHTML='<option value="">시·군·구 전체</option>';$('#regionLevel2').disabled=true}
     if($('#regionLevel3')){$('#regionLevel3').innerHTML='<option value="">읍·면·동 전체</option>';$('#regionLevel3').disabled=true}
     if($('#regionContinueBtn'))$('#regionContinueBtn').disabled=true;
-    syncCategoriesUI();syncFacilitiesUI();updateSummary();idleProgress();
+    syncCategoriesUI();updateSummary();idleProgress();
   }
   return {bind,reset,updateSummary};
 }
