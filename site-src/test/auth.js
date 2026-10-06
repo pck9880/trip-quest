@@ -93,8 +93,8 @@ async function startApp(user){
   accountBar.hidden=false;
   if(appStarted)return;
   appStarted=true;
-  await import('./app.js?v=20261002-v112');
-  await import('./app-chrome.js?v=112');
+  await import('./app.js?v=20261006-region1');
+  await import('./app-chrome.js?v=20261006-region1');
 }
 function friendlyLoginError(err){
   const raw=String(err?.message||'').toLowerCase();
