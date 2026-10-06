@@ -12,6 +12,7 @@ const finalJs=read('js/ui/phase5-polish.js');
 const selectorJs=read('js/ui/quest-selector.js');
 const travelService=read('js/services/travel-service.js');
 const liveSearch=read('js/services/live-place-search.js');
+const nationalStore=read('js/services/national-place-store.js');
 const chromeJs=read('app-chrome.js');
 const authJs=read('auth.js');
 const authCss=read('auth.css');
