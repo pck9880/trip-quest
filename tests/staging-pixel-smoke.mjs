@@ -52,7 +52,7 @@ for(const asset of [
   './phase5-final.css?v=20261006-phase5b',
   './js/ui/phase2-pixel.js?v=20261006-phase2',
   './js/ui/phase5-polish.js?v=20261006-phase5',
-  './no-scroll-app.css?v=20261006-noscroll2',
+  './no-scroll-app.css?v=20261006-nearbyscroll1',
   './js/ui/no-scroll-app.js?v=20261006-noscroll2'
 ]){
   assert.ok(html.includes(asset),'staging HTML asset missing: '+asset);
@@ -150,9 +150,9 @@ assert.ok(chromeJs.includes('scale=Math.max(w/COVER_SOURCE.w,h/COVER_SOURCE.h)')
 assert.ok(chromeJs.includes('window.visualViewport?.addEventListener'),'visual viewport resize correction missing');
 assert.ok(chromeJs.includes('requestAnimationFrame(syncCoverTitleFx)'),'title fx post-load alignment missing');
 
-assert.ok(html.includes('./no-scroll-app.css?v=20261006-noscroll2'),'no-scroll HTML asset missing');
+assert.ok(html.includes('./no-scroll-app.css?v=20261006-nearbyscroll1'),'no-scroll HTML asset missing');
 assert.ok(html.includes('./js/ui/no-scroll-app.js?v=20261006-noscroll2'),'no-scroll pagination script missing');
-assert.ok(sw.includes('./no-scroll-app.css?v=20261006-noscroll2'),'no-scroll CSS cache missing');
+assert.ok(sw.includes('./no-scroll-app.css?v=20261006-nearbyscroll1'),'no-scroll CSS cache missing');
 assert.ok(sw.includes('./js/ui/no-scroll-app.js?v=20261006-noscroll2'),'no-scroll JS cache missing');
 assert.ok(sw.includes('./app.js?v=20261006-searchfix1'),'no-scroll app runtime cache missing');
 assert.ok(sw.includes('./app-chrome.js?v=20261006-searchfix1'),'no-scroll chrome runtime cache missing');
@@ -200,5 +200,10 @@ assert.ok(travelService.includes("requestedOfficial.length&&(!officialReady||!(o
 assert.ok(travelService.includes("8500,{items:[],source:'지도 보조 시간 제한'}"),'live selection search recovery window missing');
 assert.ok(travelService.includes("6500,\n        {items:[],source:'지도 보조 복구 시간 제한'}"),'official fallback recovery window missing');
 assert.ok(liveSearch.includes("timeoutMs:2800,label:category"),'live category endpoint timeout recovery missing');
+
+assert.ok(noScrollCss.includes('NEARBY SELECT VISIBILITY FIX'),'nearby visibility repair missing');
+assert.ok(noScrollCss.includes('overflow-y:auto!important'),'nearby variable result area must scroll internally');
+assert.ok(noScrollCss.includes('touch-action:pan-y!important'),'nearby touch scrolling missing');
+assert.ok(noScrollCss.includes('-webkit-overflow-scrolling:touch'),'iOS nearby momentum scrolling missing');
 
 console.log('TRIP QUEST staging pixel/app-frame regression checks passed');
