@@ -1,0 +1,274 @@
+/* TRIP QUEST · PHASE 5 FINAL POLISH
+   Motion, touch stability, accessibility, and final visual consistency.
+   No search/auth/course business logic lives here. */
+
+:root{
+  --p5-motion-fast:120ms;
+  --p5-motion-mid:220ms;
+  --p5-motion-slow:360ms;
+  --p5-ease:steps(3,end);
+  --p5-focus:#f3ffad;
+}
+
+/* ---------- input / touch stability ---------- */
+body:not(.tq-auth-locked) button,
+body:not(.tq-auth-locked) [role="button"],
+.tq-auth-gate button,
+.tq-auth-gate input,
+.tq-auth-gate select{
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+
+body:not(.tq-auth-locked) button,
+.tq-auth-gate button{
+  min-width:44px;
+  min-height:44px;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible{
+  outline:2px solid var(--p5-focus)!important;
+  outline-offset:2px!important;
+}
+
+/* ---------- screen transition overlay ---------- */
+.p5-screen-wipe{
+  position:fixed;
+  z-index:1900;
+  inset:
+    env(safe-area-inset-top,0px)
+    env(safe-area-inset-right,0px)
+    env(safe-area-inset-bottom,0px)
+    env(safe-area-inset-left,0px);
+  pointer-events:none;
+  opacity:0;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(216,255,69,.13) 0 8px,
+      rgba(3,8,11,.92) 8px 16px
+    );
+  transform:translateX(-102%);
+  image-rendering:pixelated;
+}
+
+.p5-screen-wipe.is-running{
+  animation:p5ScreenWipe var(--p5-motion-slow) steps(8,end) both;
+}
+
+@keyframes p5ScreenWipe{
+  0%{opacity:0;transform:translateX(-102%)}
+  12%{opacity:.86}
+  48%{opacity:.92;transform:translateX(0)}
+  52%{opacity:.92;transform:translateX(0)}
+  100%{opacity:0;transform:translateX(102%)}
+}
+
+/* ---------- active step entrance ---------- */
+body:not(.tq-auth-locked) .wizard>.step-view.p5-enter{
+  animation:p5StepIn var(--p5-motion-mid) steps(4,end) both;
+}
+
+@keyframes p5StepIn{
+  from{opacity:.25;transform:translateY(8px)}
+  60%{opacity:1}
+  to{opacity:1;transform:none}
+}
+
+/* ---------- compact HUD motion ---------- */
+body:not(.tq-auth-locked) .topbar.tq-appbar{
+  transition:border-color var(--p5-motion-fast) linear;
+}
+
+body:not(.tq-auth-locked) .tq-top-label strong.p5-title-flash{
+  animation:p5TitleFlash 420ms steps(4,end);
+}
+
+@keyframes p5TitleFlash{
+  0%,100%{color:inherit;text-shadow:none}
+  30%,60%{color:var(--p3-lime,#d8ff45);text-shadow:2px 2px 0 #071006}
+}
+
+/* ---------- bottom nav tactile states ---------- */
+body:not(.tq-auth-locked) .tq-bottom-nav button{
+  transition:
+    transform var(--p5-motion-fast) steps(2,end),
+    filter var(--p5-motion-fast) linear;
+}
+
+body:not(.tq-auth-locked) .tq-bottom-nav button:active,
+body:not(.tq-auth-locked) .tq-bottom-nav button.p5-pressed{
+  transform:translateY(2px);
+  filter:brightness(1.12);
+}
+
+body:not(.tq-auth-locked) .tq-bottom-nav button.active .p2-sprite{
+  animation:p5NavBlink 1.4s steps(2,end) infinite;
+}
+
+@keyframes p5NavBlink{
+  0%,76%,100%{opacity:1}
+  78%,90%{opacity:.48}
+}
+
+/* ---------- selection feedback ---------- */
+body:not(.tq-auth-locked) .selector-chip-grid button.p5-selected{
+  animation:p5SelectConfirm 260ms steps(4,end);
+}
+
+@keyframes p5SelectConfirm{
+  0%{transform:none}
+  40%{transform:translateY(2px);filter:brightness(1.28)}
+  100%{transform:none;filter:none}
+}
+
+body:not(.tq-auth-locked) .region-select-grid select.p5-changed{
+  animation:p5FieldConfirm 300ms steps(3,end);
+}
+
+@keyframes p5FieldConfirm{
+  0%,100%{box-shadow:0 3px 0 #030608}
+  45%{box-shadow:0 3px 0 #607815,0 0 0 2px rgba(216,255,69,.25)}
+}
+
+/* ---------- result / course final visual consistency ---------- */
+body:not(.tq-auth-locked) .rank-card,
+body:not(.tq-auth-locked) .popular-picks,
+body:not(.tq-auth-locked) .course-builder-head,
+body:not(.tq-auth-locked) .nearby-radius-box,
+body:not(.tq-auth-locked) .course-timeline{
+  border-color:#334852!important;
+  background-image:
+    linear-gradient(90deg,rgba(216,255,69,.018) 1px,transparent 1px),
+    linear-gradient(rgba(216,255,69,.018) 1px,transparent 1px),
+    linear-gradient(180deg,#101b22,#091117)!important;
+  background-size:8px 8px,8px 8px,100% 100%!important;
+}
+
+body:not(.tq-auth-locked) .popular-rank-1,
+body:not(.tq-auth-locked) .rank-card:first-child{
+  border-color:rgba(216,255,69,.68)!important;
+}
+
+body:not(.tq-auth-locked) .rank-card.p5-card-in,
+body:not(.tq-auth-locked) .popular-grid>*:is(.p5-card-in){
+  animation:p5CardIn 260ms steps(4,end) both;
+}
+
+@keyframes p5CardIn{
+  from{opacity:0;transform:translateX(8px)}
+  to{opacity:1;transform:none}
+}
+
+/* ---------- popup / toast game feedback ---------- */
+.range-expand-modal:not([hidden]) .range-expand-card{
+  animation:p5DialogIn 180ms steps(3,end) both;
+}
+
+@keyframes p5DialogIn{
+  from{opacity:0;transform:translateY(10px) scale(.985)}
+  to{opacity:1;transform:none}
+}
+
+.toast.p5-toast-show{
+  animation:p5ToastIn 220ms steps(4,end) both;
+}
+
+@keyframes p5ToastIn{
+  0%{opacity:0;transform:translate(-50%,10px)}
+  100%{opacity:1;transform:translate(-50%,0)}
+}
+
+.toast.p5-success{
+  border-color:var(--p3-lime,#d8ff45)!important;
+  box-shadow:0 4px 0 #607815!important;
+}
+
+.toast.p5-error{
+  border-color:#ff786e!important;
+  box-shadow:0 4px 0 #7a2924!important;
+}
+
+/* ---------- loading feels like a game scan ---------- */
+.pixel-region-loader[data-state="loading"] .pixel-loader-frame,
+.place-load-status[data-state="loading"] .pixel-loader-frame{
+  animation:p5LoaderPulse 1s steps(2,end) infinite;
+}
+
+@keyframes p5LoaderPulse{
+  0%,100%{filter:brightness(1)}
+  50%{filter:brightness(1.18)}
+}
+
+/* ---------- auth final consistency ---------- */
+.tq-auth-gate .tq-auth-card{
+  transition:transform var(--p5-motion-mid) steps(3,end);
+}
+
+.tq-auth-view:not([hidden]).p5-auth-enter{
+  animation:p5AuthIn 220ms steps(4,end) both;
+}
+
+@keyframes p5AuthIn{
+  from{opacity:0;transform:translateX(8px)}
+  to{opacity:1;transform:none}
+}
+
+/* ---------- viewport safety ---------- */
+body:not(.tq-auth-locked) .wizard>.step-view{
+  scroll-padding-bottom:12px;
+}
+
+body:not(.tq-auth-locked) .wizard>.step-view img,
+body:not(.tq-auth-locked) .wizard>.step-view svg{
+  max-width:100%;
+}
+
+body:not(.tq-auth-locked) .range-expand-card,
+body:not(.tq-auth-locked) .install-card{
+  max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 24px);
+  overflow:auto;
+  overscroll-behavior:contain;
+}
+
+/* ---------- short / narrow phone refinement ---------- */
+@media(max-width:390px){
+  body:not(.tq-auth-locked) .tq-top-label strong{font-size:12px!important}
+  body:not(.tq-auth-locked) .selector-intro{grid-template-columns:minmax(0,1fr)!important}
+  body:not(.tq-auth-locked) #selectionSummary{
+    max-width:100%!important;
+    width:100%;
+    text-align:left!important;
+  }
+  body:not(.tq-auth-locked) .selector-chip-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}
+
+@media(max-height:620px){
+  body:not(.tq-auth-locked) .progress{display:none!important}
+  body:not(.tq-auth-locked) .selector-intro{min-height:32px}
+  body:not(.tq-auth-locked) .wizard{gap:4px}
+  body:not(.tq-auth-locked) .wizard>.wizard-head{padding-bottom:4px!important}
+}
+
+/* ---------- accessibility ---------- */
+@media(prefers-reduced-motion:reduce){
+  .p5-screen-wipe,
+  body:not(.tq-auth-locked) .wizard>.step-view.p5-enter,
+  body:not(.tq-auth-locked) .tq-bottom-nav button.active .p2-sprite,
+  body:not(.tq-auth-locked) .selector-chip-grid button.p5-selected,
+  body:not(.tq-auth-locked) .region-select-grid select.p5-changed,
+  body:not(.tq-auth-locked) .rank-card.p5-card-in,
+  .range-expand-modal:not([hidden]) .range-expand-card,
+  .toast.p5-toast-show,
+  .pixel-region-loader[data-state="loading"] .pixel-loader-frame,
+  .place-load-status[data-state="loading"] .pixel-loader-frame,
+  .tq-auth-view:not([hidden]).p5-auth-enter{
+    animation:none!important;
+    transition:none!important;
+  }
+}
