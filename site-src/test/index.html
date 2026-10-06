@@ -11,14 +11,14 @@
   <meta name="format-detection" content="telephone=no" />
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png" />
-  <title>TRIP QUEST · 국내여행 AI 플래너</title>
+  <title>TRIP QUEST · 국내여행 선택형 플래너</title>
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="./css/base.css?v=110" />
   <link rel="stylesheet" href="./css/product.css?v=112" />
   <link rel="stylesheet" href="./css/landing.css?v=101" />
   <link rel="stylesheet" href="./css/search.css?v=100" />
-  <link rel="stylesheet" href="./selector.css?v=20261006-select4" />
+  <link rel="stylesheet" href="./selector.css?v=20261006-course1" />
   <link rel="stylesheet" href="./auth.css?v=20261006-auth2" />
   <link rel="preload" as="image" href="./assets/tq-cover-main-v044.webp" fetchpriority="high" />
 </head>
@@ -94,7 +94,7 @@
     <div class="main-landing-inner">
       <div class="main-cover-brand"><span>TQ</span><b>TRIP QUEST</b></div>
       <div class="main-cover-copy">
-        <p class="main-cover-eyebrow">DOMESTIC TRAVEL AI</p>
+        <p class="main-cover-eyebrow">DOMESTIC TRAVEL QUEST</p>
         <h1 id="mainLandingTitle">하고 싶은 지역부터<br>TRIP QUEST를 시작하세요.</h1>
         <p>지역을 먼저 고른 뒤 플레이스와 필요한 부가조건을 선택합니다.</p>
       </div>
@@ -152,8 +152,29 @@
       <div class="pixel-loader-head"><span id="placeLoadTitle">PLACE SEARCH</span><b id="placeLoadPercent">0%</b></div>
       <div class="pixel-loader-frame" aria-hidden="true"><div id="placeLoadBar" class="pixel-loader-fill"></div><div class="pixel-loader-scan"></div></div>
       <p id="placeLoadText">선택한 지역의 플레이스를 준비합니다.</p>
-    </div><div class="result-toolbar"><div><strong>추천 여행지</strong><span id="resultCaption">선택한 지역 경계 안의 플레이스를 표시합니다.</span></div><div class="result-toolbar-actions"><div id="resultSort" class="result-sort" aria-label="추천 결과 정렬"><button type="button" data-sort="recommend" class="active">추천순</button><button type="button" data-sort="near">가까운순</button><button type="button" data-sort="far">먼거리순</button></div><button id="editConditionsBtn" class="btn secondary small">조건 수정</button></div></div><div class="result-layout"><div id="ranking" class="ranking empty-state">추천지를 찾고 있습니다.</div><div class="map-card"><div id="map"></div><div class="map-caption"><span id="mapStatus">지도 준비 중</span><span>OpenStreetMap</span></div></div></div><div class="no-match-actions" id="noMatchActions" hidden><button class="btn primary" data-no-match="refine">조건 다시 선택</button></div></div>
-        <div class="step-view" data-step-view="5"><div class="selected-place-head"><div><span>선택한 여행지</span><h2 id="selectedPlaceName">—</h2><p id="selectedPlaceMeta">—</p></div><div class="selected-place-actions"><button id="shareTripBtn" class="btn primary small">여행 공유</button><button id="changePlaceBtn" class="btn secondary small">다른 여행지</button></div></div><div id="tripSummary" class="summary-box empty-state">여행지 정보를 계산하고 있습니다.</div><div class="course-head"><div><span>날씨 맞춤 코스</span><h3>A 도보 근거리 / B 드라이브 중 원하는 코스를 선택하세요.</h3></div><p id="courseWeather"></p></div><div id="courseList" class="course-list empty-state">코스를 만들고 있습니다.</div><section id="courseDetailPanel" class="course-detail-panel" hidden><div class="course-detail-head"><div><span>SELECTED ROUTE</span><h3>선택한 코스 동선</h3><p>출발지는 제외하고 선택한 지역의 코스만 확대합니다. 위치 아이콘과 장소 유형을 함께 표시합니다.</p></div><small id="courseMapStatus">코스를 선택하면 동선이 표시됩니다.</small></div><div class="course-route-map-card"><div id="courseMap"></div><div class="course-map-legend"><span><i class="legend-route"></i> 지역 코스</span><span>⌖ 위치 아이콘 · 장소 유형 표시</span></div></div><div class="nearby-head"><div><span>NEARBY</span><h3>경유지 주변 카페 · 음식점</h3></div><p>네이버 플레이스 검색으로 연결됩니다. 리뷰·평점은 네이버 화면에서 최신 정보를 확인하세요.</p></div><div id="nearbyPlaces" class="nearby-places"></div></section></div>
+    </div><div class="result-toolbar"><div><strong>추천 여행지</strong><span id="resultCaption">선택한 지역 경계 안의 플레이스를 표시합니다.</span></div><div class="result-toolbar-actions"><div id="resultSort" class="result-sort" aria-label="추천 결과 정렬"><button type="button" data-sort="recommend" class="active">추천순</button><button type="button" data-sort="name">이름순</button><button type="button" data-sort="category">종류순</button></div><button id="editConditionsBtn" class="btn secondary small">조건 수정</button></div></div><div class="result-layout"><div id="ranking" class="ranking empty-state">추천지를 찾고 있습니다.</div><div class="map-card"><div id="map"></div><div class="map-caption"><span id="mapStatus">지도 준비 중</span><span>OpenStreetMap</span></div></div></div><div class="no-match-actions" id="noMatchActions" hidden><button class="btn primary" data-no-match="refine">조건 다시 선택</button></div></div>
+        <div class="step-view" data-step-view="5">
+          <div class="selected-place-head"><div><span>기준 목적지</span><h2 id="selectedPlaceName">—</h2><p id="selectedPlaceMeta">—</p></div><div class="selected-place-actions"><button id="shareTripBtn" class="btn primary small">여행 공유</button><button id="changePlaceBtn" class="btn secondary small">다른 여행지</button></div></div>
+          <section class="course-builder-panel">
+            <div class="course-builder-head"><div><span>NEARBY SELECT</span><h3>주변에서 더 가고 싶은 곳을 직접 선택하세요.</h3><p>자동 코스 생성은 하지 않습니다. 목적지 기준 거리 안의 후보를 추천하고 선택한 장소만 코스에 넣습니다.</p></div><strong id="selectedNearbyCount">0곳 선택</strong></div>
+            <div class="nearby-radius-box">
+              <div class="radius-title"><span>주변 탐색 반경</span><strong id="nearbyRadiusValue">5.0km</strong></div>
+              <input id="nearbyRadiusRange" type="range" min="1" max="20" step="0.5" value="5" aria-label="주변 탐색 반경" />
+              <div class="radius-scale"><span>1km</span><span>500m 단위</span><span>20km</span></div>
+              <button id="nearbyRefreshBtn" class="btn secondary small" type="button">이 범위 다시 추천</button>
+            </div>
+            <div id="nearbyLoadStatus" class="place-load-status" data-state="idle" hidden aria-live="polite"><div class="pixel-loader-head"><span>NEARBY INDEX</span><b id="nearbyLoadPercent">0%</b></div><div class="pixel-loader-frame" aria-hidden="true"><div id="nearbyLoadBar" class="pixel-loader-fill"></div><div class="pixel-loader-scan"></div></div><p id="nearbyLoadText">주변 장소를 준비합니다.</p></div>
+            <small id="nearbySource" class="nearby-source">목적지를 선택하면 주변 장소를 추천합니다.</small>
+            <div id="nearbyChoiceList" class="nearby-choice-list empty-state">주변 추천 장소를 준비하고 있습니다.</div>
+            <div class="schedule-builder">
+              <div><span>SCHEDULE</span><h3>출발시간과 머무는 시간을 설정하세요.</h3><p>이동시간과 각 장소 체류시간을 합산해 예상 종료시간을 계산합니다.</p></div>
+              <div class="schedule-inputs"><label><span>코스 출발시간</span><input id="courseDepartTime" type="time" step="600" /></label><label><span>기준 목적지 체류</span><select id="destinationStayMin"><option value="30">30분</option><option value="60" selected>60분</option><option value="90">90분</option><option value="120">120분</option></select></label></div>
+              <button id="buildSelectedCourseBtn" class="btn primary" type="button" disabled>선택한 장소로 최적 코스 계산</button>
+            </div>
+            <div id="courseTimeline" class="course-timeline empty-state">주변 장소를 선택한 뒤 코스를 계산하세요.</div>
+          </section>
+          <section id="courseDetailPanel" class="course-detail-panel" hidden><div class="course-detail-head"><div><span>SELECTED ROUTE</span><h3>사용자 선택 단일 코스</h3><p>선택한 장소만 이동거리가 짧아지도록 정렬합니다. 드라이브 A/B 코스는 사용하지 않습니다.</p></div><small id="courseMapStatus">코스를 계산하면 동선이 표시됩니다.</small></div><div class="course-route-map-card"><div id="courseMap"></div><div class="course-map-legend"><span><i class="legend-route"></i> 선택 코스</span><span>도보 예상시간 · 500m 단위 반경 설정</span></div></div></section>
+        </div>
         <div class="wizard-actions" id="wizardActions"><button id="backBtn" class="btn secondary">← 이전</button><div class="action-hint" id="actionHint"></div><button id="nextBtn" class="btn primary">위치 확인하고 다음 →</button></div>
       </section>
     </main>

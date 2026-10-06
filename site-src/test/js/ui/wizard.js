@@ -14,7 +14,7 @@ export function createWizardUI(state){
     if(n===2){label='부가조건 선택으로 →';disabled=!state.categories.length;hint=state.categories.length?state.categories.join(' · '):'플레이스를 한 개 이상 선택하세요.'}
     if(n===3){label='이 조건으로 장소 보기 →';hint=(state.facilities||[]).length?`부가조건 ${state.facilities.length}개 적용`:'부가조건 없이 전체 검색'}
     if(n===4){label=state.selected?'선택 장소 코스 보기 →':'플레이스에서 하나를 선택하세요';disabled=!state.selected;hint=state.selected?`${state.selected.name} 선택됨`:'각 카드의 “이 여행지 선택” 버튼을 누르세요.'}
-    if(n===5){label='새 TRIP QUEST';hint=state.selectedCourse?`${state.selectedCourse}코스를 선택했습니다.`:'주변 코스를 선택할 수 있습니다.'}
+    if(n===5){label='새 TRIP QUEST';hint=state.selectedCourseData?'최적 코스 계산 완료':'주변 추천에서 원하는 장소를 선택하세요.'}
     $('#nextBtn').textContent=label;$('#nextBtn').disabled=disabled;setText('#actionHint',hint);
     $('.wizard')?.scrollIntoView({behavior:'smooth',block:'start'});
     if(n===4)setTimeout(invalidateMainMap,120);

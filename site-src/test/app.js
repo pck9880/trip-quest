@@ -54,8 +54,8 @@ function initPWA(){
 }
 async function loadConfig(){
   state.config=await travelService.getConfig();
-  setText('#providerNow','선택형 지역 엔진');
-  setText('#updatedAt','행정구역 + 실시간 플레이스');
+  setText('#providerNow',state.config?.national?.status==='ready'?'전국 공식 DB':'공식 DB 준비 + 지도 보조');
+  setText('#updatedAt',state.config?.national?.total?('정규화 '+Number(state.config.national.total).toLocaleString()+'곳'):'선택형 지역 엔진');
 }
 function resetTrip(){
   store.resetJourney();questSelector.reset();

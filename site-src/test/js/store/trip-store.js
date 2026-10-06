@@ -19,7 +19,11 @@ const INITIAL_SECTIONS={
   selection:{
     selected:null,
     selectedCourse:null,
-    selectedCourseData:null
+    selectedCourseData:null,
+    nearbyCandidates:[],
+    selectedNearbyIds:[],
+    courseStayById:{},
+    courseRadiusKm:5
   },
   runtime:{
     config:null,
@@ -49,6 +53,10 @@ const FIELD_MAP={
   selected:['selection','selected'],
   selectedCourse:['selection','selectedCourse'],
   selectedCourseData:['selection','selectedCourseData'],
+  nearbyCandidates:['selection','nearbyCandidates'],
+  selectedNearbyIds:['selection','selectedNearbyIds'],
+  courseStayById:['selection','courseStayById'],
+  courseRadiusKm:['selection','courseRadiusKm'],
   config:['runtime','config'],
   aiBusy:['runtime','aiBusy'],
   installPrompt:['runtime','installPrompt'],
@@ -61,7 +69,7 @@ function cloneInitial(){
     navigation:{...INITIAL_SECTIONS.navigation},
     origin:{...INITIAL_SECTIONS.origin},
     search:{...INITIAL_SECTIONS.search,regionBoundaries:[],regionPath:[],categories:[],facilities:[],recommendations:[]},
-    selection:{...INITIAL_SECTIONS.selection},
+    selection:{...INITIAL_SECTIONS.selection,nearbyCandidates:[],selectedNearbyIds:[],courseStayById:{}},
     runtime:{...INITIAL_SECTIONS.runtime}
   };
 }
@@ -114,6 +122,10 @@ export function createTripStore(seed={}){
       selected:null,
       selectedCourse:null,
       selectedCourseData:null,
+      nearbyCandidates:[],
+      selectedNearbyIds:[],
+      courseStayById:{},
+      courseRadiusKm:5,
       aiBusy:false,
       sharedPending:false
     });

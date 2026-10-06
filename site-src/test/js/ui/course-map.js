@@ -5,26 +5,11 @@ let courseMarkers=[];
 let courseRouteLine=null;
 
 const CATEGORY_META={
-  '공원':{icon:'P',desc:'공원'},
-  '사찰':{icon:'寺',desc:'절 · 사찰'},
-  '마트':{icon:'M',desc:'마트'},
-  '문화시설':{icon:'C',desc:'문화시설'},
-  '산책로':{icon:'W',desc:'산책로'},
-  '백화점':{icon:'D',desc:'백화점'},
-  '카페':{icon:'C',desc:'카페'},
-  '맛집':{icon:'F',desc:'음식점'},
-  '관광명소':{icon:'★',desc:'관광명소'},
-  '박물관미술관':{icon:'A',desc:'박물관 · 미술관'},
-  '전통시장':{icon:'市',desc:'전통시장'},
-  '쇼핑몰':{icon:'S',desc:'쇼핑몰'},
-  '해변':{icon:'海',desc:'해변'},
-  '산':{icon:'山',desc:'산'},
-  '도서관':{icon:'B',desc:'도서관'},
-  '숙박':{icon:'H',desc:'숙박'},
-  '체험':{icon:'E',desc:'체험'},
-  '테마파크':{icon:'T',desc:'테마파크'},
-  '온천':{icon:'♨',desc:'온천 · 스파'},
-  '캠핑':{icon:'△',desc:'캠핑'}
+  '공원':{icon:'P',desc:'공원'},'대형마트':{icon:'M',desc:'대형마트'},'백화점':{icon:'D',desc:'백화점'},
+  '전통시장':{icon:'市',desc:'전통시장'},'해수욕장':{icon:'海',desc:'해수욕장'},'산':{icon:'山',desc:'등산'},
+  '사찰':{icon:'寺',desc:'절 · 사찰'},'산책로':{icon:'W',desc:'산책로 · 숲길'},'카페거리':{icon:'C',desc:'카페거리'},
+  '쇼핑거리':{icon:'S',desc:'쇼핑거리 · 지하상가'},'문화시설':{icon:'C',desc:'문화시설'},'관광명소':{icon:'★',desc:'관광명소'},
+  '박물관미술관':{icon:'A',desc:'박물관 · 미술관'},'체험':{icon:'E',desc:'체험'},'대형복합시설':{icon:'T',desc:'놀이공원 · 대형복합시설'},'대형도서관':{icon:'B',desc:'대형도서관'}
 };
 
 export function initCourseMap(){
@@ -69,6 +54,6 @@ export function drawCourseRoute(course){
     courseMap.setView([stops[0].lat,stops[0].lng],15);
   }
   setTimeout(()=>courseMap.invalidateSize(),120);
-  const routeType=course.mode==='walk'?'도보 근거리':course.route?.source==='osrm'?'OSRM 도로 드라이브':'드라이브 · 일부 근사';
-  setText('#courseMapStatus',`${course.id}코스 · ${routeType} · 지역 내 ${stops.length}개 지점`);
+  const routeType='도보 단일 선택 코스';
+  setText('#courseMapStatus',`${routeType} · ${stops.length}개 지점`);
 }

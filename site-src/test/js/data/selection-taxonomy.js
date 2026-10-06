@@ -4,26 +4,26 @@ export const TOP_REGIONS=[
 ];
 
 export const PLACE_CATEGORIES=[
-  {id:'공원',label:'공원'},
-  {id:'사찰',label:'절 · 사찰'},
-  {id:'마트',label:'마트'},
-  {id:'문화시설',label:'문화시설'},
-  {id:'산책로',label:'산책로'},
-  {id:'백화점',label:'백화점'},
-  {id:'카페',label:'카페'},
-  {id:'맛집',label:'맛집'},
-  {id:'관광명소',label:'관광명소'},
-  {id:'박물관미술관',label:'박물관 · 미술관'},
-  {id:'전통시장',label:'전통시장'},
-  {id:'쇼핑몰',label:'쇼핑몰'},
-  {id:'해변',label:'해변'},
-  {id:'산',label:'산'},
-  {id:'도서관',label:'도서관'},
-  {id:'숙박',label:'숙박'},
-  {id:'체험',label:'체험'},
-  {id:'테마파크',label:'테마파크'},
-  {id:'온천',label:'온천 · 스파'},
-  {id:'캠핑',label:'캠핑'}
+  {id:'공원',label:'공원',sourceMode:'official'},
+  {id:'대형마트',label:'대형마트',sourceMode:'official'},
+  {id:'백화점',label:'백화점',sourceMode:'official'},
+  {id:'전통시장',label:'전통시장',sourceMode:'official'},
+  {id:'해수욕장',label:'해수욕장',sourceMode:'official'},
+  {id:'산',label:'산 · 등산',sourceMode:'official'},
+  {id:'사찰',label:'절 · 사찰',sourceMode:'official_verified'},
+  {id:'산책로',label:'산책로 · 숲길',sourceMode:'official'},
+  {id:'카페거리',label:'카페거리',sourceMode:'official_curated'},
+  {id:'쇼핑거리',label:'쇼핑거리 · 지하상가',sourceMode:'official_curated'},
+  {id:'문화시설',label:'문화시설',sourceMode:'official_tour'},
+  {id:'관광명소',label:'관광명소',sourceMode:'official_tour'},
+  {id:'박물관미술관',label:'박물관 · 미술관',sourceMode:'official_tour'},
+  {id:'체험',label:'체험',sourceMode:'official_tour'},
+  {id:'대형복합시설',label:'놀이공원 · 대형복합시설',sourceMode:'official_curated'},
+  {id:'대형도서관',label:'대형도서관',sourceMode:'official'}
+];
+
+export const REMOVED_PLACE_CATEGORIES=[
+  '맛집','숙박','온천','온천 · 스파','캠핑','카페','마트','쇼핑몰','해변','도서관','테마파크'
 ];
 
 export const FACILITY_FILTERS=[
