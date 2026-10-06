@@ -52,8 +52,8 @@ for(const asset of [
   './phase5-final.css?v=20261006-phase5b',
   './js/ui/phase2-pixel.js?v=20261006-phase2',
   './js/ui/phase5-polish.js?v=20261006-phase5',
-  './no-scroll-app.css?v=20261006-noscroll1',
-  './js/ui/no-scroll-app.js?v=20261006-noscroll1'
+  './no-scroll-app.css?v=20261006-noscroll2',
+  './js/ui/no-scroll-app.js?v=20261006-noscroll2'
 ]){
   assert.ok(html.includes(asset),'staging HTML asset missing: '+asset);
 }
@@ -129,12 +129,12 @@ assert.ok(landingCss.includes('@keyframes tqTitleGlint'),'pixel glint animation 
 assert.ok(landingCss.includes('@media(prefers-reduced-motion:reduce)'),'cover title fx reduced-motion guard missing');
 assert.ok(landingCss.includes('.main-landing:not(.tq-photo-ready) .tq-cover-title-fx'),'title fx must hide when artwork fails');
 assert.ok(sw.includes('./css/landing.css?v=20261006-titlefx2'),'title fx stylesheet cache version missing');
-assert.ok(sw.includes('./app-chrome.js?v=20261006-noscroll1'),'title fx app chrome cache version missing');
+assert.ok(sw.includes('./app-chrome.js?v=20261006-regionux1'),'title fx app chrome cache version missing');
 
 assert.ok(html.includes('./cover-phase3-final.css?v=20261006-coverfinal3'),'final cover QA stylesheet missing');
 assert.ok(sw.includes('./cover-phase3-final.css?v=20261006-coverfinal3'),'final cover QA stylesheet cache missing');
-assert.ok(sw.includes('./app-chrome.js?v=20261006-noscroll1'),'final cover runtime cache version missing');
-assert.ok(sw.includes('./auth.js?v=20261006-noscroll1'),'final cover auth cache version missing');
+assert.ok(sw.includes('./app-chrome.js?v=20261006-regionux1'),'final cover runtime cache version missing');
+assert.ok(sw.includes('./auth.js?v=20261006-regionux1'),'final cover auth cache version missing');
 assert.ok(coverFinalCss.includes('env(safe-area-inset-bottom,0px)'),'final cover bottom safe area missing');
 assert.ok(coverFinalCss.includes('env(safe-area-inset-left,0px)'),'final cover left safe area missing');
 assert.ok(coverFinalCss.includes('env(safe-area-inset-right,0px)'),'final cover right safe area missing');
@@ -150,13 +150,13 @@ assert.ok(chromeJs.includes('scale=Math.max(w/COVER_SOURCE.w,h/COVER_SOURCE.h)')
 assert.ok(chromeJs.includes('window.visualViewport?.addEventListener'),'visual viewport resize correction missing');
 assert.ok(chromeJs.includes('requestAnimationFrame(syncCoverTitleFx)'),'title fx post-load alignment missing');
 
-assert.ok(html.includes('./no-scroll-app.css?v=20261006-noscroll1'),'no-scroll HTML asset missing');
-assert.ok(html.includes('./js/ui/no-scroll-app.js?v=20261006-noscroll1'),'no-scroll pagination script missing');
-assert.ok(sw.includes('./no-scroll-app.css?v=20261006-noscroll1'),'no-scroll CSS cache missing');
-assert.ok(sw.includes('./js/ui/no-scroll-app.js?v=20261006-noscroll1'),'no-scroll JS cache missing');
-assert.ok(sw.includes('./app.js?v=20261006-noscroll1'),'no-scroll app runtime cache missing');
-assert.ok(sw.includes('./app-chrome.js?v=20261006-noscroll1'),'no-scroll chrome runtime cache missing');
-assert.ok(sw.includes('./auth.js?v=20261006-noscroll1'),'no-scroll auth loader cache missing');
+assert.ok(html.includes('./no-scroll-app.css?v=20261006-noscroll2'),'no-scroll HTML asset missing');
+assert.ok(html.includes('./js/ui/no-scroll-app.js?v=20261006-noscroll2'),'no-scroll pagination script missing');
+assert.ok(sw.includes('./no-scroll-app.css?v=20261006-noscroll2'),'no-scroll CSS cache missing');
+assert.ok(sw.includes('./js/ui/no-scroll-app.js?v=20261006-noscroll2'),'no-scroll JS cache missing');
+assert.ok(sw.includes('./app.js?v=20261006-regionux1'),'no-scroll app runtime cache missing');
+assert.ok(sw.includes('./app-chrome.js?v=20261006-regionux1'),'no-scroll chrome runtime cache missing');
+assert.ok(sw.includes('./auth.js?v=20261006-regionux1'),'no-scroll auth loader cache missing');
 
 assert.ok(noScrollCss.includes('html,\nbody'),'document-level scroll lock missing');
 assert.ok(noScrollCss.includes('.tq-auth-gate'),'auth one-screen rule missing');
@@ -179,5 +179,19 @@ assert.ok(!noScrollJs.includes('state.categories'),'pagination layer must not mu
 
 assert.ok(!wizardJs.includes('scrollIntoView'),'wizard must not request page scrolling');
 assert.ok(!searchControllerJs.includes('scrollIntoView'),'search/course flow must not request page scrolling');
+
+assert.ok(noScrollCss.includes('REGION TOUCH + UX AUDIT FIX'),'region UX repair block missing');
+assert.ok(noScrollCss.includes('pointer-events:auto!important'),'native region select touch layer missing');
+assert.ok(noScrollCss.includes('-webkit-appearance:auto!important'),'native select appearance repair missing');
+assert.ok(noScrollCss.includes('font-size:16px!important'),'mobile native select anti-zoom size missing');
+assert.ok(noScrollCss.includes('body[data-trip-step="1"]:not(.tq-auth-locked) .wizard>.wizard-actions'),'duplicate region action row must be hidden');
+assert.ok(noScrollCss.includes('[data-step-view="1"]>.selector-section-head'),'duplicate region heading must be removed');
+assert.ok(noScrollCss.includes('.app-shell>main>.selector-intro'),'phone intro duplication must be removed');
+assert.ok(!noScrollJs.includes('visualViewport?.addEventListener'),'no-scroll layer must not write viewport during native select use');
+assert.ok(!noScrollJs.includes('scrollTop=0'),'no-scroll layer must not force viewport position');
+
+assert.ok(liveSearch.includes('let primaryError=null'),'region boundary fallback state missing');
+assert.ok(liveSearch.includes("label:'지역 경계'"),'region boundary Overpass fallback missing');
+assert.ok(liveSearch.includes('name:ko'),'Korean region-name fallback query missing');
 
 console.log('TRIP QUEST staging pixel/app-frame regression checks passed');
