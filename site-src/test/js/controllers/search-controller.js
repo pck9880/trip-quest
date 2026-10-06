@@ -167,12 +167,10 @@ export function createSearchController({state,travelService,setStep}){
   async function selectPlace(i,goCourse=false){
     state.selected=state.recommendations[i];state.nearbyCandidates=[];state.selectedNearbyIds=[];state.courseStayById={[state.selected.id]:60};state.selectedCourse=null;state.selectedCourseData=null;
     setText('#selectedPlaceName',state.selected.name);setText('#selectedPlaceMeta',(state.selected.category||'여행지')+' · '+(state.selected.address||'주소 정보 없음'));setText('#selectedNearbyCount','0곳 선택');$('#courseTimeline').className='course-timeline empty-state';$('#courseTimeline').innerHTML='주변 장소를 선택한 뒤 코스를 계산하세요.';
-    if($('#courseDepartTime'))$('#courseDepartTime').value=defaultDeparture();if($('#nearbyRadiusRange')){$('#nearbyRadiusRange').value=String(state.courseRadiusKm||5);setText('#nearbyRadiusValue',Number(state.courseRadiusKm||5).toFixed(1)+'km')}if(goCourse)setStep(4);await refreshNearby();
+    if($('#courseDepartTime'))$('#courseDepartTime').value=defaultDeparture();if(goCourse)setStep(4);await refreshNearby();
   }
   function bindCourseBuilder(){
     if(typeof document==='undefined')return;
-    $('#nearbyRadiusRange')?.addEventListener('input',e=>{state.courseRadiusKm=Number(e.target.value);setText('#nearbyRadiusValue',state.courseRadiusKm.toFixed(1)+'km')});
-    $('#nearbyRadiusRange')?.addEventListener('change',refreshNearby);$('#nearbyRefreshBtn')?.addEventListener('click',refreshNearby);
     $('#destinationStayMin')?.addEventListener('change',e=>{if(state.selected)state.courseStayById={...(state.courseStayById||{}),[state.selected.id]:Number(e.target.value)}});
     $('#nearbyChoiceList')?.addEventListener('click',e=>{
       if(e.target.closest('select'))return;const card=e.target.closest('.nearby-choice-card');if(!card)return;const id=card.dataset.id,ids=new Set(state.selectedNearbyIds||[]);
