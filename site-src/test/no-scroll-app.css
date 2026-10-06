@@ -832,3 +832,40 @@ body:not(.tq-auth-locked) #regionLoadText{
     min-height:40px!important;
   }
 }
+
+
+/* NEARBY SELECT VISIBILITY FIX · keep app chrome fixed, scroll only variable result cards */
+body:not(.tq-auth-locked) #nearbyChoiceList{
+  height:100%!important;
+  min-height:0!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain!important;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y!important;
+  display:block!important;
+  padding:2px 2px max(10px,env(safe-area-inset-bottom,0px))!important;
+  scrollbar-width:none;
+}
+body:not(.tq-auth-locked) #nearbyChoiceList::-webkit-scrollbar{
+  display:none;
+}
+body:not(.tq-auth-locked) #nearbyChoiceList .nearby-popular-section,
+body:not(.tq-auth-locked) #nearbyChoiceList .nearby-regular-section{
+  display:block!important;
+}
+body:not(.tq-auth-locked) #nearbyChoiceList .nearby-popular-grid,
+body:not(.tq-auth-locked) #nearbyChoiceList .nearby-regular-grid{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  grid-auto-rows:minmax(58px,auto)!important;
+  gap:5px!important;
+}
+body:not(.tq-auth-locked) #nearbyChoiceList .nearby-choice-card{
+  height:auto!important;
+  min-height:58px!important;
+}
+body:not(.tq-auth-locked) #nearbyChoiceList .nearby-pick{
+  height:auto!important;
+  min-height:58px!important;
+}
