@@ -255,3 +255,38 @@ body[data-trip-step="2"] .step-view[data-step-view="2"]{display:block!important}
 
 /* No-map layout */
 .result-list-only{display:block!important}.result-list-only .ranking{width:100%;max-width:none}.rank-actions{align-items:center}
+
+/* Popular regional highlights */
+.ranking-with-popular{display:grid;gap:20px}
+.popular-picks{display:grid;gap:12px;padding:16px;border:1px solid rgba(201,255,69,.28);border-radius:20px;background:linear-gradient(180deg,rgba(201,255,69,.045),rgba(10,16,22,.98))}
+.popular-picks-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
+.popular-picks-head span,.regular-results-head span{display:block;color:#c9ff45;font:900 9px/1 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.16em}
+.popular-picks-head h3{margin:5px 0 4px;font-size:19px;letter-spacing:-.035em}
+.popular-picks-head p{margin:0;color:#7f8d99;font-size:10px;line-height:1.5}
+.popular-picks-head>strong{color:#c9ff45;font-size:11px;white-space:nowrap}
+.popular-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.popular-grid .rank-card{position:relative;display:grid;grid-template-columns:auto 1fr;gap:11px;min-height:158px;padding:16px;border-color:#40505d;background:#0d151d}
+.popular-grid .popular-rank-1{border-color:#c9ff45;background:linear-gradient(180deg,rgba(201,255,69,.11),#0d151d);box-shadow:0 0 0 1px rgba(201,255,69,.11) inset}
+.popular-grid .popular-rank-1 h3{font-size:18px}
+.popular-grid .rank-actions{grid-column:1/-1}.popular-grid .rank-actions .btn{width:100%}
+.popular-badge{position:absolute;top:10px;right:10px;padding:5px 7px;border:1px solid rgba(201,255,69,.45);border-radius:999px;background:#111b12;color:#c9ff45;font:900 9px/1 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.06em}
+.popular-rank-2 .popular-badge,.popular-rank-3 .popular-badge{border-color:#465661;background:#121a21;color:#bcc8d2}
+.regular-results{display:grid;gap:10px}.regular-results-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 2px 0}.regular-results-head strong{font-size:12px;color:#aeb9c4}
+.regular-results-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media(max-width:900px){.popular-grid{grid-template-columns:1fr}.popular-grid .rank-card{min-height:auto}.regular-results-list{grid-template-columns:1fr}}
+
+/* Nearby popularity highlights */
+.nearby-choice-grouped{display:grid!important;grid-template-columns:1fr!important;gap:16px}
+.nearby-popular-section,.nearby-regular-section{display:grid;gap:10px}
+.nearby-popular-section{padding:14px;border:1px solid rgba(201,255,69,.3);border-radius:18px;background:linear-gradient(180deg,rgba(201,255,69,.055),rgba(10,16,22,.98))}
+.nearby-popular-head,.nearby-regular-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.nearby-popular-head>div>span{display:block;color:#c9ff45;font:900 9px/1 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.16em}
+.nearby-popular-head>div>strong{display:block;margin-top:5px;font-size:16px}.nearby-popular-head>div>small{display:block;margin-top:4px;color:#778592;font-size:9px}
+.nearby-popular-head>b{color:#c9ff45;font-size:10px}.nearby-regular-head span{font-size:12px;font-weight:850;color:#b8c3ce}.nearby-regular-head small{color:#768491;font-size:10px}
+.nearby-popular-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.nearby-regular-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.nearby-popular-card{position:relative;min-height:118px}.nearby-popular-rank-1{border-color:#c9ff45;background:linear-gradient(180deg,rgba(201,255,69,.1),#0b1219);box-shadow:0 0 0 1px rgba(201,255,69,.1) inset}
+.nearby-popular-rank-2,.nearby-popular-rank-3{border-color:#465764}
+.nearby-popular-badge{position:absolute;z-index:2;top:8px;right:8px;padding:4px 6px;border:1px solid rgba(201,255,69,.5);border-radius:999px;background:#111b12;color:#c9ff45;font:900 8px/1 ui-monospace,SFMono-Regular,Consolas,monospace;pointer-events:none}
+.nearby-popular-rank-2 .nearby-popular-badge,.nearby-popular-rank-3 .nearby-popular-badge{border-color:#52626f;background:#111820;color:#b9c5cf}
+.nearby-popular-card .nearby-pick{padding-top:31px}
+@media(max-width:900px){.nearby-popular-grid,.nearby-regular-grid{grid-template-columns:1fr}.nearby-popular-card{min-height:auto}}

@@ -1,6 +1,7 @@
 import { $, all, setText, loading, toast, esc } from '../core/dom.js';
 import { createResultsUI } from '../ui/results.js';
 import { keepService } from '../services/keep-service.js';
+import { pickPopularRecommendations, popularBasis } from '../domain/popularity.js';
 
 export function createSearchController({state,travelService,setStep}){
   const results=createResultsUI(state);
@@ -61,13 +62,35 @@ export function createSearchController({state,travelService,setStep}){
 
   function selectedNearby(){const ids=new Set(state.selectedNearbyIds||[]);return (state.nearbyCandidates||[]).filter(x=>ids.has(x.id))}
   function renderNearby(){
-    const list=$('#nearbyChoiceList');if(!list)return;const selected=new Set(state.selectedNearbyIds||[]);
-    if(!state.nearbyCandidates.length){list.className='nearby-choice-list empty-state';list.innerHTML='현재 반경에서는 추천할 장소가 없습니다. 반경을 넓혀 다시 찾아보세요.';return}
-    list.className='nearby-choice-list';
-    list.innerHTML=state.nearbyCandidates.map((p,i)=>{
+    const list=$('#nearbyChoiceList');if(!list)return;
+    const selected=new Set(state.selectedNearbyIds||[]);
+    if(!state.nearbyCandidates.length){
+      list.className='nearby-choice-list empty-state';
+      list.innerHTML='현재 반경에서는 추천할 장소가 없습니다. 반경을 넓혀 다시 찾아보세요.';
+      return;
+    }
+
+    const popular=pickPopularRecommendations(state.nearbyCandidates);
+    const topRank=new Map(popular.map((x,i)=>[x.place.id,i+1]));
+    const topIds=new Set(popular.map(x=>x.place.id));
+    const regular=state.nearbyCandidates.filter(x=>!topIds.has(x.id));
+    const basis=popularBasis(state.nearbyCandidates);
+    const basisText=basis==='foot-traffic'?'유동인구 데이터 기준':'여행지 인기도 기준';
+
+    function card(p,i,rank=0){
       const on=selected.has(p.id),stay=Number(state.courseStayById?.[p.id]||60);
-      return '<article class="nearby-choice-card'+(on?' selected':'')+'" data-id="'+esc(p.id)+'"><button class="nearby-pick" type="button" aria-pressed="'+on+'"><span class="nearby-index">'+String(i+1).padStart(2,'0')+'</span><div><b>'+esc(p.name)+'</b><small>'+esc(p.category||'장소')+' · '+Number(p.distanceKm||0).toFixed(1)+'km</small><em>'+esc(p.address||'')+'</em></div><strong>'+(on?'선택 ✓':'추가 +')+'</strong></button>'+(on?'<label class="stay-control">머무는 시간 <select data-stay="'+esc(p.id)+'"><option value="30"'+(stay===30?' selected':'')+'>30분</option><option value="60"'+(stay===60?' selected':'')+'>60분</option><option value="90"'+(stay===90?' selected':'')+'>90분</option><option value="120"'+(stay===120?' selected':'')+'>120분</option></select></label>':'')+'</article>';
-    }).join('');
+      return '<article class="nearby-choice-card'+(on?' selected':'')+(rank?' nearby-popular-card nearby-popular-rank-'+rank:'')+'" data-id="'+esc(p.id)+'">'+
+        (rank?'<span class="nearby-popular-badge">TOP '+rank+'</span>':'')+
+        '<button class="nearby-pick" type="button" aria-pressed="'+on+'"><span class="nearby-index">'+String(i+1).padStart(2,'0')+'</span><div><b>'+esc(p.name)+'</b><small>'+esc(p.category||'장소')+' · '+Number(p.distanceKm||0).toFixed(1)+'km</small><em>'+esc(p.address||'')+'</em></div><strong>'+(on?'선택 ✓':'추가 +')+'</strong></button>'+
+        (on?'<label class="stay-control">머무는 시간 <select data-stay="'+esc(p.id)+'"><option value="30"'+(stay===30?' selected':'')+'>30분</option><option value="60"'+(stay===60?' selected':'')+'>60분</option><option value="90"'+(stay===90?' selected':'')+'>90분</option><option value="120"'+(stay===120?' selected':'')+'>120분</option></select></label>':'')+
+        '</article>';
+    }
+
+    const topHtml='<section class="nearby-popular-section"><div class="nearby-popular-head"><div><span>POPULAR PICKS</span><strong>이 주변 인기 추천</strong><small>'+basisText+'</small></div><b>'+popular.length+'곳</b></div><div class="nearby-popular-grid">'+popular.map((x,i)=>card(x.place,i,topRank.get(x.place.id))).join('')+'</div></section>';
+    const regularHtml=regular.length?'<section class="nearby-regular-section"><div class="nearby-regular-head"><span>전체 추천</span><small>'+state.nearbyCandidates.length+'곳</small></div><div class="nearby-regular-grid">'+regular.map((p,i)=>card(p,popular.length+i)).join('')+'</div></section>':'';
+
+    list.className='nearby-choice-list nearby-choice-grouped';
+    list.innerHTML=topHtml+regularHtml;
     setText('#selectedNearbyCount',selected.size+'곳 선택');
     $('#buildSelectedCourseBtn').disabled=selected.size===0;
   }
