@@ -63,7 +63,7 @@ function refreshPlacePager(reset=false){
 function refreshResultPager(){
   const host=$('#ranking');if(!host)return;
   // Search results are the deliberate no-scroll exception: one continuous internal list.
-  $('.rank-card',host).forEach(el=>{el.hidden=false});
+  $$('.rank-card',host).forEach(el=>{el.hidden=false});
   const pager=host.parentElement?.querySelector(':scope > .tq-page-controls[data-pager="results"]');
   if(pager)pager.remove();
   pagerState.delete('results');
@@ -72,7 +72,7 @@ function refreshResultPager(){
 function refreshNearbyPager(){
   const host=$('#nearbyChoiceList');if(!host)return;
   // Nearby search results also use one continuous internal scroll list.
-  $('.nearby-choice-card',host).forEach(el=>{el.hidden=false});
+  $$('.nearby-choice-card',host).forEach(el=>{el.hidden=false});
   const pager=host.parentElement?.querySelector(':scope > .tq-page-controls[data-pager="nearby"]');
   if(pager)pager.remove();
   pagerState.delete('nearby');
