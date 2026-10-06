@@ -111,7 +111,7 @@ export function createSearchController({state,travelService,setStep}){
       $('#courseTimeline').className='course-timeline';
       const endLabel=course.endDayOffset?('다음날 '+course.endTime):course.endTime;
       $('#courseTimeline').innerHTML='<div class="course-total"><div><span>출발</span><strong>'+esc(course.departureTime)+'</strong></div><div><span>이동</span><strong>'+course.travelMin+'분</strong></div><div><span>체류</span><strong>'+course.stayMin+'분</strong></div><div><span>예상 종료</span><strong>'+esc(endLabel)+'</strong></div></div><ol class="timeline-stops">'+course.legs.map((x,i)=>'<li><b>'+String(i+1).padStart(2,'0')+' · '+esc(x.stop.name)+'</b><span>'+esc(x.arrival.time)+(x.arrival.dayOffset?' (+1일)':'')+' 도착 · '+x.stayMin+'분 체류 · '+esc(x.leave.time)+' 출발</span></li>').join('')+'</ol><div class="course-rule">도보 예상 '+course.route.distanceKm.toFixed(1)+'km · 선택한 장소만 사용 · 거리 최적화 순서</div>';
-      setText('#actionHint','코스 계산 완료 · 예상 종료 '+endLabel);toast('선택한 장소로 최적 코스를 만들었습니다.');setTimeout(()=>$('#courseTimeline')?.scrollIntoView({behavior:'smooth',block:'start'}),80);
+      setText('#actionHint','코스 계산 완료 · 예상 종료 '+endLabel);toast('선택한 장소로 최적 코스를 만들었습니다.');
     }catch(e){$('#courseTimeline').innerHTML='<span class="error">'+esc(e.message)+'</span>'}finally{loading(false)}
   }
 
