@@ -656,3 +656,63 @@ body:not(.tq-auth-locked) .install-card{
     grid-template-rows:repeat(2,minmax(0,1fr))!important;
   }
 }
+
+
+/* Result host reserves pager height inside the same screen. */
+body:not(.tq-auth-locked) [data-step-view="3"] .result-layout{
+  display:grid!important;
+  grid-template-rows:minmax(0,1fr) auto!important;
+  gap:4px!important;
+}
+
+/* Built course timeline gets its own 3-stop page inside the plan screen. */
+body:not(.tq-auth-locked) #courseTimeline:not(.empty-state){
+  display:grid!important;
+  grid-template-rows:auto minmax(0,1fr) auto!important;
+  gap:4px!important;
+}
+
+body:not(.tq-auth-locked) #courseTimeline .timeline-stops{
+  min-height:0!important;
+  height:100%!important;
+  overflow:hidden!important;
+  align-content:stretch!important;
+  grid-template-rows:repeat(3,minmax(0,1fr))!important;
+}
+
+/* Extra auth compression for older/smaller phones; clipping is avoided without scrolling. */
+@media(max-height:620px){
+  .tq-auth-gate{
+    padding-top:max(6px,env(safe-area-inset-top,0px))!important;
+    padding-bottom:max(6px,env(safe-area-inset-bottom,0px))!important;
+  }
+  .tq-auth-card{
+    padding:8px!important;
+  }
+  .tq-auth-head{
+    margin-bottom:6px!important;
+  }
+  .tq-auth-head h2{
+    font-size:17px!important;
+  }
+  .tq-auth-form{
+    gap:5px!important;
+  }
+  .tq-auth-form>label{
+    gap:3px!important;
+  }
+  .tq-auth-form input:not([type="checkbox"]){
+    min-height:34px!important;
+    height:34px!important;
+  }
+  .tq-auth-submit,
+  .tq-auth-switch{
+    min-height:34px!important;
+    height:34px!important;
+  }
+  .tq-auth-message{
+    min-height:0!important;
+    margin:0!important;
+    font-size:9px!important;
+  }
+}
