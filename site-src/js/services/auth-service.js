@@ -39,7 +39,7 @@ export async function initAuth(){
   $('#loginForm').addEventListener('submit',login);$('#signupForm').addEventListener('submit',signup);
   $('#showSignup').onclick=()=>{gate.dataset.mode='signup';msg('')};$('#showLogin').onclick=()=>{gate.dataset.mode='login';msg('')};
   gate.querySelectorAll('[data-provider]').forEach(b=>b.onclick=()=>social(b.dataset.provider));
-  $('#logoutBtn').onclick=logout;
+  $('#logoutBtn').onclick=logout;$('#memberStartBtn').onclick=()=>$('#mainLocateBtn')?.click();
   let {data:{session}}=await supabase.auth.getSession();
   if(sessionStorage.getItem('tq-session-only')==='1'&&!sessionStorage.getItem('tq-tab-active')){await supabase.auth.signOut();session=null}
   sessionStorage.setItem('tq-tab-active','1');
