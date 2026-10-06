@@ -13,7 +13,7 @@ const state=store.state;
 const travelService=createTravelService();
 const wizardUI=createWizardUI(state);
 const {setStep,syncCategoriesUI,validateUIRuntime,bindChoices}=wizardUI;
-const questSelector=createQuestSelector({state,setStep,syncCategoriesUI});
+const questSelector=createQuestSelector({state,setStep,syncCategoriesUI,travelService});
 const searchController=createSearchController({state,travelService,setStep});
 const {sortRecommendations,recommend,openKeptCourse}=searchController;
 
