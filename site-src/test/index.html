@@ -28,6 +28,20 @@
   <link rel="preload" as="image" href="./assets/tq-cover-main-v044.webp?v=20261006-pixelcover1" fetchpriority="high" />
 </head>
 <body class="tq-auth-locked">
+  <script>
+  (()=>{try{
+    const k='tq-sw-recovery-20261006-1';
+    if('serviceWorker' in navigator&&!sessionStorage.getItem(k)){
+      sessionStorage.setItem(k,'1');
+      navigator.serviceWorker.getRegistrations().then(async regs=>{
+        if(!regs.length)return;
+        await Promise.all(regs.map(r=>r.unregister()));
+        const keys=await caches.keys();await Promise.all(keys.filter(x=>x.startsWith('trip-quest-test-')).map(x=>caches.delete(x)));
+        location.replace(location.pathname+'?v=20261006-whitefix1');
+      }).catch(()=>{});
+    }
+  }catch(_){}})();
+  </script>
   <section id="authGate" class="tq-auth-gate" aria-label="TRIP QUEST TEST 인증">
     <div class="tq-auth-shell">
       <div class="tq-auth-brand">
@@ -211,6 +225,6 @@
 <script type="module" src="./js/ui/phase2-pixel.js?v=20261006-phase2"></script>
 <script type="module" src="./js/ui/phase5-polish.js?v=20261006-phase5"></script>
 <script type="module" src="./js/ui/no-scroll-app.js?v=20261006-course3fix1"></script>
-<script type="module" src="./auth.js?v=20261006-course3fix1"></script>
+<script type="module" src="./auth.js?v=20261006-whitefix1"></script>
 </body>
 </html>
