@@ -32,6 +32,7 @@ async function inflateParts(parts){
 export async function loadNationalDataset(){
   if(!datasetPromise)datasetPromise=(async()=>{
     const manifest=await loadManifest();
+    if(manifest.status!=='ready')throw new Error('전국 공식 DB 런타임 파일 배포 대기');
     const payload=await inflateParts(manifest.parts||[]);
     const items=(payload.items||[]).map(x=>({
       id:x.i,name:x.n,category:x.c,subcategory:x.sc||'',

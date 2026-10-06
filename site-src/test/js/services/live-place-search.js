@@ -47,6 +47,8 @@ const CATEGORY_SELECTORS={
   '산':['nwr(area.searchArea)["natural"="peak"]["name"];'],
   '사찰':['nwr(area.searchArea)["amenity"="place_of_worship"]["religion"="buddhist"]["name"];'],
   '산책로':['nwr(area.searchArea)["route"="hiking"]["name"];','nwr(area.searchArea)["highway"="path"]["name"];'],
+  '카페거리':['nwr(area.searchArea)["name"~"카페거리|카페 거리|Cafe Street",i];'],
+  '쇼핑거리':['nwr(area.searchArea)["name"~"쇼핑거리|패션거리|로데오거리|지하상가|지하도상가|Shopping Street",i];'],
   '문화시설':['nwr(area.searchArea)["amenity"~"arts_centre|theatre|cinema"]["name"];'],
   '관광명소':['nwr(area.searchArea)["tourism"~"attraction|viewpoint"]["name"];','nwr(area.searchArea)["historic"]["name"];'],
   '박물관미술관':['nwr(area.searchArea)["tourism"~"museum|gallery"]["name"];'],
@@ -65,6 +67,8 @@ function categoryFor(tags={},selected=[]){
     if(c==='산'&&tags.natural==='peak')return c;
     if(c==='사찰'&&tags.amenity==='place_of_worship'&&tags.religion==='buddhist')return c;
     if(c==='산책로'&&(tags.route==='hiking'||tags.highway==='path'))return c;
+    if(c==='카페거리'&&/카페거리|카페 거리|Cafe Street/i.test(tags.name||''))return c;
+    if(c==='쇼핑거리'&&/쇼핑거리|패션거리|로데오거리|지하상가|지하도상가|Shopping Street/i.test(tags.name||''))return c;
     if(c==='문화시설'&&['arts_centre','theatre','cinema'].includes(tags.amenity))return c;
     if(c==='박물관미술관'&&['museum','gallery'].includes(tags.tourism))return c;
     if(c==='체험'&&tags.craft)return c;
