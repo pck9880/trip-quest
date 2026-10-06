@@ -9,6 +9,10 @@ const sw=read('sw.js');
 const frame=read('phase4-app-frame.css');
 const finalCss=read('phase5-final.css');
 const finalJs=read('js/ui/phase5-polish.js');
+const selectorJs=read('js/ui/quest-selector.js');
+const travelService=read('js/services/travel-service.js');
+const liveSearch=read('js/services/live-place-search.js');
+const chromeJs=read('app-chrome.js');
 
 for(const [name,source] of [
   ['phase4-app-frame.css',frame],
@@ -34,7 +38,7 @@ for(const asset of [
   './phase2-pixel.css?v=20261006-phase2',
   './phase3-world.css?v=20261006-phase3',
   './phase4-app-frame.css?v=20261006-phase4a',
-  './phase5-final.css?v=20261006-phase5',
+  './phase5-final.css?v=20261006-phase5b',
   './js/ui/phase2-pixel.js?v=20261006-phase2',
   './js/ui/phase5-polish.js?v=20261006-phase5'
 ]){
@@ -77,5 +81,13 @@ for(const ref of [
 ]){
   assert.ok(sw.includes(ref),'staging service worker cache missing: '+ref);
 }
+
+assert.ok(selectorJs.includes('prepareSelectedRegion'),'eupmyeondong completion must trigger region preparation');
+assert.ok(selectorJs.includes('travelService.prepareRegion'),'selector must call actual region analysis');
+assert.ok(selectorJs.includes('regionReady=false'),'region ready state guard missing');
+assert.ok(travelService.includes('async function prepareRegion'),'travel service region pre-analysis missing');
+assert.ok(travelService.includes('regionPrepCache'),'region pre-analysis cache missing');
+assert.ok(liveSearch.includes('onProgress=null'),'live place search progress callback missing');
+assert.ok(chromeJs.includes("'<strong>TRIP QUEST</strong>'"),'simplified enlarged header title missing');
 
 console.log('TRIP QUEST staging pixel/app-frame regression checks passed');
