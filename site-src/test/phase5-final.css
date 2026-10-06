@@ -272,3 +272,80 @@ body:not(.tq-auth-locked) .install-card{
     transition:none!important;
   }
 }
+
+
+/* ---------- 2026-10-06 region-search + simplified app header ---------- */
+body:not(.tq-auth-locked) .topbar.tq-appbar{
+  justify-content:flex-start!important;
+  gap:10px!important;
+}
+
+body:not(.tq-auth-locked) .tq-appbar .brand{
+  flex:0 0 40px!important;
+  min-width:40px!important;
+  width:40px!important;
+}
+
+body:not(.tq-auth-locked) .tq-appbar .brand-mark{
+  width:38px!important;
+  height:38px!important;
+}
+
+body:not(.tq-auth-locked) .tq-appbar .top-actions,
+body:not(.tq-auth-locked) .tq-appbar .system-status{
+  display:none!important;
+}
+
+body:not(.tq-auth-locked) .tq-top-label{
+  position:static!important;
+  left:auto!important;
+  top:auto!important;
+  transform:none!important;
+  flex:1 1 auto;
+  min-width:0;
+  text-align:left!important;
+  pointer-events:none;
+}
+
+body:not(.tq-auth-locked) .tq-top-label small{
+  display:none!important;
+}
+
+body:not(.tq-auth-locked) .tq-top-label strong{
+  display:block;
+  margin:0!important;
+  font-size:21px!important;
+  line-height:1!important;
+  letter-spacing:-.045em!important;
+  color:var(--p3-white,#f3f8f6);
+  text-shadow:3px 3px 0 #020608;
+  white-space:nowrap;
+}
+
+body:not(.tq-auth-locked) .topbar.tq-appbar::before{
+  background:linear-gradient(90deg,var(--p3-lime,#d8ff45) 0 112px,transparent 112px)!important;
+}
+
+.pixel-region-loader[data-state="idle"] .pixel-loader-fill{
+  width:0!important;
+}
+
+.pixel-region-loader[data-state="loading"] .pixel-loader-head span{
+  color:var(--p3-lime,#d8ff45)!important;
+}
+
+.pixel-region-loader[data-state="done"] .pixel-loader-head span,
+.pixel-region-loader[data-state="done"] .pixel-loader-head b{
+  color:var(--p3-lime,#d8ff45)!important;
+}
+
+.pixel-region-loader[data-state="done"] .pixel-loader-frame{
+  border-color:var(--p3-lime,#d8ff45)!important;
+  box-shadow:2px 2px 0 #020608,inset 0 0 0 3px #091016,0 0 0 1px rgba(216,255,69,.18)!important;
+}
+
+@media(max-width:390px){
+  body:not(.tq-auth-locked) .tq-top-label strong{
+    font-size:19px!important;
+  }
+}
