@@ -6,10 +6,10 @@ const OVERPASS_ENDPOINTS=[
   'https://overpass-api.de/api/interpreter',
   'https://maps.mail.ru/osm/tools/overpass/api/interpreter'
 ];
-const REGION_CACHE='trip-quest-test-region-selector-v4';
+const REGION_CACHE='trip-quest-test-region-selector-v5';
 const REGION_CACHE_MS=30*24*60*60*1000;
+const LIVE_CACHE_MS=15*60*1000;
 const liveCache=new Map();
-const LIVE_CACHE_MS=10*60*1000;
 
 function readCache(){try{return JSON.parse(localStorage.getItem(REGION_CACHE)||'{}')}catch{return {}}}
 function writeCache(v){try{localStorage.setItem(REGION_CACHE,JSON.stringify(v))}catch{}}
@@ -18,34 +18,27 @@ function cacheSet(k,v){const c=readCache();c[k]={savedAt:Date.now(),value:v};wri
 function liveCacheGet(k){const x=liveCache.get(k);if(!x||Date.now()-x.at>LIVE_CACHE_MS){liveCache.delete(k);return null}return x.value}
 function liveCacheSet(k,v){liveCache.set(k,{at:Date.now(),value:v});return v}
 
-async function overpassJson(query,{timeoutMs=18000,label='지도 데이터'}={}){
+async function overpassJson(query,{timeoutMs=2200,label='지도 데이터'}={}){
   const cached=liveCacheGet(query);if(cached)return cached;
   const errors=[];
   for(const endpoint of OVERPASS_ENDPOINTS){
-    const controller=new AbortController();
-    const timer=setTimeout(()=>controller.abort(),timeoutMs);
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeoutMs);
     try{
       const res=await fetch(endpoint,{
         method:'POST',
         headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8','Accept':'application/json'},
-        body:new URLSearchParams({data:query}),
-        signal:controller.signal
+        body:new URLSearchParams({data:query}),signal:controller.signal
       });
       clearTimeout(timer);
-      if(!res.ok){
-        errors.push(endpoint+' HTTP '+res.status);
-        if([400,401,403].includes(res.status))break;
-        continue;
-      }
-      const json=await res.json();
-      return liveCacheSet(query,json);
+      if(!res.ok){errors.push(endpoint+' HTTP '+res.status);continue}
+      return liveCacheSet(query,await res.json());
     }catch(e){
       clearTimeout(timer);
       errors.push(endpoint+' '+(e?.name==='AbortError'?'timeout':(e?.message||'network error')));
     }
   }
   console.warn('Overpass all endpoints failed',label,errors);
-  throw new Error(label+' 서버가 혼잡합니다. 잠시 후 다시 시도해주세요.');
+  throw new Error(label+' 응답 지연');
 }
 
 function boundaryFromNominatim(x,fallbackName=''){
@@ -59,18 +52,20 @@ export function overpassEndpoints(){return [...OVERPASS_ENDPOINTS]}
 export async function resolveRegion(name){
   const key='resolve:'+name,hit=cacheGet(key);if(hit)return hit;
   const params=new URLSearchParams({q:name+', 대한민국',format:'jsonv2',limit:'6',countrycodes:'kr',addressdetails:'1',extratags:'1','accept-language':'ko'});
-  const res=await fetch(NOMINATIM+'?'+params.toString(),{headers:{Accept:'application/json'}});
-  if(!res.ok)throw new Error('지역 정보를 불러오지 못했습니다.');
-  const list=await res.json(),choice=list.find(x=>x.osm_type==='relation'&&x.class==='boundary')||list.find(x=>x.osm_type==='relation')||list[0];
-  if(!choice)throw new Error(name+' 지역을 찾지 못했습니다.');
-  const value=boundaryFromNominatim(choice,name);cacheSet(key,value);return value;
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),5000);
+  try{
+    const res=await fetch(NOMINATIM+'?'+params.toString(),{headers:{Accept:'application/json'},signal:controller.signal});
+    if(!res.ok)throw new Error('지역 정보를 불러오지 못했습니다.');
+    const list=await res.json(),choice=list.find(x=>x.osm_type==='relation'&&x.class==='boundary')||list.find(x=>x.osm_type==='relation')||list[0];
+    if(!choice)throw new Error(name+' 지역을 찾지 못했습니다.');
+    const value=boundaryFromNominatim(choice,name);cacheSet(key,value);return value;
+  }finally{clearTimeout(timer)}
 }
-
 export async function regionChildren(parent,adminLevel){
   const aid=areaId(parent);if(!aid)return [];
-  const levels=adminLevel===6?[6,7]:adminLevel===8?[8,9]:[adminLevel],key='children-v4:'+aid+':'+levels.join('-'),hit=cacheGet(key);if(hit)return hit;
-  const query='[out:json][timeout:16];area('+aid+')->.a;relation(area.a)["boundary"~"^(administrative|legal)$"]["admin_level"~"^('+levels.join('|')+')$"];out center tags qt;';
-  const json=await overpassJson(query,{timeoutMs:18000,label:'하위 행정구역'});
+  const levels=adminLevel===6?[6,7]:adminLevel===8?[8,9]:[adminLevel],key='children-v5:'+aid+':'+levels.join('-'),hit=cacheGet(key);if(hit)return hit;
+  const query='[out:json][timeout:12];area('+aid+')->.a;relation(area.a)["boundary"~"^(administrative|legal)$"]["admin_level"~"^('+levels.join('|')+')$"];out center tags qt;';
+  const json=await overpassJson(query,{timeoutMs:3500,label:'하위 행정구역'});
   const seen=new Set(),items=[];
   for(const el of json.elements||[]){
     const name=String(el.tags?.['name:ko']||el.tags?.name||'').trim();
@@ -82,29 +77,45 @@ export async function regionChildren(parent,adminLevel){
 }
 
 const CATEGORY_SELECTORS={
-  '공원':['nwr(area.searchArea)["leisure"="park"]["name"];','nwr(area.searchArea)["leisure"="garden"]["name"];'],
-  '대형마트':['nwr(area.searchArea)["shop"="supermarket"]["name"];'],
+  '공원':['nwr(area.searchArea)["leisure"~"^(park|garden)$"]["name"];'],
   '백화점':['nwr(area.searchArea)["shop"="department_store"]["name"];'],
   '전통시장':['nwr(area.searchArea)["amenity"="marketplace"]["name"];'],
-  '해수욕장':['nwr(area.searchArea)["natural"="beach"]["name"];'],
+  '해수욕장':['nwr(area.searchArea)["natural"="beach"]["name"~"해수욕장|Beach",i];'],
   '산':['nwr(area.searchArea)["natural"="peak"]["name"];'],
   '사찰':['nwr(area.searchArea)["amenity"="place_of_worship"]["religion"="buddhist"]["name"];'],
   '산책로':['rel(area.searchArea)["route"~"^(hiking|walking)$"]["name"];'],
   '카페거리':['nwr(area.searchArea)["name"~"카페거리|카페 거리|Cafe Street",i];'],
   '쇼핑거리':['nwr(area.searchArea)["name"~"쇼핑거리|패션거리|로데오거리|지하상가|지하도상가|Shopping Street",i];'],
-  '문화시설':['nwr(area.searchArea)["amenity"~"^(arts_centre|theatre|cinema)$"]["name"];'],
-  '관광명소':['nwr(area.searchArea)["tourism"~"^(attraction|viewpoint)$"]["name"];','nwr(area.searchArea)["historic"]["name"];'],
+  '관광명소':['nwr(area.searchArea)["tourism"~"^(attraction|viewpoint)$"]["name"];'],
   '박물관미술관':['nwr(area.searchArea)["tourism"~"^(museum|gallery)$"]["name"];'],
-  '체험':['nwr(area.searchArea)["craft"]["name"];'],
   '대형복합시설':['nwr(area.searchArea)["tourism"~"^(theme_park|zoo|aquarium)$"]["name"];'],
   '대형도서관':['nwr(area.searchArea)["amenity"="library"]["name"];']
 };
 
-function point(el){const lat=Number(el.lat??el.center?.lat),lng=Number(el.lon??el.center?.lon);return Number.isFinite(lat)&&Number.isFinite(lng)?{lat,lng}:null}
+const BAD_NAME=/주차장|화장실|정류장|관리사무소|사무실|창고|입구|출구|게이트|공터|배수지/i;
+const DESTINATION_WORD=/전망대|전망|폭포|동굴|계곡|정원|수목원|생태|문화마을|벽화|광장|랜드마크|관광|해안|등대|성곽|성지|호수|공원/i;
+function metadataCount(tags={}){return ['wikidata','wikipedia','website','opening_hours','description','heritage','fee'].filter(k=>tags[k]).length}
+function visitorWorthy(tags={},category='',name=''){
+  if(!name||name.length<2||BAD_NAME.test(name))return false;
+  const meta=metadataCount(tags);
+  if(category==='해수욕장')return /해수욕장|Beach/i.test(name);
+  if(category==='산'){
+    const ele=Number.parseFloat(String(tags.ele||'').replace(/[^0-9.-]/g,''));
+    return meta>0||(Number.isFinite(ele)&&ele>=150);
+  }
+  if(category==='사찰')return meta>0||/(사|암|사찰|寺)$/.test(name);
+  if(category==='산책로')return ['hiking','walking'].includes(tags.route)&&name.length>=3;
+  if(category==='관광명소')return meta>0||DESTINATION_WORD.test(name);
+  if(category==='박물관미술관'||category==='대형복합시설'||category==='백화점')return true;
+  if(category==='전통시장')return /시장|Market/i.test(name);
+  if(category==='대형도서관')return /(도서관|라이브러리)/.test(name);
+  if(category==='카페거리')return /카페거리|카페 거리|Cafe Street/i.test(name);
+  if(category==='쇼핑거리')return /쇼핑거리|패션거리|로데오거리|지하상가|지하도상가|Shopping Street/i.test(name);
+  return true;
+}
 function categoryFor(tags={},selected=[]){
   for(const c of selected){
     if(c==='공원'&&['park','garden'].includes(tags.leisure))return c;
-    if(c==='대형마트'&&tags.shop==='supermarket')return c;
     if(c==='백화점'&&tags.shop==='department_store')return c;
     if(c==='전통시장'&&tags.amenity==='marketplace')return c;
     if(c==='해수욕장'&&tags.natural==='beach')return c;
@@ -113,83 +124,77 @@ function categoryFor(tags={},selected=[]){
     if(c==='산책로'&&['hiking','walking'].includes(tags.route))return c;
     if(c==='카페거리'&&/카페거리|카페 거리|Cafe Street/i.test(tags.name||''))return c;
     if(c==='쇼핑거리'&&/쇼핑거리|패션거리|로데오거리|지하상가|지하도상가|Shopping Street/i.test(tags.name||''))return c;
-    if(c==='문화시설'&&['arts_centre','theatre','cinema'].includes(tags.amenity))return c;
     if(c==='박물관미술관'&&['museum','gallery'].includes(tags.tourism))return c;
-    if(c==='체험'&&tags.craft)return c;
     if(c==='대형복합시설'&&['theme_park','zoo','aquarium'].includes(tags.tourism))return c;
     if(c==='대형도서관'&&tags.amenity==='library')return c;
-    if(c==='관광명소'&&(tags.tourism==='attraction'||tags.tourism==='viewpoint'||tags.historic))return c;
+    if(c==='관광명소'&&['attraction','viewpoint'].includes(tags.tourism))return c;
   }
   return selected[0]||'관광명소';
 }
-function environment(category=''){if(['공원','산책로','해수욕장','산'].includes(category))return 'outdoor';if(['대형마트','백화점','대형도서관','박물관미술관','문화시설'].includes(category))return 'indoor';return 'mixed'}
+function point(el){const lat=Number(el.lat??el.center?.lat),lng=Number(el.lon??el.center?.lon);return Number.isFinite(lat)&&Number.isFinite(lng)?{lat,lng}:null}
+function environment(category=''){if(['공원','산책로','해수욕장','산'].includes(category))return 'outdoor';if(['백화점','대형도서관','박물관미술관'].includes(category))return 'indoor';return 'mixed'}
 function facilityInfo(tags={},category=''){
   const env=environment(category);
   return {parking:['yes','surface','underground','multi-storey'].includes(tags.parking)||tags['parking:condition']!=null,indoor:env!=='outdoor',outdoor:env!=='indoor',pet:['yes','leashed'].includes(tags.dog)||tags.pets==='yes',wheelchair:tags.wheelchair==='yes',toilets:tags.toilets==='yes'};
 }
 function passesFacilities(info,filters=[]){return filters.every(x=>info[x]===true)}
 function address(tags={},region=''){return [tags['addr:province'],tags['addr:city']||tags['addr:county'],tags['addr:district'],tags['addr:town'],tags['addr:neighbourhood'],tags['addr:street']].filter(Boolean).join(' ')||region}
-
-function parseElements(json,selected,facilities,boundary,seen,items){
+function qualityScore(tags={},category=''){
+  const base={관광명소:78,박물관미술관:82,대형복합시설:84,백화점:80,산책로:76,산:74,사찰:74,해수욕장:82}[category]||70;
+  return Math.min(96,base+metadataCount(tags)*3);
+}
+function parseElements(json,category,facilities,boundary){
+  const seen=new Set(),items=[];
   for(const el of json.elements||[]){
     const p=point(el),tags=el.tags||{},name=String(tags['name:ko']||tags.name||'').trim();if(!p||!name)continue;
-    const cat=categoryFor(tags,selected),fac=facilityInfo(tags,cat);if(!passesFacilities(fac,facilities))continue;
+    const cat=categoryFor(tags,[category]);if(!visitorWorthy(tags,cat,name))continue;
+    const fac=facilityInfo(tags,cat);if(!passesFacilities(fac,facilities))continue;
     const key=name+'|'+p.lat.toFixed(4)+'|'+p.lng.toFixed(4);if(seen.has(key))continue;seen.add(key);
-    items.push({id:'osm-'+el.type+'-'+el.id,name,category:cat,lat:p.lat,lng:p.lng,address:address(tags,boundary.name),score:68,facilities:fac,liveRegion:boundary.name,liveSource:'OpenStreetMap 보조',aiReason:'공식 DB 미구축 카테고리 · 지도 보조 데이터'});
+    items.push({id:'osm-'+el.type+'-'+el.id,name,category:cat,lat:p.lat,lng:p.lng,address:address(tags,boundary.name),score:qualityScore(tags,cat),facilities:fac,liveRegion:boundary.name,liveSource:'OpenStreetMap 보조',aiReason:'여행 목적지 품질 필터 통과 · 지도 보조'});
   }
+  return items;
 }
-
 export async function searchRegionPlaces({boundary,categories=[],facilities=[]}){
   const aid=areaId(boundary);if(!aid)throw new Error('선택한 지역 경계를 확인하지 못했습니다.');
   const selected=[...new Set(categories)].filter(c=>CATEGORY_SELECTORS[c]);if(!selected.length)return {items:[],source:'지도 보조'};
-  const seen=new Set(),items=[],failed=[];
-  for(const category of selected){
-    const selectors=CATEGORY_SELECTORS[category]||[];
-    if(!selectors.length)continue;
-    const query='[out:json][timeout:16];area('+aid+')->.searchArea;('+selectors.join('')+');out center tags qt 90;';
-    try{
-      const json=await overpassJson(query,{timeoutMs:19000,label:category+' 지도 보조'});
-      parseElements(json,[category],facilities,boundary,seen,items);
-    }catch(e){failed.push({category,error:e.message})}
+  const tasks=selected.map(async category=>{
+    const query='[out:json][timeout:10];area('+aid+')->.searchArea;('+CATEGORY_SELECTORS[category].join('')+');out center tags qt 70;';
+    const json=await overpassJson(query,{timeoutMs:2100,label:category});
+    return {category,items:parseElements(json,category,facilities,boundary)};
+  });
+  const settled=await Promise.allSettled(tasks),items=[],failed=[];
+  for(let i=0;i<settled.length;i++){
+    const r=settled[i];
+    if(r.status==='fulfilled')items.push(...r.value.items);
+    else failed.push({category:selected[i],error:r.reason?.message||'응답 지연'});
   }
-  if(!items.length&&failed.length===selected.length){
-    throw new Error('지도 보조 서버가 혼잡합니다. 자동 재시도에 실패했습니다. 잠시 후 다시 시도해주세요.');
-  }
-  if(failed.length)console.warn('Partial Overpass category failures',failed);
-  return {items:items.slice(0,120),source:failed.length?'OpenStreetMap 보조 · 일부 서버 재시도':'OpenStreetMap 보조',boundary,failed};
+  const seen=new Set(),deduped=items.filter(x=>{const k=x.name+'|'+x.lat.toFixed(4)+'|'+x.lng.toFixed(4);if(seen.has(k))return false;seen.add(k);return true});
+  deduped.sort((a,b)=>(b.score||0)-(a.score||0)||a.name.localeCompare(b.name,'ko'));
+  return {items:deduped.slice(0,90),source:failed.length?'여행지 선별 지도 보조 · 일부 응답 지연':'여행지 선별 지도 보조',boundary,failed};
 }
 
 const NEARBY_BATCHES=[
-  [
-    'nwr(around:{R},{LAT},{LNG})["leisure"="park"]["name"];',
-    'nwr(around:{R},{LAT},{LNG})["amenity"="marketplace"]["name"];',
-    'nwr(around:{R},{LAT},{LNG})["shop"="department_store"]["name"];',
-    'nwr(around:{R},{LAT},{LNG})["amenity"="library"]["name"];'
-  ],
-  [
-    'nwr(around:{R},{LAT},{LNG})["tourism"~"^(attraction|viewpoint|museum|gallery|theme_park|zoo|aquarium)$"]["name"];'
-  ],
-  [
-    'nwr(around:{R},{LAT},{LNG})["amenity"="place_of_worship"]["religion"="buddhist"]["name"];',
-    'nwr(around:{R},{LAT},{LNG})["natural"="beach"]["name"];',
-    'nwr(around:{R},{LAT},{LNG})["natural"="peak"]["name"];'
-  ]
+  ['nwr(around:{R},{LAT},{LNG})["leisure"="park"]["name"];','nwr(around:{R},{LAT},{LNG})["amenity"="marketplace"]["name"];','nwr(around:{R},{LAT},{LNG})["shop"="department_store"]["name"];'],
+  ['nwr(around:{R},{LAT},{LNG})["tourism"~"^(attraction|viewpoint|museum|gallery|theme_park|zoo|aquarium)$"]["name"];'],
+  ['nwr(around:{R},{LAT},{LNG})["amenity"="place_of_worship"]["religion"="buddhist"]["name"];','nwr(around:{R},{LAT},{LNG})["natural"="beach"]["name"~"해수욕장|Beach",i];','nwr(around:{R},{LAT},{LNG})["natural"="peak"]["name"];']
 ];
-
 export async function searchNearbyPlaces(anchor,radius=5000){
-  const nearCats=['관광명소','공원','박물관미술관','전통시장','백화점','사찰','해수욕장','산','대형복합시설','대형도서관'];
-  const seen=new Set(),items=[];
   const replace=s=>s.replaceAll('{R}',String(radius)).replaceAll('{LAT}',String(anchor.lat)).replaceAll('{LNG}',String(anchor.lng));
-  for(const batch of NEARBY_BATCHES){
-    const q='[out:json][timeout:15];('+batch.map(replace).join('')+');out center tags qt 70;';
-    try{
-      const json=await overpassJson(q,{timeoutMs:18000,label:'주변 장소'});
-      for(const el of json.elements||[]){
-        const p=point(el),tags=el.tags||{},name=String(tags['name:ko']||tags.name||'').trim();if(!p||!name||name===anchor.name)continue;
-        const key=name+'|'+p.lat.toFixed(4)+'|'+p.lng.toFixed(4);if(seen.has(key))continue;seen.add(key);
-        items.push({id:'osm-'+el.type+'-'+el.id,name,category:categoryFor(tags,nearCats),lat:p.lat,lng:p.lng,address:address(tags,''),liveSource:'OpenStreetMap 보조'});
-      }
-    }catch(e){console.warn('nearby Overpass batch failed',e.message)}
+  const tasks=NEARBY_BATCHES.map(async batch=>{
+    const q='[out:json][timeout:9];('+batch.map(replace).join('')+');out center tags qt 60;';
+    return overpassJson(q,{timeoutMs:1900,label:'주변 장소'});
+  });
+  const settled=await Promise.allSettled(tasks),seen=new Set(),items=[];
+  const nearCats=['관광명소','공원','박물관미술관','전통시장','백화점','사찰','해수욕장','산','대형복합시설'];
+  for(const r of settled){
+    if(r.status!=='fulfilled')continue;
+    for(const el of r.value.elements||[]){
+      const p=point(el),tags=el.tags||{},name=String(tags['name:ko']||tags.name||'').trim();if(!p||!name||name===anchor.name)continue;
+      const cat=categoryFor(tags,nearCats);if(!visitorWorthy(tags,cat,name))continue;
+      const key=name+'|'+p.lat.toFixed(4)+'|'+p.lng.toFixed(4);if(seen.has(key))continue;seen.add(key);
+      items.push({id:'osm-'+el.type+'-'+el.id,name,category:cat,lat:p.lat,lng:p.lng,address:address(tags,''),score:qualityScore(tags,cat),liveSource:'OpenStreetMap 보조'});
+    }
   }
-  return items.slice(0,120);
+  items.sort((a,b)=>(b.score||0)-(a.score||0));
+  return items.slice(0,60);
 }

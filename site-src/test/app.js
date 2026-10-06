@@ -77,6 +77,7 @@ if(typeof window!=='undefined'){
 
 async function boot(){
   initMap();
+  travelService.preload().then(()=>setText('#updatedAt','전국 여행지 DB 준비 완료')).catch(()=>{});
   initKeepPanel({onOpenCourse:openKeptCourse});
   validateUIRuntime();bindChoices();questSelector.bind();bindActions();initPWA();
   syncCategoriesUI();syncFacilitiesUI();setStep(1);showMainLanding();
