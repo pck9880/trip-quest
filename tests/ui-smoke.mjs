@@ -58,8 +58,8 @@ assert.ok(searchCss.includes('.tq-geo-explorer'),'GEO explorer styles missing');
 assert.ok(pixelCss.includes('.tq-search-only-panel'),'board search-only layout style missing');
 assert.ok(productCss.includes('.tq-bottom-nav'),'bottom navigation styles missing');
 assert.ok(landingCss.includes('.main-landing'),'landing styles missing');
-assert.ok(sw.includes("const CACHE='trip-quest-v1.16.0-board-components-20261003'"),'service worker v1.16.0 cache version missing');
-assert.ok(sw.includes('./css/pixel.css?v=1600'),'pixel design system must be cached');
+assert.ok(sw.includes("const CACHE='trip-quest-v1.16.1-desktop-stage-20261006'"),'service worker v1.16.1 cache version missing');
+assert.ok(sw.includes('./css/pixel.css?v=1610'),'pixel design system must be cached');
 assert.equal(manifest.display,'standalone','PWA display must be standalone');
 assert.ok(Array.isArray(manifest.icons)&&manifest.icons.length>=2,'PWA icons missing');
 assert.ok(chrome.includes("probe.src='./assets/tq-board-cover-v116.svg'"),'redesigned pixel landing artwork preload missing');
@@ -70,5 +70,5 @@ assert.ok(pixelCss.includes('.tq-bottom-nav'),'bottom navigation pixel treatment
 assert.ok(pixelCss.includes('.tq-quest-island-main'),'mission HUD pixel treatment missing');
 assert.ok(pixelCss.includes('.tq-setup-card'),'setup modal pixel treatment missing');
 
-assert.ok(chrome.includes("footer.textContent='TRIP QUEST · v1.16.0'"),'chrome runtime version must match v1.16.0');
-console.log('TRIP QUEST v1.16.0 board-match redesign, search, chrome, mission UI, GPS, recommendations, and PWA smoke tests passed');
+assert.ok(chrome.includes("footer.textContent='TRIP QUEST · v1.16.1'"),'chrome runtime version must match v1.16.1');
+console.log('TRIP QUEST v1.16.1 board-match redesign, search, chrome, mission UI, GPS, recommendations, and PWA smoke tests passed');
