@@ -129,12 +129,12 @@ assert.ok(landingCss.includes('@keyframes tqTitleGlint'),'pixel glint animation 
 assert.ok(landingCss.includes('@media(prefers-reduced-motion:reduce)'),'cover title fx reduced-motion guard missing');
 assert.ok(landingCss.includes('.main-landing:not(.tq-photo-ready) .tq-cover-title-fx'),'title fx must hide when artwork fails');
 assert.ok(sw.includes('./css/landing.css?v=20261006-titlefx2'),'title fx stylesheet cache version missing');
-assert.ok(sw.includes('./app-chrome.js?v=20261006-regionux1'),'title fx app chrome cache version missing');
+assert.ok(sw.includes('./app-chrome.js?v=20261006-searchfix1'),'title fx app chrome cache version missing');
 
 assert.ok(html.includes('./cover-phase3-final.css?v=20261006-coverfinal3'),'final cover QA stylesheet missing');
 assert.ok(sw.includes('./cover-phase3-final.css?v=20261006-coverfinal3'),'final cover QA stylesheet cache missing');
-assert.ok(sw.includes('./app-chrome.js?v=20261006-regionux1'),'final cover runtime cache version missing');
-assert.ok(sw.includes('./auth.js?v=20261006-regionux1'),'final cover auth cache version missing');
+assert.ok(sw.includes('./app-chrome.js?v=20261006-searchfix1'),'final cover runtime cache version missing');
+assert.ok(sw.includes('./auth.js?v=20261006-searchfix1'),'final cover auth cache version missing');
 assert.ok(coverFinalCss.includes('env(safe-area-inset-bottom,0px)'),'final cover bottom safe area missing');
 assert.ok(coverFinalCss.includes('env(safe-area-inset-left,0px)'),'final cover left safe area missing');
 assert.ok(coverFinalCss.includes('env(safe-area-inset-right,0px)'),'final cover right safe area missing');
@@ -154,9 +154,9 @@ assert.ok(html.includes('./no-scroll-app.css?v=20261006-noscroll2'),'no-scroll H
 assert.ok(html.includes('./js/ui/no-scroll-app.js?v=20261006-noscroll2'),'no-scroll pagination script missing');
 assert.ok(sw.includes('./no-scroll-app.css?v=20261006-noscroll2'),'no-scroll CSS cache missing');
 assert.ok(sw.includes('./js/ui/no-scroll-app.js?v=20261006-noscroll2'),'no-scroll JS cache missing');
-assert.ok(sw.includes('./app.js?v=20261006-regionux1'),'no-scroll app runtime cache missing');
-assert.ok(sw.includes('./app-chrome.js?v=20261006-regionux1'),'no-scroll chrome runtime cache missing');
-assert.ok(sw.includes('./auth.js?v=20261006-regionux1'),'no-scroll auth loader cache missing');
+assert.ok(sw.includes('./app.js?v=20261006-searchfix1'),'no-scroll app runtime cache missing');
+assert.ok(sw.includes('./app-chrome.js?v=20261006-searchfix1'),'no-scroll chrome runtime cache missing');
+assert.ok(sw.includes('./auth.js?v=20261006-searchfix1'),'no-scroll auth loader cache missing');
 
 assert.ok(noScrollCss.includes('html,\nbody'),'document-level scroll lock missing');
 assert.ok(noScrollCss.includes('.tq-auth-gate'),'auth one-screen rule missing');
@@ -193,5 +193,12 @@ assert.ok(!noScrollJs.includes('scrollTop=0'),'no-scroll layer must not force vi
 assert.ok(liveSearch.includes('let primaryError=null'),'region boundary fallback state missing');
 assert.ok(liveSearch.includes("label:'지역 경계'"),'region boundary Overpass fallback missing');
 assert.ok(liveSearch.includes('name:ko'),'Korean region-name fallback query missing');
+
+assert.ok(travelService.includes("if(items.length){"),'prepared cache should only short-circuit when selected categories have results');
+assert.ok(!travelService.includes("if(items.length||prepared.items.length)"),'empty category cache must fall through to fresh search');
+assert.ok(travelService.includes("requestedOfficial.length&&(!officialReady||!(official.items||[]).length)"),'official zero-result map recovery missing');
+assert.ok(travelService.includes("8500,{items:[],source:'지도 보조 시간 제한'}"),'live selection search recovery window missing');
+assert.ok(travelService.includes("6500,\n        {items:[],source:'지도 보조 복구 시간 제한'}"),'official fallback recovery window missing');
+assert.ok(liveSearch.includes("timeoutMs:2800,label:category"),'live category endpoint timeout recovery missing');
 
 console.log('TRIP QUEST staging pixel/app-frame regression checks passed');
