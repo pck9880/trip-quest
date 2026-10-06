@@ -3,7 +3,6 @@ import { showMainLanding, hideMainLanding } from './js/ui/landing.js';
 import { createWizardUI } from './js/ui/wizard.js';
 import { createSearchController } from './js/controllers/search-controller.js';
 import { bindAppActions } from './js/controllers/app-controller.js';
-import { initMap } from './js/ui/main-map.js';
 import { createTripStore } from './js/store/trip-store.js';
 import { createTravelService } from './js/services/travel-service.js';
 import { initKeepPanel } from './js/ui/keep-panel.js';
@@ -13,8 +12,8 @@ const store=createTripStore();
 const state=store.state;
 const travelService=createTravelService();
 const wizardUI=createWizardUI(state);
-const {setStep,syncCategoriesUI,syncFacilitiesUI,validateUIRuntime,bindChoices}=wizardUI;
-const questSelector=createQuestSelector({state,setStep,syncCategoriesUI,syncFacilitiesUI});
+const {setStep,syncCategoriesUI,validateUIRuntime,bindChoices}=wizardUI;
+const questSelector=createQuestSelector({state,setStep,syncCategoriesUI});
 const searchController=createSearchController({state,travelService,setStep});
 const {sortRecommendations,recommend,openKeptCourse}=searchController;
 
@@ -71,16 +70,15 @@ function showSafeRuntimeError(){
   if(ranking){ranking.className='ranking empty-state';ranking.innerHTML='<div><strong>화면을 다시 불러오면 정상적으로 사용할 수 있습니다.</strong><br><br><button id="runtimeReloadBtn" class="btn primary" type="button">앱 새로고침</button></div>';$('#runtimeReloadBtn')?.addEventListener('click',()=>location.reload())}
 }
 if(typeof window!=='undefined'){
-  window.addEventListener('error',e=>{console.error('TRIP QUEST runtime error',e.error||e.message);if(state.step===4)showSafeRuntimeError()});
-  window.addEventListener('unhandledrejection',e=>{console.error('TRIP QUEST async error',e.reason);if(state.step===4)showSafeRuntimeError()});
+  window.addEventListener('error',e=>{console.error('TRIP QUEST runtime error',e.error||e.message);if(state.step===3)showSafeRuntimeError()});
+  window.addEventListener('unhandledrejection',e=>{console.error('TRIP QUEST async error',e.reason);if(state.step===3)showSafeRuntimeError()});
 }
 
 async function boot(){
-  initMap();
   travelService.preload().then(()=>setText('#updatedAt','전국 여행지 DB 준비 완료')).catch(()=>{});
   initKeepPanel({onOpenCourse:openKeptCourse});
   validateUIRuntime();bindChoices();questSelector.bind();bindActions();initPWA();
-  syncCategoriesUI();syncFacilitiesUI();setStep(1);showMainLanding();
-  try{await loadConfig()}catch{setText('#providerNow','지도 데이터 연결 확인 필요')}
+  syncCategoriesUI();setStep(1);showMainLanding();
+  try{await loadConfig()}catch{setText('#providerNow','데이터 연결 확인 필요')}
 }
 if(typeof document!=='undefined')boot();

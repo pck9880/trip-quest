@@ -80,7 +80,7 @@ const CATEGORY_SELECTORS={
   '공원':['nwr(area.searchArea)["leisure"~"^(park|garden)$"]["name"];'],
   '백화점':['nwr(area.searchArea)["shop"="department_store"]["name"];'],
   '전통시장':['nwr(area.searchArea)["amenity"="marketplace"]["name"];'],
-  '해수욕장':['nwr(area.searchArea)["natural"="beach"]["name"~"해수욕장|Beach",i];'],
+  '해수욕장':['nwr(area.searchArea)["natural"="beach"]["name"];','nwr(area.searchArea)["leisure"="beach_resort"]["name"];'],
   '산':['nwr(area.searchArea)["natural"="peak"]["name"];'],
   '사찰':['nwr(area.searchArea)["amenity"="place_of_worship"]["religion"="buddhist"]["name"];'],
   '산책로':['rel(area.searchArea)["route"~"^(hiking|walking)$"]["name"];'],
@@ -91,6 +91,19 @@ const CATEGORY_SELECTORS={
   '대형복합시설':['nwr(area.searchArea)["tourism"~"^(theme_park|zoo|aquarium)$"]["name"];'],
   '대형도서관':['nwr(area.searchArea)["amenity"="library"]["name"];']
 };
+
+const BUSAN_BEACH_FALLBACK=[
+  {id:'busan-beach-haeundae',name:'해운대해수욕장',category:'해수욕장',lat:35.1587,lng:129.1604,address:'부산광역시 해운대구 우동',score:96},
+  {id:'busan-beach-gwangalli',name:'광안리해수욕장',category:'해수욕장',lat:35.1532,lng:129.1187,address:'부산광역시 수영구 광안동',score:96},
+  {id:'busan-beach-songjeong',name:'송정해수욕장',category:'해수욕장',lat:35.1787,lng:129.1997,address:'부산광역시 해운대구 송정동',score:94},
+  {id:'busan-beach-songdo',name:'송도해수욕장',category:'해수욕장',lat:35.0756,lng:129.0175,address:'부산광역시 서구 암남동',score:94},
+  {id:'busan-beach-dadaepo',name:'다대포해수욕장',category:'해수욕장',lat:35.0460,lng:128.9666,address:'부산광역시 사하구 다대동',score:94},
+  {id:'busan-beach-ilgwang',name:'일광해수욕장',category:'해수욕장',lat:35.2594,lng:129.2330,address:'부산광역시 기장군 일광읍',score:92},
+  {id:'busan-beach-imrang',name:'임랑해수욕장',category:'해수욕장',lat:35.3182,lng:129.2642,address:'부산광역시 기장군 장안읍 임랑리',score:92}
+].map(x=>({...x,facilities:{outdoor:true},liveRegion:'부산광역시',liveSource:'TRIP QUEST 부산 해수욕장 안정화 목록',aiReason:'부산 전체 해수욕장 검색 안정화'}));
+export function curatedBeachFallback(boundary){
+  return boundary?.name==='부산광역시'?BUSAN_BEACH_FALLBACK.map(x=>({...x})):[];
+}
 
 const BAD_NAME=/주차장|화장실|정류장|관리사무소|사무실|창고|입구|출구|게이트|공터|배수지/i;
 const DESTINATION_WORD=/전망대|전망|폭포|동굴|계곡|정원|수목원|생태|문화마을|벽화|광장|랜드마크|관광|해안|등대|성곽|성지|호수|공원/i;
@@ -118,7 +131,7 @@ function categoryFor(tags={},selected=[]){
     if(c==='공원'&&['park','garden'].includes(tags.leisure))return c;
     if(c==='백화점'&&tags.shop==='department_store')return c;
     if(c==='전통시장'&&tags.amenity==='marketplace')return c;
-    if(c==='해수욕장'&&tags.natural==='beach')return c;
+    if(c==='해수욕장'&&(tags.natural==='beach'||tags.leisure==='beach_resort'))return c;
     if(c==='산'&&tags.natural==='peak')return c;
     if(c==='사찰'&&tags.amenity==='place_of_worship'&&tags.religion==='buddhist')return c;
     if(c==='산책로'&&['hiking','walking'].includes(tags.route))return c;
@@ -168,7 +181,8 @@ export async function searchRegionPlaces({boundary,categories=[],facilities=[]})
     if(r.status==='fulfilled')items.push(...r.value.items);
     else failed.push({category:selected[i],error:r.reason?.message||'응답 지연'});
   }
-  const seen=new Set(),deduped=items.filter(x=>{const k=x.name+'|'+x.lat.toFixed(4)+'|'+x.lng.toFixed(4);if(seen.has(k))return false;seen.add(k);return true});
+  if(selected.includes('해수욕장'))items.push(...curatedBeachFallback(boundary));
+  const seen=new Set(),deduped=items.filter(x=>{const k=x.category==='해수욕장'?x.name:(x.name+'|'+x.lat.toFixed(4)+'|'+x.lng.toFixed(4));if(seen.has(k))return false;seen.add(k);return true});
   deduped.sort((a,b)=>(b.score||0)-(a.score||0)||a.name.localeCompare(b.name,'ko'));
   return {items:deduped.slice(0,90),source:failed.length?'여행지 선별 지도 보조 · 일부 응답 지연':'여행지 선별 지도 보조',boundary,failed};
 }

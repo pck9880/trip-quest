@@ -252,3 +252,6 @@ body[data-trip-step="2"] .step-view[data-step-view="2"]{display:block!important}
 .course-timeline{padding:16px;border:1px solid #2b3946;border-radius:18px;background:#0a1016}.course-total{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}.course-total>div{padding:12px;border:1px solid #253440;border-radius:12px;background:#0d151d}.course-total span{display:block;color:#7f8d99;font-size:10px}.course-total strong{display:block;margin-top:5px;color:#eef4f7;font-size:17px}.course-total>div:last-child strong{color:#c9ff45}
 .timeline-stops{display:grid;gap:8px;margin:0;padding:0;list-style:none}.timeline-stops li{display:flex;justify-content:space-between;gap:12px;padding:11px 12px;border-bottom:1px solid #1f2b35}.timeline-stops b{font-size:12px}.timeline-stops span{color:#8694a0;font-size:11px;text-align:right}.course-rule{margin-top:12px;color:#84919d;font-size:11px}
 @media(max-width:720px){.nearby-choice-list{grid-template-columns:1fr}.course-total{grid-template-columns:repeat(2,1fr)}.schedule-inputs{grid-template-columns:1fr}.course-builder-head{display:block}.course-builder-head>strong{display:block;margin-top:10px}}
+
+/* No-map layout */
+.result-list-only{display:block!important}.result-list-only .ranking{width:100%;max-width:none}.rank-actions{align-items:center}
