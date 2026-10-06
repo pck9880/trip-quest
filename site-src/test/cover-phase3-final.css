@@ -1,0 +1,149 @@
+/* TRIP QUEST · COVER PHASE 3 FINAL QA
+   Loaded last. Keeps the approved 941x1672 pixel cover stable across mobile viewports. */
+
+:root{
+  --tq-cover-ui-edge:16px;
+}
+
+/* Preserve crisp approved artwork and deterministic cover geometry. */
+body:not(.tq-auth-locked) .main-landing,
+.main-landing{
+  overflow:hidden!important;
+  overscroll-behavior:none;
+}
+
+.main-landing .main-landing-bg{
+  background-position:center center!important;
+  background-size:cover!important;
+  image-rendering:pixelated!important;
+}
+
+/* FX positions are written from source-image coordinates by app-chrome.js. */
+.main-landing.tq-photo-ready .tq-cover-title-fx{
+  display:block!important;
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  pointer-events:none!important;
+  overflow:hidden!important;
+  z-index:8!important;
+}
+
+.tq-cover-title-fx .tq-title-q-star,
+.tq-cover-title-fx .tq-title-i-dot,
+.tq-cover-title-fx .tq-title-glint{
+  margin:0!important;
+}
+
+.tq-cover-title-fx .tq-title-q-star{
+  width:var(--tq-title-star-size,8px)!important;
+  height:var(--tq-title-star-size,8px)!important;
+}
+
+.tq-cover-title-fx .tq-title-i-dot{
+  width:var(--tq-title-dot-size,7px)!important;
+  height:var(--tq-title-dot-size,7px)!important;
+}
+
+.tq-cover-title-fx .tq-title-glow{
+  width:var(--tq-title-glow-w,300px)!important;
+  height:var(--tq-title-glow-h,64px)!important;
+}
+
+/* Real start control remains independent from the artwork and OS home indicator. */
+body:not(.tq-auth-locked) .main-landing.tq-photo-ready .main-cover-action{
+  left:50%!important;
+  right:auto!important;
+  bottom:max(
+    calc(env(safe-area-inset-bottom,0px) + 18px),
+    18px
+  )!important;
+  width:min(
+    540px,
+    calc(
+      100% - 32px
+      - env(safe-area-inset-left,0px)
+      - env(safe-area-inset-right,0px)
+    )
+  )!important;
+  max-width:none!important;
+  transform:translateX(-50%)!important;
+  pointer-events:auto!important;
+}
+
+/* Remove the decorative mini-label that consumes space on the final cover. */
+body:not(.tq-auth-locked) .main-landing.tq-photo-ready .main-cover-action::before{
+  display:none!important;
+}
+
+/* Keep only the actual CTA visible in the approved cover flow. */
+body:not(.tq-auth-locked) .main-landing.tq-photo-ready #mainLocateBtn{
+  min-height:60px!important;
+  height:60px!important;
+  padding:0 18px!important;
+  font-size:16px!important;
+  line-height:1!important;
+}
+
+body:not(.tq-auth-locked) .main-landing.tq-photo-ready #mainManualBtn[hidden]{
+  display:none!important;
+}
+
+/* Short phones: reduce CTA footprint rather than moving artwork or enabling page scroll. */
+@media(max-height:700px){
+  body:not(.tq-auth-locked) .main-landing.tq-photo-ready .main-cover-action{
+    bottom:max(calc(env(safe-area-inset-bottom,0px) + 10px),10px)!important;
+    width:min(
+      500px,
+      calc(
+        100% - 24px
+        - env(safe-area-inset-left,0px)
+        - env(safe-area-inset-right,0px)
+      )
+    )!important;
+  }
+  body:not(.tq-auth-locked) .main-landing.tq-photo-ready #mainLocateBtn{
+    min-height:52px!important;
+    height:52px!important;
+    font-size:14px!important;
+  }
+}
+
+/* Narrow phones: keep a comfortable 44px+ touch target and edge clearance. */
+@media(max-width:390px){
+  body:not(.tq-auth-locked) .main-landing.tq-photo-ready .main-cover-action{
+    width:calc(
+      100% - 24px
+      - env(safe-area-inset-left,0px)
+      - env(safe-area-inset-right,0px)
+    )!important;
+  }
+  body:not(.tq-auth-locked) .main-landing.tq-photo-ready #mainLocateBtn{
+    min-height:56px!important;
+    height:56px!important;
+    padding:0 15px!important;
+    font-size:14px!important;
+  }
+}
+
+/* Landscape/very wide preview: prevent CTA from spanning the whole viewport. */
+@media(min-aspect-ratio:1/1){
+  body:not(.tq-auth-locked) .main-landing.tq-photo-ready .main-cover-action{
+    width:min(420px,64vw)!important;
+    bottom:max(calc(env(safe-area-inset-bottom,0px) + 10px),10px)!important;
+  }
+  body:not(.tq-auth-locked) .main-landing.tq-photo-ready #mainLocateBtn{
+    min-height:48px!important;
+    height:48px!important;
+    font-size:13px!important;
+  }
+}
+
+/* Accessibility: effects do not alter layout when animation is disabled. */
+@media(prefers-reduced-motion:reduce){
+  .main-landing .tq-cover-title-fx *{
+    animation:none!important;
+    transition:none!important;
+  }
+}
