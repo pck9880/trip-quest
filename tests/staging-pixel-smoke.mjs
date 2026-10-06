@@ -230,5 +230,3 @@ assert.ok(noScrollJs.includes("'tq:course-page'"),'course page navigation listen
 
 assert.ok(noScrollJs.includes("$$('.rank-card',host).forEach"),'result scroll runtime must iterate querySelectorAll results');
 assert.ok(noScrollJs.includes("$$('.nearby-choice-card',host).forEach"),'nearby scroll runtime must iterate querySelectorAll results');
-assert.ok(!noScrollJs.includes("$('.rank-card',host).forEach"),'querySelector forEach runtime crash regression');
-assert.ok(!noScrollJs.includes("$('.nearby-choice-card',host).forEach"),'nearby querySelector forEach runtime crash regression');
