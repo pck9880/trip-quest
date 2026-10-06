@@ -488,3 +488,8 @@
   .tq-title-i-dot{opacity:.24}
   .tq-title-glint{display:none}
 }
+
+
+.main-landing:not(.tq-photo-ready) .tq-cover-title-fx{
+  display:none!important;
+}
