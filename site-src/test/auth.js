@@ -94,7 +94,7 @@ async function startApp(user){
   if(appStarted)return;
   appStarted=true;
   await import('./app.js?v=20261006-cover1');
-  await import('./app-chrome.js?v=20261006-titlefx2');
+  await import('./app-chrome.js?v=20261006-coverfinal3');
 }
 function friendlyLoginError(err){
   const raw=String(err?.message||'').toLowerCase();
