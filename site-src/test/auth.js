@@ -1,4 +1,17 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.0/+esm';
+let createClient;
+try{
+  const mod=await Promise.race([
+    import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.0/+esm'),
+    new Promise((_,reject)=>setTimeout(()=>reject(new Error('인증 서버 연결 시간이 초과되었습니다.')),8000))
+  ]);
+  createClient=mod.createClient;
+}catch(err){
+  document.body.classList.add('tq-auth-locked');
+  const gate=document.querySelector('#authGate');if(gate)gate.hidden=false;
+  const msg=document.querySelector('#loginMessage');
+  if(msg){msg.textContent='인증 서버에 연결하지 못했습니다. 새로고침 후 다시 시도해주세요.';msg.className='tq-auth-message error'}
+  throw err;
+}
 
 const SUPABASE_URL='https://nlymabguyrnxhfrvzzwr.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_0LTrQJVEVnntfDovu2YgJw_22PfiXZu';
@@ -93,8 +106,8 @@ async function startApp(user){
   accountBar.hidden=true;
   if(appStarted)return;
   appStarted=true;
-  await import('./app.js?v=20261006-course3fix1');
-  await import('./app-chrome.js?v=20261006-course3fix1');
+  await import('./app.js?v=20261006-whitefix1');
+  await import('./app-chrome.js?v=20261006-whitefix1');
 }
 function friendlyLoginError(err){
   const raw=String(err?.message||'').toLowerCase();
