@@ -141,7 +141,7 @@ function setCoursePage(page){
 
 function observe(host,callback){
   if(!host)return;
-  new MutationObserver(()=>requestAnimationFrame(callback)).observe(host,{childList:true,subtree:true});
+  new MutationObserver(()=>requestAnimationFrame(callback)).observe(host,{childList:true,subtree:false});
 }
 
 function removeLegacyScrollCalls(){
