@@ -338,9 +338,9 @@ body:not(.tq-auth-locked) #ranking .rank-actions .btn{
 }
 
 body:not(.tq-auth-locked) #ranking .popular-badge{
-  position:static!important;
-  grid-column:2!important;
-  justify-self:start;
+  position:absolute!important;
+  top:4px!important;
+  right:96px!important;
   padding:3px 5px!important;
   font-size:7px!important;
 }
