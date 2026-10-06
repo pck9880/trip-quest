@@ -56,7 +56,7 @@
   bottom:5px;
   width:0%;
   max-width:calc(100% - 10px);
-  background:repeating-linear-gradient(90deg,#f8fbfd 0 7px,transparent 7px 12px);
+  background:repeating-linear-gradient(90deg,#c9ff45 0 7px,transparent 7px 12px);
   transition:width .16s linear;
   image-rendering:pixelated;
 }
@@ -136,4 +136,73 @@ body[data-trip-step="2"] .step-view[data-step-view="2"]{display:block!important}
   .wizard-actions .action-hint{grid-column:1/-1;grid-row:1;text-align:left;padding:0 2px}
   .wizard-actions #backBtn{grid-column:1;grid-row:2;min-width:96px}
   .wizard-actions #nextBtn{grid-column:2;grid-row:2;min-width:0;width:100%}
+}
+
+
+/* No-result range expansion */
+.range-expand-modal[hidden]{display:none!important}
+.range-expand-modal{
+  position:fixed;
+  inset:0;
+  z-index:1600;
+  display:grid;
+  place-items:center;
+  padding:20px;
+  background:rgba(3,7,10,.76);
+  -webkit-backdrop-filter:blur(12px);
+  backdrop-filter:blur(12px);
+}
+.range-expand-card{
+  width:min(420px,100%);
+  padding:22px;
+  border:1px solid #3a4855;
+  border-radius:22px;
+  background:linear-gradient(180deg,#121922,#0c1219);
+  color:#eef3f6;
+  box-shadow:0 24px 80px rgba(0,0,0,.52);
+}
+.range-expand-kicker{
+  display:block;
+  color:#c9ff45;
+  font:900 9px/1 ui-monospace,SFMono-Regular,Consolas,monospace;
+  letter-spacing:.16em;
+}
+.range-expand-card h3{
+  margin:8px 0 8px;
+  font-size:22px;
+  letter-spacing:-.035em;
+}
+.range-expand-card>p{
+  margin:0;
+  color:#929eaa;
+  font-size:12px;
+  line-height:1.6;
+}
+.range-expand-route{
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  gap:10px;
+  align-items:center;
+  margin:18px 0;
+  padding:13px 14px;
+  border:1px solid #293641;
+  border-radius:14px;
+  background:#0a1016;
+  font-size:12px;
+}
+.range-expand-route span{
+  color:#8d99a5;
+  text-align:right;
+}
+.range-expand-route b{color:#65727e}
+.range-expand-route strong{color:#c9ff45}
+.range-expand-actions{
+  display:grid;
+  grid-template-columns:1fr 1.35fr;
+  gap:9px;
+}
+.range-expand-actions .btn{min-width:0;width:100%}
+@media(max-width:520px){
+  .range-expand-modal{align-items:end;padding:12px 12px max(88px,env(safe-area-inset-bottom))}
+  .range-expand-card{border-radius:22px}
 }

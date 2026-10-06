@@ -61,6 +61,7 @@ export function createQuestSelector({state,setStep,syncCategoriesUI,syncFaciliti
   function currentBoundary(){return level3||level2||level1||null}
   function updateState(){
     state.regionBoundary=currentBoundary();
+    state.regionBoundaries=[level1,level2,level3].filter(Boolean);
     state.regionPath=[level1?.name,level2?.name,level3?.name].filter(Boolean);
     const go=$('#regionContinueBtn');if(go)go.disabled=!state.regionBoundary;
     updateSummary();
@@ -178,7 +179,7 @@ export function createQuestSelector({state,setStep,syncCategoriesUI,syncFaciliti
   function reset(){
     stopProgress();
     level1=level2=level3=null;level2Items=[];level3Items=[];
-    state.regionBoundary=null;state.regionPath=[];state.categories=[];state.facilities=[];
+    state.regionBoundary=null;state.regionBoundaries=[];state.regionPath=[];state.categories=[];state.facilities=[];
     if($('#regionLevel1'))$('#regionLevel1').value='';
     if($('#regionLevel2')){$('#regionLevel2').innerHTML='<option value="">시·군·구 전체</option>';$('#regionLevel2').disabled=true}
     if($('#regionLevel3')){$('#regionLevel3').innerHTML='<option value="">읍·면·동 전체</option>';$('#regionLevel3').disabled=true}

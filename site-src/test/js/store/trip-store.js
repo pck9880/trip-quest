@@ -6,6 +6,7 @@ const INITIAL_SECTIONS={
     targetKm:100,
     direction:'전체',
     regionBoundary:null,
+    regionBoundaries:[],
     regionPath:[],
     categories:[],
     facilities:[],
@@ -36,6 +37,7 @@ const FIELD_MAP={
   targetKm:['search','targetKm'],
   direction:['search','direction'],
   regionBoundary:['search','regionBoundary'],
+  regionBoundaries:['search','regionBoundaries'],
   regionPath:['search','regionPath'],
   categories:['search','categories'],
   facilities:['search','facilities'],
@@ -58,7 +60,7 @@ function cloneInitial(){
   return {
     navigation:{...INITIAL_SECTIONS.navigation},
     origin:{...INITIAL_SECTIONS.origin},
-    search:{...INITIAL_SECTIONS.search,regionPath:[],categories:[],facilities:[],recommendations:[]},
+    search:{...INITIAL_SECTIONS.search,regionBoundaries:[],regionPath:[],categories:[],facilities:[],recommendations:[]},
     selection:{...INITIAL_SECTIONS.selection},
     runtime:{...INITIAL_SECTIONS.runtime}
   };
@@ -100,6 +102,7 @@ export function createTripStore(seed={}){
       targetKm:INITIAL_SECTIONS.search.targetKm,
       direction:INITIAL_SECTIONS.search.direction,
       regionBoundary:null,
+      regionBoundaries:[],
       regionPath:[],
       categories:[],
       facilities:[],
