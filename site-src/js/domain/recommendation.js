@@ -13,23 +13,9 @@ export function placePopularity(p){
 }
 
 export function recommendationRegion(name=''){
-  const regions=['서울','부산','대구','인천','광주','대전','울산','세종','진주','사천','통영','거제','남해','여수','순천','광양','하동','합천','산청','함양','거창','창원','김해','경주','전주','담양','공주','보령','군산','제천','안동','포항','강릉','속초','춘천','제주','수원','양산','밀양','창녕','함안','고성','고흥','목포','임실','충주','괴산','단양','영주','문경','태안','서산','예산','평창','정선','양양','가평','포천','파주'];
+  const regions=['서울','부산','대구','인천','광주','대전','울산','진주','사천','통영','거제','남해','여수','순천','광양','하동','합천','산청','함양','거창','창원','김해','경주','전주','담양','공주','보령','군산','제천','안동','포항','강릉','속초','춘천','제주'];
   return regions.find(r=>name.startsWith(r)||name.includes(r))||name.split(/\s+/)[0]||'기타';
 }
-
-function canonicalRegion(value=''){
-  return String(value||'')
-    .replace(/특별자치시|특별시|광역시|특별자치도/g,'')
-    .replace(/[시군구]$/,'')
-    .trim();
-}
-
-function matchesRegion(place,region=''){
-  const target=canonicalRegion(region);
-  if(!target)return true;
-  return canonicalRegion(recommendationRegion(place.name))===target||String(place.name||'').includes(target);
-}
-
 export function diversifyRecommendations(items,limit=10){
   const picked=[],regions=new Map(),cats=new Map();
   for(const p of items){
@@ -43,81 +29,60 @@ export function diversifyRecommendations(items,limit=10){
   }
   return picked;
 }
-
 export function normalizedDistanceRange(body={}){
-  let min=Math.max(0,Math.min(450,Math.round(Number(body.minKm??0)/10)*10));
-  let max=Math.max(0,Math.min(450,Math.round(Number(body.targetKm??100)/10)*10));
+  let min=Math.max(0,Math.min(400,Math.round(Number(body.minKm??0)/10)*10));
+  let max=Math.max(0,Math.min(400,Math.round(Number(body.targetKm??100)/10)*10));
   if(max<min)[min,max]=[max,min];
   if(max-min<10){
-    if(max<450)max=Math.min(450,min+10);
+    if(max<400)max=Math.min(400,min+10);
     else min=Math.max(0,max-10);
   }
   return {min,max};
 }
-
-function applySemanticFilters(items,{profile,hardCats,preferredCats,dir}){
-  let arr=[...items];
-  if(dir!=='전체'&&DIR_DEG[dir]!=null)arr=arr.filter(p=>degDiff(p.bearing,DIR_DEG[dir])<=55);
-  const naturalHard=hardCats.some(c=>['바다','산','공원','캠핑'].includes(c));
-  if(profile?.flags?.trendy&&!naturalHard){
-    const urban=arr.filter(p=>URBAN_CATEGORIES.includes(p.category));
-    if(urban.length)arr=urban;
-  }else if(hardCats.length){
-    arr=arr.filter(p=>hardCats.includes(p.category));
-  }else if(profile&&preferredCats.length){
-    const preferred=arr.filter(p=>preferredCats.includes(p.category));
-    arr=preferred.length>=3?preferred:[...preferred,...arr.filter(p=>!preferredCats.includes(p.category))];
-  }
-  return arr;
-}
-
 export function localRecommend(body){
   const o=body.origin,{min:minKm,max:maxKm}=normalizedDistanceRange(body),cats=body.categories||[],dir=body.direction||'전체',
     avail=scheduleWindow(body.departure,body.returnTime),focus=(body.focusQuery||'').trim().toLowerCase(),
     profile=body.semanticProfile||null;
 
   const all=RAW_PLACES.map(p=>({...p,geoDistanceKm:geoKm(o,p),distanceKm:geoKm(o,p),bearing:geoBearing(o,p)}));
+  let arr=[...all];
+
   const hardCats=profile?.hardCategories||[];
   const preferredCats=profile?.preferredCategories||[];
-  const regionConstraint=profile?.regionConstraint||profile?.queryPlan?.regionConstraint?.name||'';
-  const exploreTarget=body.exploreTarget&&Number.isFinite(Number(body.exploreTarget.lat))&&Number.isFinite(Number(body.exploreTarget.lng))
-    ?body.exploreTarget:null;
   const band=body.distanceBand&&Number.isFinite(Number(body.distanceBand.min))&&Number.isFinite(Number(body.distanceBand.max))
-    ?{min:Math.max(0,Number(body.distanceBand.min)),max:Math.min(450,Number(body.distanceBand.max))}
+    ?{min:Math.max(0,Number(body.distanceBand.min)),max:Math.min(400,Number(body.distanceBand.max))}
     :null;
   const activeMin=band?band.min:minKm,activeMax=band?band.max:maxKm;
 
-  let arr=[];
   if(focus){
     const tokens=focus.split(/\s+/).filter(Boolean);
-    const direct=all.filter(p=>p.name.toLowerCase().includes(focus)||tokens.every(t=>p.name.toLowerCase().includes(t)));
-    if(direct.length){
-      arr=all.filter(p=>direct.includes(p)||direct.some(c=>geoKm(c,p)<=40));
-    }else{
-      arr=all.filter(p=>p.geoDistanceKm<=activeMax&&p.geoDistanceKm>=Math.max(0,activeMin*.55));
-    }
+    const direct=arr.filter(p=>tokens.some(t=>p.name.toLowerCase().includes(t)));
+    if(direct.length){const centers=direct;arr=arr.filter(p=>centers.some(c=>geoKm(c,p)<=40)||direct.includes(p))}
   }else{
-    arr=all.filter(p=>p.geoDistanceKm<=activeMax&&p.geoDistanceKm>=Math.max(0,activeMin*.55));
-  }
-
-  if(regionConstraint){
-    arr=arr.filter(p=>matchesRegion(p,regionConstraint));
-  }else if(exploreTarget){
-    const targetPool=arr.filter(p=>geoKm(exploreTarget,p)<=95);
-    if(targetPool.length>=4)arr=targetPool;
-  }
-
-  if(profile&&!focus){
-    arr=applySemanticFilters(arr,{profile,hardCats,preferredCats,dir});
-  }else if(!profile&&!focus){
+    // 실제 도로거리는 직선거리보다 길어질 수 있으므로 최소값은 여유 있게 55%부터 후보화하고,
+    // 최대값은 직선거리상 넘을 수 없는 장소만 먼저 제거한다.
+    arr=arr.filter(p=>p.geoDistanceKm<=activeMax&&p.geoDistanceKm>=Math.max(0,activeMin*.55));
     if(dir!=='전체'&&DIR_DEG[dir]!=null)arr=arr.filter(p=>degDiff(p.bearing,DIR_DEG[dir])<=55);
-    if(cats.length)arr=arr.filter(p=>cats.includes(p.category));
+
+    const naturalHard=hardCats.some(c=>['바다','산','공원','캠핑'].includes(c));
+    if(profile?.flags?.trendy&&!naturalHard){
+      const urban=arr.filter(p=>URBAN_CATEGORIES.includes(p.category));
+      if(urban.length)arr=urban;
+    }else if(hardCats.length)arr=arr.filter(p=>hardCats.includes(p.category));
+    else if(profile&&preferredCats.length){
+      const preferred=arr.filter(p=>preferredCats.includes(p.category));
+      arr=preferred.length>=3?preferred:[...preferred,...arr.filter(p=>!preferredCats.includes(p.category))];
+    }else if(!profile&&cats.length)arr=arr.filter(p=>cats.includes(p.category));
   }
 
   if(profile&&arr.length<6&&!focus){
     let fallback=all.filter(p=>p.geoDistanceKm<=activeMax&&p.geoDistanceKm>=Math.max(0,activeMin*.45));
-    if(regionConstraint)fallback=fallback.filter(p=>matchesRegion(p,regionConstraint));
-    fallback=applySemanticFilters(fallback,{profile,hardCats,preferredCats,dir});
+    if(hardCats.length)fallback=fallback.filter(p=>hardCats.includes(p.category));
+    else if(preferredCats.length)fallback=fallback.filter(p=>preferredCats.includes(p.category));
+    if(dir!=='전체'&&DIR_DEG[dir]!=null){
+      const sameDir=fallback.filter(p=>degDiff(p.bearing,DIR_DEG[dir])<=75);
+      if(sameDir.length)fallback=sameDir;
+    }
     fallback.sort((a,b)=>a.geoDistanceKm-b.geoDistanceKm);
     for(const p of fallback){
       if(!arr.some(x=>x.id===p.id))arr.push({...p,relaxed:true});
@@ -135,10 +100,6 @@ export function localRecommend(body){
     const preferredFit=preferredCats.includes(p.category)?18:0;
     const semantic=Math.min(48,semanticHits.reduce((sum,x)=>sum+(x.weight||8),0));
     const urbanBoost=profile?.flags?.trendy&&URBAN_CATEGORIES.includes(p.category)?Math.min(30,Math.round((p.urbanScore||placePopularity(p))/4)):0;
-    const oceanBoost=profile?.flags?.oceanView&&p.category==='바다'?18:0;
-    const regionBonus=regionConstraint&&matchesRegion(p,regionConstraint)?20:0;
-    const exploreKm=exploreTarget?geoKm(exploreTarget,p):null;
-    const exploreBonus=Number.isFinite(exploreKm)?Math.max(0,42-exploreKm*.48):0;
     const cat=(!cats.length||cats.includes(p.category))?8:0;
     const dist=Math.max(0,24-Math.abs(p.geoDistanceKm-center)/span*18);
     const time=avail==null?8:(round<=avail?18:Math.max(0,18-(round-avail)/15));
@@ -148,27 +109,20 @@ export function localRecommend(body){
     const relaxedPenalty=p.relaxed?-10:0;
     const feasible=avail==null?true:round<=avail;
     const why=[];
-
-    if(regionConstraint)why.push(regionConstraint+' 지역 조건');
-    if(hardFit&&semanticHits.length)why.push(semanticHits.slice(0,2).map(x=>x.reason||x.label).join(' + ')+' 우선');
-    else if(hardFit)why.push(p.category+' 목적지 유형 일치');
+    if(hardFit&&semanticHits.length)why.push(semanticHits.slice(0,2).map(x=>x.reason||x.label).join(' + ')+'을 우선 반영');
     else if(semanticHits.length)why.push(semanticHits.slice(0,2).map(x=>x.reason||x.label).join(' + ')+' 조건과 잘 맞음');
-    if(profile?.flags?.oceanView&&p.category==='바다')why.push('바다 전망 의도 반영');
-    if(profile?.flags?.quiet&&['바다','산','공원','캠핑'].includes(p.category))why.push('한적한 분위기 선호 반영');
-    if(profile?.flags?.trendy&&URBAN_CATEGORIES.includes(p.category))why.push('힙·트렌디한 상권 우선');
+    if(profile?.flags?.quiet&&['바다','산','공원','캠핑'].includes(p.category))why.push('한적한 분위기 선호를 자연형 장소에 반영');
+    if(profile?.flags?.trendy&&URBAN_CATEGORIES.includes(p.category))why.push('힙·트렌디한 젊은 상권 데이터를 우선 반영');
     if(profile?.flags?.localHidden&&['체험마을','전통시장','공원','관광지'].includes(p.category))why.push('로컬·숨은 장소 취향 반영');
-    if(profile?.flags?.wantsCafe)why.push('여행지 선택 후 CAFE 연계');
-    if(profile?.flags?.wantsFood)why.push('여행지 선택 후 FOOD 연계');
-    if(Number.isFinite(exploreKm))why.push('지도 탐색 포인트 '+Math.round(exploreKm)+'km');
-    why.push(Math.round(activeMin)+'~'+Math.round(activeMax)+'km 검색 범위');
+    if(profile?.flags?.picnic&&['공원','바다'].includes(p.category))why.push('피크닉하기 좋은 장소 유형 우선');
+    if(profile?.flags?.wantsCafe)why.push('목적지 선택 후 4km 이내 카페 검색으로 연결');
+    why.push(`${Math.round(activeMin)}~${Math.round(activeMax)}km 검색 범위 후보`);
+    if(feasible&&avail!=null)why.push('설정한 귀가시간 안에 이동 가능');
 
     return {...p,routePreview:route,roundTripDriveMin:round,availableMin:avail,feasible,
       aiReason:why.slice(0,3).join(' · '),relaxedResult:!!p.relaxed,
       semanticIntent:(profile?.keywords||[]).join(','),
-      queryRegion:regionConstraint,
-      exploreDistanceKm:Number.isFinite(exploreKm)?exploreKm:null,
-      score:Math.min(99,Math.max(1,Math.round(18+hardFit+preferredFit+semantic+urbanBoost+oceanBoost+regionBonus+exploreBonus+cat+dist+time+focusBonus+quietPenalty+genericPenalty+relaxedPenalty)))}
-  }).sort((a,b)=>b.score-a.score||a.geoDistanceKm-b.geoDistanceKm);
-
+      score:Math.min(99,Math.max(1,Math.round(18+hardFit+preferredFit+semantic+urbanBoost+cat+dist+time+focusBonus+quietPenalty+genericPenalty+relaxedPenalty)))}
+  }).sort((a,b)=>b.score-a.score);
   return diversifyRecommendations(ranked,14);
 }

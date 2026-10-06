@@ -4,10 +4,6 @@ import { focusMapPoint } from './main-map.js';
 import { drawCourseRoute } from './course-map.js';
 import { renderCourseActionButtons } from './course-actions.js';
 import { keepService, buildCourseKeep } from '../services/keep-service.js';
-import { historyService, buildTravelHistoryItem } from '../services/history-service.js';
-import { buildCourseQuest } from '../domain/course-quest.js';
-import { questSessionService } from '../services/quest-session-service.js';
-import { locationConsentService } from '../services/location-consent-service.js';
 
 export function createResultsUI(state){
   let onSelectPlace=null;
@@ -20,50 +16,6 @@ export function createResultsUI(state){
     button.setAttribute('aria-label',kept?'KEEP 해제':'KEEP에 저장');
     button.title=kept?'KEEP 해제':'KEEP에 저장';
     button.textContent=kept?'★':'☆';
-  }
-
-  function renderCourseQuest(course){
-    const panel=$('#courseDetailPanel');
-    if(!panel||!course)return;
-    let card=$('#courseQuestCard');
-    if(!card){
-      card=document.createElement('section');
-      card.id='courseQuestCard';
-      card.className='course-quest-card';
-      panel.appendChild(card);
-    }
-    const quest=buildCourseQuest(state.selected||{},course);
-    if(!quest){
-      card.hidden=false;
-      card.innerHTML='<div><small>QUEST</small><strong>코스 QUEST를 만들 수 없습니다.</strong><p>최종 목적지 좌표 정보가 부족합니다.</p></div>';
-      return;
-    }
-    const target=quest.checkpoints[0];
-    const gpsOn=locationConsentService.isEnabled();
-    card.hidden=false;
-    card.innerHTML=`<div><small>COURSE QUEST</small><strong>${esc(course.id||'')}코스 QUEST 설정 완료</strong><p>최종 목적지 <b>${esc(target.name)}</b> 도착 후 QUEST에서 보상받기를 누르면 GPS 위치를 확인합니다.</p><span>${gpsOn?'GPS ON · 보상받기에서 위치 확인':'GPS OFF · MY > 위치 및 GPS에서 켜기'}</span></div><button type="button" data-open-course-quest>QUEST 보기 →</button>`;
-    card.querySelector('[data-open-course-quest]')?.addEventListener('click',()=>window.dispatchEvent(new CustomEvent('tripquest:open-quest')));
-  }
-
-  function renderTripCompletion(course){
-    const panel=$('#courseDetailPanel');
-    if(!panel||!course)return;
-    let card=$('#tripCompletionCard');
-    if(!card){
-      card=document.createElement('section');
-      card.id='tripCompletionCard';
-      card.className='trip-completion-card';
-      panel.appendChild(card);
-    }
-    const item=buildTravelHistoryItem(state.selected||{},course);
-    const completed=historyService.has(item.id);
-    card.innerHTML=`<div><small>TRIP LOG</small><strong>${completed?'오늘의 여행을 기록했어요.':'이 코스를 다녀왔나요?'}</strong><p>${completed?'MY PAGE > 내가 다녀온 곳에서 다시 확인할 수 있습니다.':'여행 완료를 누르면 MY PAGE의 다녀온 곳에 저장됩니다.'}</p></div><button id="tripCompleteBtn" type="button" ${completed?'disabled':''}>${completed?'여행 완료 ✓':'✓ 여행 완료'}</button>`;
-    const button=$('#tripCompleteBtn');
-    if(button&&!completed)button.onclick=()=>{
-      const result=historyService.complete(state.selected||{},course);
-      toast(result.created?'여행 완료 · MY PAGE에 기록했습니다.':'오늘 이미 완료한 코스입니다.');
-      renderTripCompletion(course);
-    };
   }
 
   if(typeof window!=='undefined'){
@@ -94,17 +46,14 @@ export function createResultsUI(state){
   function renderCourses(j){
     const w=j.weather;
     const courses=Array.isArray(j.courses)?j.courses:[];
-    if(w.source==='history')setText('#courseWeather','완료한 여행 기록에서 불러온 코스입니다. 현재 조건은 새 검색 시 다시 계산됩니다.');
-    else if(w.source==='keep')setText('#courseWeather','KEEP에 저장된 코스입니다. 현재 날씨와 이동 조건은 새 검색 시 다시 계산됩니다.');
+    if(w.source==='keep')setText('#courseWeather','KEEP에 저장된 코스입니다. 현재 날씨와 이동 조건은 새 검색 시 다시 계산됩니다.');
     else if(w.source==='fallback')setText('#courseWeather','날씨 API 연결이 되면 방문 예정시간 기준으로 코스를 다시 판단합니다.');
     else setText('#courseWeather',`예상 ${w.condition} · ${Math.round(w.temperature_2m)}°C · 강수 ${w.precipitation_probability||0}% · 바람 ${Math.round(w.wind_speed_10m)}km/h · Open-Meteo`);
     $('#courseDetailPanel').hidden=true;
-    const completion=$('#tripCompletionCard');if(completion)completion.hidden=true;
-    const questCard=$('#courseQuestCard');if(questCard)questCard.hidden=true;
     $('#courseList').className='course-list';
     $('#courseList').innerHTML=courses.map(c=>{const keep=buildCourseKeep(state.selected,c);const kept=keepService.has(keep.id);return `<article class="course-card" data-course="${c.id}"><div class="course-top"><span class="course-id">${c.id}</span><span class="badge">날씨 적합 ${esc(c.weatherFit)}</span></div><h4>${esc(c.title)}</h4><p>${esc(c.reason)}</p><ol class="stops">${c.stops.map((s,i)=>`<li>${i+1}. ${esc(s.name)}</li>`).join('')}</ol><div class="course-rule">${esc(c.localRule||"근거리 코스")}${c.maxLocalLegKm?` · 최대 구간 ${c.maxLocalLegKm.toFixed(1)}km`:""}</div><div class="course-stats"><span>${fmtKm(c.route.distanceKm)}</span><span>${fmtMin(c.route.timeMin)}</span><span>약 ${fmtWon(c.estimatedCost.total)}</span></div><div class="course-choice-row"><button class="btn secondary choose-course" type="button">${c.id}코스 선택</button><button class="course-keep-toggle${kept?' is-kept':''}" type="button" data-keep-id="${esc(keep.id)}" aria-pressed="${kept}" aria-label="${kept?'KEEP 해제':'KEEP에 저장'}" title="${kept?'KEEP 해제':'KEEP에 저장'}">${kept?'★':'☆'}</button></div></article>`}).join('');
   
-    $('#courseList').onclick=async e=>{
+    $('#courseList').onclick=e=>{
       const card=e.target.closest('.course-card');
       if(!card)return;
 
@@ -128,20 +77,7 @@ export function createResultsUI(state){
   
       all('.course-card').forEach(x=>x.classList.toggle('selected',x===card));
       all('.choose-course').forEach(x=>x.textContent=`${x.closest('.course-card').dataset.course}코스 선택`);
-      button.disabled=true;
-      button.textContent='코스 설정중…';
-      await new Promise(resolve=>setTimeout(resolve,420));
-
-      try{
-        const courseQuest=buildCourseQuest(state.selected||{},course);
-        if(courseQuest)questSessionService.armCourseQuest(courseQuest);
-      }catch(error){
-        console.error('course quest setup error',error);
-        toast('코스는 선택했지만 QUEST 설정을 완료하지 못했습니다.');
-      }
-      renderCourseQuest(course);
       button.textContent='선택 완료 ✓';
-      button.disabled=false;
   
       const panel=$('#courseDetailPanel');
       if(panel)panel.hidden=false;
@@ -155,9 +91,7 @@ export function createResultsUI(state){
       }
   
       setText('#actionHint',`${id}코스를 선택했습니다. 아래에서 주변 카페·음식점을 확인할 수 있습니다.`);
-      renderTripCompletion(course);
-      const completion=$('#tripCompletionCard');if(completion)completion.hidden=false;
-      toast(`${id}코스 설정 완료 · QUEST가 준비됐습니다.`);
+      toast(`${id}코스를 선택했습니다.`);
       setTimeout(()=>document.querySelector('#courseDetailPanel')?.scrollIntoView({behavior:'smooth',block:'start'}),80);
     };
   }
@@ -177,10 +111,9 @@ export function createResultsUI(state){
     const destinationDistance=Number(destination.distanceKm)||Number(destination.routePreview?.distanceKm)||0;
     const destinationTime=Number(destination.routePreview?.timeMin)||0;
     $('#tripSummary').className='summary-box';
-    const savedSource=item.type==='completed-trip'?'TRIP LOG':'KEEP';
-    $('#tripSummary').innerHTML=`<div class="metric-grid"><div class="metric"><span>${savedSource} 코스</span><strong>${esc(course.id||'KEEP')}코스</strong></div><div class="metric"><span>코스 거리</span><strong>${Number(route.distanceKm)>0.05?fmtKm(route.distanceKm):'단일 장소'}</strong></div><div class="metric"><span>코스 소요</span><strong>${Number(route.timeMin)>0.5?fmtMin(route.timeMin):'체류형'}</strong></div><div class="metric"><span>코스 예상 비용</span><strong>${fmtWon(cost.total||0)}</strong></div>${destinationDistance?`<div class="metric"><span>저장 당시 목적지 거리</span><strong>${fmtKm(destinationDistance)}</strong></div>`:''}${destinationTime?`<div class="metric"><span>저장 당시 편도</span><strong>${fmtMin(destinationTime)}</strong></div>`:''}</div><div class="source-note">${savedSource}에서 불러온 코스 · 출발지·시간·차량 조건이 달라졌다면 새 검색으로 다시 계산하세요.</div>`;
+    $('#tripSummary').innerHTML=`<div class="metric-grid"><div class="metric"><span>저장 코스</span><strong>${esc(course.id||'KEEP')}코스</strong></div><div class="metric"><span>코스 거리</span><strong>${Number(route.distanceKm)>0.05?fmtKm(route.distanceKm):'단일 장소'}</strong></div><div class="metric"><span>코스 소요</span><strong>${Number(route.timeMin)>0.5?fmtMin(route.timeMin):'체류형'}</strong></div><div class="metric"><span>코스 예상 비용</span><strong>${fmtWon(cost.total||0)}</strong></div>${destinationDistance?`<div class="metric"><span>저장 당시 목적지 거리</span><strong>${fmtKm(destinationDistance)}</strong></div>`:''}${destinationTime?`<div class="metric"><span>저장 당시 편도</span><strong>${fmtMin(destinationTime)}</strong></div>`:''}</div><div class="source-note">KEEP에서 불러온 저장 코스 · 출발지·시간·차량 조건이 달라졌다면 새 검색으로 다시 계산하세요.</div>`;
 
-    renderCourses({weather:{source:item.type==='completed-trip'?'history':'keep'},courses:[course]});
+    renderCourses({weather:{source:'keep'},courses:[course]});
     const choose=$('#courseList .choose-course');
     if(choose)choose.click();
     return true;

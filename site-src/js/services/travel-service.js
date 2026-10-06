@@ -2,19 +2,16 @@ import { activeVehicleProfile } from './vehicle-settings.js';
 import { estimateRoundTripToll } from '../domain/trip-cost.js';
 import { roadRoute } from './routing.js';
 import { clientWeather, selectWeatherAt } from './weather.js';
-import { localGeocode, reverseGeocode as reverseLookup } from './geocoding.js';
+import { localGeocode } from './geocoding.js';
 import { localRecommend } from '../domain/recommendation.js';
 import { refineRoadDistanceResults } from '../usecases/search-destinations.js';
 import { localAI } from '../domain/intent-parser.js';
 import { coursePack } from '../domain/course-planner.js';
-import { createPlaceSearchService } from './place-search-service.js';
 
 export function createTravelService(){
-  const placeSearchService=createPlaceSearchService();
-
   async function getConfig(){
     return {
-      providers:{kakao:false,tmap:false,openai:false,weather:true,placeSearch:'osm-fallback',secureProxy:false},
+      providers:{kakao:false,tmap:false,openai:false,weather:true},
       defaultGasPrice:1858,
       fuelEconomyKmL:11,
       publicBaseUrl:''
@@ -23,22 +20,6 @@ export function createTravelService(){
 
   async function geocode(query){
     return {items:await localGeocode(query||'')};
-  }
-
-  async function resolvePlace(query){
-    return {items:await localGeocode(query||''),source:'OpenStreetMap / Nominatim + TRIP QUEST aliases'};
-  }
-
-  async function searchRegion(query){
-    return resolvePlace(query);
-  }
-
-  async function reverseGeocode(lat,lng){
-    return reverseLookup(lat,lng);
-  }
-
-  async function searchPlaces(body={}){
-    return placeSearchService.searchPlaces(body);
   }
 
   async function bootstrap(origin){
@@ -120,5 +101,5 @@ export function createTravelService(){
     return result;
   }
 
-  return {getConfig,geocode,resolvePlace,searchRegion,reverseGeocode,searchPlaces,bootstrap,recommend,tripSummary,courses,aiSearch};
+  return {getConfig,geocode,bootstrap,recommend,tripSummary,courses,aiSearch};
 }

@@ -7,7 +7,7 @@ export async function refineRoadDistanceResults(items,body){
   if(!Array.isArray(items)||!items.length||!body?.origin)return [];
   const {min:minKm,max:maxKm}=normalizedDistanceRange(body);
   const band=body.distanceBand&&Number.isFinite(Number(body.distanceBand.min))&&Number.isFinite(Number(body.distanceBand.max))
-    ?{min:Math.max(0,Number(body.distanceBand.min)),max:Math.min(450,Number(body.distanceBand.max))}
+    ?{min:Math.max(0,Number(body.distanceBand.min)),max:Math.min(400,Number(body.distanceBand.max))}
     :null;
   const min=band?band.min:minKm,max=band?band.max:maxKm;
   const checked=await Promise.all(items.slice(0,12).map(async p=>{

@@ -1,33 +1,342 @@
-/* TRIP QUEST v1.16 — board screen 01 */
-.main-landing{position:fixed;z-index:2000;inset:0;min-height:100dvh;overflow:hidden;background:#07111f;color:#f5f7f2}
-.main-landing[hidden]{display:none}
-.main-landing-bg{position:absolute;inset:0;background:#07111f url("../assets/tq-board-cover-v116.svg") center/cover no-repeat;image-rendering:pixelated;pointer-events:none}
-.main-landing-bg:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,17,31,.02) 0%,rgba(7,17,31,0) 68%,rgba(7,17,31,.22) 100%);pointer-events:none}
-.main-landing-inner{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;z-index:2;pointer-events:none}
-.main-cover-brand,.tq-cover-points,.tq-cover-trust,#mainLocationStatus{display:none}
-.main-cover-copy{position:absolute;z-index:3;top:max(88px,12dvh);left:50%;transform:translateX(-50%);width:90%;margin:0;text-align:center;display:block;pointer-events:none}
-.main-cover-copy h1{position:relative;margin:0;color:#f5f7f2;font:950 clamp(46px,13.2vw,58px)/.78 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:-.09em;text-shadow:3px 3px 0 #07111f}
-.main-cover-copy h1:after{content:"";position:absolute;width:22px;height:22px;left:50%;top:37px;transform:translateX(-1px);border:5px solid #c9ff45;border-radius:50%;box-shadow:0 0 0 3px #07111f}
-.main-cover-eyebrow{display:block;position:absolute;top:112px;left:0;right:0;margin:0;padding:0;border:0;background:none;color:#c6d0d8;font:700 8px/1 ui-monospace,SFMono-Regular,monospace;letter-spacing:.36em;white-space:nowrap}
-.main-cover-copy>p:last-child{display:block;margin:72px 0 0;color:#f5f7f2;font-size:14px;font-weight:750;line-height:1.3;text-shadow:0 2px 8px #07111f}
-.main-cover-action{position:absolute;z-index:4;left:50%;right:auto;bottom:max(22px,calc(18px + env(safe-area-inset-bottom,0px)));transform:translateX(-50%);width:min(350px,calc(100% - 40px));margin:0;padding:0;display:grid;gap:10px;pointer-events:auto;background:none;border:0;box-shadow:none}
-.main-cover-action #mainLocateBtn,.main-cover-action #mainManualBtn{position:relative;width:100%;min-height:56px;height:56px;margin:0;padding:0 18px;border-radius:5px;display:flex;align-items:center;justify-content:flex-start;gap:12px;font-size:15px;font-weight:900;letter-spacing:-.025em;line-height:1;box-shadow:none;transform:none;opacity:1;cursor:pointer;touch-action:manipulation}
-.main-cover-action #mainLocateBtn{border:1px solid #dfff75;background:#c9ff45;color:#07111f}
-.main-cover-action #mainManualBtn{border:2px solid #dce6ed;background:rgba(7,17,31,.9);color:#f5f7f2}
-.main-cover-action #mainLocateBtn:before,.main-cover-action #mainManualBtn:before{display:none;content:none}
-.main-cover-action #mainLocateBtn:after,.main-cover-action #mainManualBtn:after{content:"→";display:block;margin-left:auto;font-size:22px;font-weight:600;line-height:1}
-.main-cover-action .tq-button-icon{display:block;width:24px;height:24px;flex:0 0 24px;stroke-width:2.2}
-.main-cover-action #mainLocateBtn .tq-button-icon{color:#07111f}.main-cover-action #mainManualBtn .tq-button-icon{color:#f5f7f2}
-.main-cover-action #mainLocateBtn:active,.main-cover-action #mainManualBtn:active,.main-cover-action #mainLocateBtn.is-pressed,.main-cover-action #mainManualBtn.is-pressed,.main-cover-action #mainLocateBtn.is-held,.main-cover-action #mainManualBtn.is-held{transform:translateY(1px);box-shadow:none;filter:none}
-.main-cover-action #mainLocateBtn.is-releasing,.main-cover-action #mainManualBtn.is-releasing{animation:none}
-@media(max-height:760px){
- .main-cover-copy{top:max(54px,8dvh)}
- .main-cover-copy h1{font-size:42px}
- .main-cover-copy h1:after{top:32px;width:18px;height:18px;border-width:4px}
- .main-cover-eyebrow{top:91px}
- .main-cover-copy>p:last-child{margin-top:58px;font-size:12px}
- .main-cover-action{bottom:max(12px,env(safe-area-inset-bottom,0px));gap:8px}
- .main-cover-action #mainLocateBtn,.main-cover-action #mainManualBtn{height:50px;min-height:50px;font-size:14px}
+/* Landing press lifecycle */
+.main-landing{
+  background:#06101b;
+  overflow:hidden;
+  pointer-events:auto;
 }
-@media(min-width:700px){.main-landing-inner,.main-landing-bg{left:50%;right:auto;width:390px;transform:translateX(-50%)}}
-@media(prefers-reduced-motion:reduce){.main-cover-action button{transition:none;animation:none}}
+.main-landing-bg{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  transform:none;
+  background-color:#06101b;
+  background-image:url("../assets/tq-cover-main-v044.webp");
+  background-repeat:no-repeat;
+  background-position:center center;
+  background-size:cover;
+  z-index:0;
+  overflow:hidden;
+  pointer-events:none;
+}
+.main-landing-bg:after{display:none}
+
+/* Fallback HTML remains usable if the artwork cannot load. */
+.main-landing-inner{
+  position:relative;
+  width:min(560px,calc(100% - 40px));
+  min-height:min(780px,calc(100dvh - 28px));
+  height:auto;
+  margin:0 auto;
+  padding:30px 2px calc(20px + env(safe-area-inset-bottom,0px));
+  display:flex;
+  flex-direction:column;
+  z-index:20;
+  pointer-events:auto;
+}
+.main-cover-brand{display:flex}
+.main-cover-copy{display:block}
+.tq-cover-points{display:flex}
+.tq-cover-trust{display:flex}
+#mainLocationStatus{display:block}
+.main-cover-action{
+  position:relative;
+  inset:auto;
+  display:grid;
+  gap:10px;
+  pointer-events:auto;
+  margin:0;
+}
+#mainLocateBtn,#mainManualBtn{
+  position:relative;
+  left:auto;
+  top:auto;
+  transform:none;
+  width:100%;
+  height:auto;
+  min-height:56px;
+  opacity:1;
+  pointer-events:auto;
+}
+
+/* Loaded artwork already contains the logo/scenery. Buttons are real UI, not image hit areas. */
+.main-landing.tq-photo-ready .main-landing-inner{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  min-height:0;
+  margin:0;
+  padding:0;
+  display:block;
+  pointer-events:none;
+}
+.main-landing.tq-photo-ready .main-cover-brand,
+.main-landing.tq-photo-ready .main-cover-copy,
+.main-landing.tq-photo-ready .tq-cover-points,
+.main-landing.tq-photo-ready .tq-cover-trust{
+  display:none;
+}
+.main-landing.tq-photo-ready .main-cover-action{
+  position:absolute;
+  left:50%;
+  right:auto;
+  top:auto;
+  bottom:max(7.2dvh,calc(22px + env(safe-area-inset-bottom,0px)));
+  transform:translateX(-50%);
+  width:min(580px,calc(100% - 48px));
+  margin:0;
+  padding:0;
+  display:grid;
+  gap:14px;
+  pointer-events:auto;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+  box-shadow:none;
+}
+.main-landing.tq-photo-ready .tq-cover-action-head{display:none}
+.main-landing.tq-photo-ready #mainLocationStatus{display:none}
+
+.main-landing.tq-photo-ready #mainLocateBtn,
+.main-landing.tq-photo-ready #mainManualBtn{
+  position:relative;
+  left:auto;
+  top:auto;
+  transform:translateY(0) scale(1);
+  width:100%;
+  max-width:none;
+  min-height:72px;
+  height:auto;
+  margin:0;
+  padding:0 24px;
+  opacity:1;
+  pointer-events:auto;
+  cursor:pointer;
+  touch-action:manipulation;
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  text-shadow:none;
+  font-size:21px;
+  font-weight:900;
+  letter-spacing:-.035em;
+  text-decoration:none;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:15px;
+  border-radius:999px;
+  transition:
+    transform .07s cubic-bezier(.2,.72,.25,1),
+    box-shadow .08s cubic-bezier(.2,.72,.25,1),
+    filter .08s ease,
+    background .14s ease,
+    border-color .14s ease;
+  will-change:transform,box-shadow;
+}
+.main-landing.tq-photo-ready #mainLocateBtn{
+  border:2px solid #d6ff38;
+  background:linear-gradient(180deg,#dcff49 0%,#cbff24 100%);
+  color:#071006;
+  box-shadow:
+    0 9px 0 rgba(83,112,5,.52),
+    0 18px 34px rgba(0,0,0,.28),
+    0 0 28px rgba(201,255,69,.13);
+}
+.main-landing.tq-photo-ready #mainManualBtn{
+  border:2px solid rgba(244,248,252,.78);
+  background:linear-gradient(180deg,rgba(22,35,49,.72),rgba(8,17,27,.7));
+  color:#f6f8fa;
+  box-shadow:
+    0 7px 0 rgba(0,0,0,.44),
+    0 15px 30px rgba(0,0,0,.27),
+    inset 0 1px 0 rgba(255,255,255,.08);
+  -webkit-backdrop-filter:blur(11px) saturate(125%);
+  backdrop-filter:blur(11px) saturate(125%);
+}
+.main-landing.tq-photo-ready #mainLocateBtn:hover{
+  filter:brightness(1.035);
+}
+.main-landing.tq-photo-ready #mainManualBtn:hover{
+  border-color:#fff;
+  background:linear-gradient(180deg,rgba(27,42,58,.78),rgba(11,22,34,.78));
+}
+/* Touch start: quick compression, without the heavy "jump" of v0.44. */
+.main-landing.tq-photo-ready #mainLocateBtn:active,
+.main-landing.tq-photo-ready #mainLocateBtn.is-pressed{
+  transform:translateY(4px) scale(.991);
+  box-shadow:
+    0 5px 0 rgba(83,112,5,.5),
+    0 11px 22px rgba(0,0,0,.25),
+    0 0 20px rgba(201,255,69,.1);
+  filter:brightness(.985) saturate(.99);
+}
+.main-landing.tq-photo-ready #mainManualBtn:active,
+.main-landing.tq-photo-ready #mainManualBtn.is-pressed{
+  transform:translateY(4px) scale(.991);
+  box-shadow:
+    0 3px 0 rgba(0,0,0,.42),
+    0 10px 20px rgba(0,0,0,.24),
+    inset 0 1px 0 rgba(255,255,255,.055);
+  filter:brightness(.965);
+}
+
+/* Touch hold: settle a fraction deeper after the initial press. */
+.main-landing.tq-photo-ready #mainLocateBtn.is-held{
+  transform:translateY(5px) scale(.989);
+  box-shadow:
+    0 4px 0 rgba(83,112,5,.5),
+    0 9px 18px rgba(0,0,0,.24),
+    0 0 16px rgba(201,255,69,.08);
+}
+.main-landing.tq-photo-ready #mainManualBtn.is-held{
+  transform:translateY(5px) scale(.989);
+  box-shadow:
+    0 2px 0 rgba(0,0,0,.42),
+    0 8px 16px rgba(0,0,0,.24),
+    inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+/* Touch release: short, damped rebound back to rest. */
+.main-landing.tq-photo-ready #mainLocateBtn.is-releasing,
+.main-landing.tq-photo-ready #mainManualBtn.is-releasing{
+  animation:tqLandingButtonRelease .22s cubic-bezier(.2,.82,.28,1.08);
+}
+@keyframes tqLandingButtonRelease{
+  0%{transform:translateY(4px) scale(.991)}
+  58%{transform:translateY(-1px) scale(1.002)}
+  100%{transform:translateY(0) scale(1)}
+}
+.main-landing.tq-photo-ready #mainLocateBtn .tq-button-icon,
+.main-landing.tq-photo-ready #mainManualBtn .tq-button-icon{
+  display:block;
+  width:27px;
+  height:27px;
+  flex:0 0 27px;
+  stroke-width:2;
+}
+.main-landing.tq-photo-ready #mainLocateBtn .tq-button-icon,
+.main-landing.tq-photo-ready #mainManualBtn .tq-button-icon,
+.main-landing.tq-photo-ready #mainLocateBtn:after,
+.main-landing.tq-photo-ready #mainManualBtn:after{
+  transition:transform .08s cubic-bezier(.2,.72,.25,1);
+}
+.main-landing.tq-photo-ready #mainLocateBtn.is-pressed .tq-button-icon,
+.main-landing.tq-photo-ready #mainManualBtn.is-pressed .tq-button-icon,
+.main-landing.tq-photo-ready #mainLocateBtn.is-held .tq-button-icon,
+.main-landing.tq-photo-ready #mainManualBtn.is-held .tq-button-icon{
+  transform:translateY(1px);
+}
+.main-landing.tq-photo-ready #mainLocateBtn.is-pressed:after,
+.main-landing.tq-photo-ready #mainManualBtn.is-pressed:after,
+.main-landing.tq-photo-ready #mainLocateBtn.is-held:after,
+.main-landing.tq-photo-ready #mainManualBtn.is-held:after{
+  transform:translate(1px,1px);
+}
+.main-landing.tq-photo-ready #mainLocateBtn:after,
+.main-landing.tq-photo-ready #mainManualBtn:after{
+  content:"→";
+  display:block;
+  margin-left:auto;
+  font-size:29px;
+  line-height:1;
+  font-weight:500;
+}
+.main-landing.tq-photo-ready #mainLocateBtn:after{color:#071006}
+.main-landing.tq-photo-ready #mainManualBtn:after{color:#f6f8fa}
+.main-landing.tq-photo-ready #mainLocateBtn:focus-visible,
+.main-landing.tq-photo-ready #mainManualBtn:focus-visible{
+  outline:3px solid rgba(201,255,69,.96);
+  outline-offset:4px;
+}
+.main-landing.tq-photo-ready #mainLocateBtn:disabled{
+  cursor:wait;
+  opacity:.88;
+  box-shadow:
+    0 5px 0 rgba(83,112,5,.42),
+    0 12px 25px rgba(0,0,0,.24);
+}
+.main-landing.tq-photo-ready #mainLocateBtn.done{
+  background:linear-gradient(180deg,#e5ff75,#d3ff3a);
+  border-color:#e5ff75;
+  color:#071006;
+}
+.main-landing.tq-photo-ready #mainLocateBtn.error{
+  background:linear-gradient(180deg,rgba(74,34,29,.96),rgba(46,22,20,.96));
+  border-color:rgba(255,145,126,.72);
+  color:#ffd0c8;
+  box-shadow:
+    0 6px 0 rgba(73,25,22,.58),
+    0 13px 24px rgba(0,0,0,.28);
+}
+
+@media(max-width:680px){
+  .main-landing-inner{
+    width:100%;
+    min-height:100dvh;
+    padding:calc(20px + env(safe-area-inset-top,0px)) 18px calc(16px + env(safe-area-inset-bottom,0px));
+  }
+  .main-landing.tq-photo-ready .main-landing-inner{padding:0}
+  .main-landing.tq-photo-ready .main-cover-action{
+    bottom:max(6.8dvh,calc(16px + env(safe-area-inset-bottom,0px)));
+    width:calc(100% - 34px);
+    gap:12px;
+  }
+  .main-landing.tq-photo-ready #mainLocateBtn,
+  .main-landing.tq-photo-ready #mainManualBtn{
+    min-height:64px;
+    padding:0 20px;
+    font-size:18px;
+    gap:13px;
+  }
+  .main-landing.tq-photo-ready #mainLocateBtn .tq-button-icon,
+  .main-landing.tq-photo-ready #mainManualBtn .tq-button-icon{
+    width:24px;
+    height:24px;
+    flex-basis:24px;
+  }
+  .main-landing.tq-photo-ready #mainLocateBtn:after,
+  .main-landing.tq-photo-ready #mainManualBtn:after{
+    font-size:25px;
+  }
+}
+@media(max-width:390px){
+  .main-landing.tq-photo-ready .main-cover-action{
+    width:calc(100% - 26px);
+  }
+  .main-landing.tq-photo-ready #mainLocateBtn,
+  .main-landing.tq-photo-ready #mainManualBtn{
+    min-height:60px;
+    padding:0 17px;
+    font-size:16px;
+  }
+}
+@media(max-height:720px){
+  .main-landing.tq-photo-ready .main-cover-action{
+    bottom:max(14px,env(safe-area-inset-bottom,0px));
+    gap:9px;
+  }
+  .main-landing.tq-photo-ready #mainLocateBtn,
+  .main-landing.tq-photo-ready #mainManualBtn{
+    min-height:54px;
+    font-size:15px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .main-landing.tq-photo-ready #mainLocateBtn,
+  .main-landing.tq-photo-ready #mainManualBtn,
+  .main-landing.tq-photo-ready #mainLocateBtn .tq-button-icon,
+  .main-landing.tq-photo-ready #mainManualBtn .tq-button-icon{
+    transition:none;
+    animation:none;
+  }
+  .main-landing.tq-photo-ready #mainLocateBtn.is-releasing,
+  .main-landing.tq-photo-ready #mainManualBtn.is-releasing{
+    animation:none;
+  }
+}
+
+

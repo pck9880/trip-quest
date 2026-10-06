@@ -10,14 +10,7 @@ const INITIAL_SECTIONS={
     resultSort:'recommend',
     lastSearchMode:'ai',
     lastAIMessage:'',
-    activeDistanceBand:null,
-    searchMode:'travel',
-    searchRegion:null,
-    localMinRadiusKm:0,
-    localRadiusKm:2,
-    moodKeywords:[],
-    placeResults:[],
-    exploreTarget:null
+    activeDistanceBand:null
   },
   selection:{
     selected:null,
@@ -45,13 +38,6 @@ const FIELD_MAP={
   lastSearchMode:['search','lastSearchMode'],
   lastAIMessage:['search','lastAIMessage'],
   activeDistanceBand:['search','activeDistanceBand'],
-  searchMode:['search','searchMode'],
-  searchRegion:['search','searchRegion'],
-  localMinRadiusKm:['search','localMinRadiusKm'],
-  localRadiusKm:['search','localRadiusKm'],
-  moodKeywords:['search','moodKeywords'],
-  placeResults:['search','placeResults'],
-  exploreTarget:['search','exploreTarget'],
   selected:['selection','selected'],
   selectedCourse:['selection','selectedCourse'],
   selectedCourseData:['selection','selectedCourseData'],
@@ -66,7 +52,7 @@ function cloneInitial(){
   return {
     navigation:{...INITIAL_SECTIONS.navigation},
     origin:{...INITIAL_SECTIONS.origin},
-    search:{...INITIAL_SECTIONS.search,categories:[...INITIAL_SECTIONS.search.categories],recommendations:[],moodKeywords:[],placeResults:[]},
+    search:{...INITIAL_SECTIONS.search,categories:[...INITIAL_SECTIONS.search.categories],recommendations:[]},
     selection:{...INITIAL_SECTIONS.selection},
     runtime:{...INITIAL_SECTIONS.runtime}
   };
@@ -113,13 +99,6 @@ export function createTripStore(seed={}){
       lastSearchMode:INITIAL_SECTIONS.search.lastSearchMode,
       lastAIMessage:INITIAL_SECTIONS.search.lastAIMessage,
       activeDistanceBand:null,
-      searchMode:INITIAL_SECTIONS.search.searchMode,
-      searchRegion:null,
-      localMinRadiusKm:INITIAL_SECTIONS.search.localMinRadiusKm,
-      localRadiusKm:INITIAL_SECTIONS.search.localRadiusKm,
-      moodKeywords:[],
-      placeResults:[],
-      exploreTarget:null,
       selected:null,
       selectedCourse:null,
       selectedCourseData:null,

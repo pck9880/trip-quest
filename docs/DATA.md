@@ -62,11 +62,3 @@ When adding destinations:
 4. add hotspot metadata only when justified
 5. connect course stops intentionally
 6. run `npm test`
-
-## GPS QUEST data
-
-The active QUEST is generated from the user's selected A/B course by `site-src/js/domain/course-quest.js`. The route stops are shown as QUEST context, while the final course stop is the GPS completion point.
-
-Public course/checkpoint coordinates may be persisted so an armed QUEST can survive a page reload. Live user latitude/longitude values are processed only in memory and are not written to the session. Successful verification stores the checkpoint ID, verification time, and reported GPS accuracy.
-
-QUEST completion history remains in `tq_quest_progress_v1`. Rewards are currently pending: course-linked completions award 0 XP and do not unlock titles. Location/GPS enablement is device-specific and is not transferred by backup/restore.
