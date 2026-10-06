@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="./css/product.css?v=112" />
   <link rel="stylesheet" href="./css/landing.css?v=101" />
   <link rel="stylesheet" href="./css/search.css?v=100" />
-  <link rel="stylesheet" href="./selector.css?v=20261006-select1" />
+  <link rel="stylesheet" href="./selector.css?v=20261006-select2" />
   <link rel="stylesheet" href="./auth.css?v=20261006-auth2" />
   <link rel="preload" as="image" href="./assets/tq-cover-main-v044.webp" fetchpriority="high" />
 </head>
@@ -126,7 +126,18 @@
             <label><span>시 · 군 · 구</span><select id="regionLevel2" disabled><option value="">시·군·구 전체</option></select></label>
             <label><span>읍 · 면 · 동</span><select id="regionLevel3" disabled><option value="">읍·면·동 전체</option></select></label>
           </div>
-          <div id="regionLoadStatus" class="selector-status">먼저 시·도를 선택하세요.</div>
+          <div id="regionLoadStatus" class="selector-status pixel-region-loader" data-state="idle" aria-live="polite">
+            <div class="pixel-loader-head">
+              <span id="regionLoadTitle">REGION READY</span>
+              <b id="regionLoadPercent">0%</b>
+            </div>
+            <div class="pixel-loader-frame" aria-hidden="true">
+              <div id="regionLoadBar" class="pixel-loader-fill"></div>
+              <div class="pixel-loader-scan"></div>
+            </div>
+            <p id="regionLoadText">먼저 시·도를 선택하세요.</p>
+          </div>
+          <button id="regionContinueBtn" class="selector-continue" type="button" disabled>플레이스 선택으로 →</button>
         </div>
         <div class="step-view" data-step-view="2">
           <div class="selector-section-head"><span>PLACE</span><strong>플레이스 선택</strong><p>찾고 싶은 장소 종류를 한 개 이상 선택하세요. 복수 선택할 수 있습니다.</p></div>
