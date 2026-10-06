@@ -123,8 +123,17 @@ function buildCoursePages(){
   step?.insertBefore(controls,panel);
   controls.addEventListener('click',e=>{
     const b=e.target.closest('button[data-course-dir]');if(!b)return;
-    setCoursePage(Number(b.dataset.courseDir)>0?1:0);
+    const target=Number(b.dataset.courseDir)>0?1:0;
+    if(target===1){
+      const count=$('#nearbyChoiceList .nearby-choice-card.selected').length;
+      if(count!==3){
+        const toast=$('#toast');if(toast){toast.textContent='코스에 추가할 장소 3곳을 선택해 주세요.';toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),1800)}
+        return;
+      }
+    }
+    setCoursePage(target);
   });
+  document.addEventListener('tq:course-page',e=>setCoursePage(Number(e.detail?.page||0)));
 }
 
 function setCoursePage(page){
