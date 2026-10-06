@@ -96,12 +96,13 @@ for(const ref of [
   assert.ok(sw.includes(ref),'staging service worker cache missing: '+ref);
 }
 
-assert.ok(selectorJs.includes('prepareSelectedRegion'),'eupmyeondong completion must trigger region preparation');
-assert.ok(selectorJs.includes('travelService.prepareRegion'),'selector must call actual region analysis');
-assert.ok(selectorJs.includes('regionReady=false'),'region ready state guard missing');
-assert.ok(travelService.includes('async function prepareRegion'),'travel service region pre-analysis missing');
-assert.ok(travelService.includes('regionPrepCache'),'region pre-analysis cache missing');
-assert.ok(liveSearch.includes('onProgress=null'),'live place search progress callback missing');
+assert.ok(selectorJs.includes('localRegionChildren'),'region selector must use bundled local hierarchy');
+assert.ok(selectorJs.includes('markRegionReady'),'local region ready transition missing');
+assert.ok(!selectorJs.includes('resolveRegion'),'region selection must not geocode over network');
+assert.ok(!selectorJs.includes('regionChildren'),'region selection must not query Overpass hierarchy');
+assert.ok(!selectorJs.includes('travelService.prepareRegion'),'region selection must not pre-search all place categories');
+assert.ok(!travelService.includes('async function prepareRegion'),'travel service pre-analysis must be removed');
+assert.ok(travelService.includes('ensureLiveBoundary'),'live boundary must resolve lazily during place search');
 assert.ok(chromeJs.includes("'<strong>TRIP QUEST</strong>'"),'simplified enlarged header title missing');
 
 assert.ok(authJs.includes('accountBar.hidden=true'),'account debug overlay must stay hidden after login');
@@ -194,11 +195,12 @@ assert.ok(liveSearch.includes('let primaryError=null'),'region boundary fallback
 assert.ok(liveSearch.includes("label:'지역 경계'"),'region boundary Overpass fallback missing');
 assert.ok(liveSearch.includes('name:ko'),'Korean region-name fallback query missing');
 
-assert.ok(travelService.includes("if(items.length){"),'prepared cache should only short-circuit when selected categories have results');
-assert.ok(!travelService.includes("if(items.length||prepared.items.length)"),'empty category cache must fall through to fresh search');
-assert.ok(travelService.includes("requestedOfficial.length&&(!officialReady||!(official.items||[]).length)"),'official zero-result map recovery missing');
-assert.ok(travelService.includes("8500,{items:[],source:'지도 보조 시간 제한'}"),'live selection search recovery window missing');
-assert.ok(travelService.includes("6500,\n        {items:[],source:'지도 보조 복구 시간 제한'}"),'official fallback recovery window missing');
+assert.ok(travelService.includes('Phase A: bundled/official data always runs first'),'local-first search phase missing');
+assert.ok(travelService.includes('const neededLive='),'supplemental live category calculation missing');
+assert.ok(travelService.includes('ensureLiveBoundary(criteria)'),'lazy live boundary lookup missing');
+assert.ok(travelService.includes("9000,\n          {items:[],source:'지도 보조 시간 제한'}"),'supplemental live timeout guard missing');
+assert.ok(searchControllerJs.includes('while(scopeIndex>=0)'),'automatic hierarchical range expansion missing');
+assert.ok(searchControllerJs.includes('결과 부족으로'),'automatic range expansion UX message missing');
 assert.ok(liveSearch.includes("timeoutMs:2800,label:category"),'live category endpoint timeout recovery missing');
 
 assert.ok(noScrollCss.includes('NEARBY SELECT VISIBILITY FIX'),'nearby visibility repair missing');
