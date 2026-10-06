@@ -88,7 +88,7 @@ export function createTravelService(){
       .catch(e=>{officialReady=false;console.warn('official DB fallback',e?.message||e);return {items:[]}});
     const liveCats=categories.filter(x=>!officialSet.has(x));
     const livePromise=liveCats.length
-      ?softDeadline(searchRegionPlaces({boundary:criteria.regionBoundary,categories:liveCats,facilities:criteria.facilities||[]}),6200,{items:[],source:'지도 보조 시간 제한'})
+      ?softDeadline(searchRegionPlaces({boundary:criteria.regionBoundary,categories:liveCats,facilities:criteria.facilities||[]}),8500,{items:[],source:'지도 보조 시간 제한'})
       :Promise.resolve({items:[],source:''});
     let [official,live]=await Promise.all([officialPromise,livePromise]);
     const requestedOfficial=categories.filter(x=>officialSet.has(x));
@@ -99,7 +99,7 @@ export function createTravelService(){
           categories:requestedOfficial,
           facilities:criteria.facilities||[]
         }),
-        5200,
+        6500,
         {items:[],source:'지도 보조 복구 시간 제한'}
       );
       live={...live,items:[...(live.items||[]),...(recovery.items||[])]};
