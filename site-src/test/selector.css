@@ -206,3 +206,33 @@ body[data-trip-step="2"] .step-view[data-step-view="2"]{display:block!important}
   .range-expand-modal{align-items:end;padding:12px 12px max(88px,env(safe-area-inset-bottom))}
   .range-expand-card{border-radius:22px}
 }
+
+
+/* Place search progress */
+.place-load-status[hidden]{display:none!important}
+.place-load-status{
+  margin:0 0 16px;
+  padding:14px;
+  border:1px solid #33414f;
+  border-radius:14px;
+  background:linear-gradient(180deg,#0c131a,#091017);
+}
+.place-load-status p{
+  margin:9px 1px 0;
+  color:#8996a3;
+  font-size:11px;
+  line-height:1.5;
+}
+.place-load-status[data-state="loading"] .pixel-loader-head span{color:#c9ff45}
+.place-load-status[data-state="loading"] .pixel-loader-scan{
+  opacity:1;
+  animation:tqPixelScan 1.15s linear infinite;
+}
+.place-load-status[data-state="done"]{
+  border-color:rgba(201,255,69,.55);
+}
+.place-load-status[data-state="done"] .pixel-loader-head span,
+.place-load-status[data-state="done"] .pixel-loader-head b{color:#c9ff45}
+.place-load-status[data-state="error"]{border-color:#7b4a4a}
+.place-load-status[data-state="error"] .pixel-loader-head span,
+.place-load-status[data-state="error"] .pixel-loader-head b{color:#ff8585}

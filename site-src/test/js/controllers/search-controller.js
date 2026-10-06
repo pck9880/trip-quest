@@ -6,6 +6,46 @@ import { keepService } from '../services/keep-service.js';
 export function createSearchController({state,travelService,setStep}){
   const results=createResultsUI(state);
   let pendingExpand=null;
+  let placeLoadTimer=null;
+  let placeLoadValue=0;
+
+  function renderPlaceLoad({stateName='idle',value=0,title='PLACE SEARCH',text=''}={}){
+    placeLoadValue=Math.max(0,Math.min(100,Number(value)||0));
+    const wrap=$('#placeLoadStatus'),bar=$('#placeLoadBar'),pct=$('#placeLoadPercent');
+    if(wrap){wrap.hidden=false;wrap.dataset.state=stateName}
+    if(bar)bar.style.width=placeLoadValue+'%';
+    if(pct)pct.textContent=Math.round(placeLoadValue)+'%';
+    setText('#placeLoadTitle',title);
+    setText('#placeLoadText',text);
+  }
+  function stopPlaceLoad(){
+    if(placeLoadTimer){clearInterval(placeLoadTimer);placeLoadTimer=null}
+  }
+  function startPlaceLoad(scopeName,expanded=false){
+    stopPlaceLoad();
+    placeLoadValue=6;
+    const title=expanded?'RANGE SEARCH':'PLACE SEARCH';
+    renderPlaceLoad({stateName:'loading',value:placeLoadValue,title,text:scopeName+' 플레이스를 조회하고 있습니다.'});
+    placeLoadTimer=setInterval(()=>{
+      if(placeLoadValue>=91)return;
+      const step=placeLoadValue<35?8:placeLoadValue<70?5:2;
+      placeLoadValue=Math.min(91,placeLoadValue+step);
+      renderPlaceLoad({stateName:'loading',value:placeLoadValue,title,text:scopeName+' 플레이스를 조회하고 있습니다.'});
+    },140);
+  }
+  function finishPlaceLoad(scopeName,count){
+    stopPlaceLoad();
+    renderPlaceLoad({
+      stateName:'done',
+      value:100,
+      title:'SEARCH COMPLETE',
+      text:count?scopeName+'에서 '+count+'곳을 찾았습니다.':scopeName+' 검색을 완료했지만 조건에 맞는 장소가 없습니다.'
+    });
+  }
+  function failPlaceLoad(message){
+    stopPlaceLoad();
+    renderPlaceLoad({stateName:'error',value:0,title:'SEARCH ERROR',text:message});
+  }
 
   function hideExpandModal(){
     const modal=$('#rangeExpandModal');
@@ -83,10 +123,12 @@ export function createSearchController({state,travelService,setStep}){
     const payload={...currentPayload(),...extra};
     const scopePath=payload.regionPath||state.regionPath||[];
     const scopeIndex=Number.isInteger(extra.scopeIndex)?extra.scopeIndex:Math.max(0,(state.regionBoundaries||[]).length-1);
-    loading(true);setStep(4);$('#ranking').className='ranking empty-state';$('#ranking').innerHTML='선택한 지역의 플레이스를 불러오고 있습니다…';$('#noMatchActions').hidden=true;
+    const scopeName=scopePath.at(-1)||'선택 지역';
+    loading(true);setStep(4);startPlaceLoad(scopeName,!!extra.expanded);$('#ranking').className='ranking empty-state';$('#ranking').innerHTML='선택한 지역의 플레이스를 불러오고 있습니다…';$('#noMatchActions').hidden=true;
     try{
       const j=await travelService.selectionSearch(payload);
       presentRecommendations(j.items||[]);
+      finishPlaceLoad(scopeName,state.recommendations.length);
       setText('#resultCaption',`${scopePath.join(' › ')} · ${state.categories.join(' · ')} · ${state.recommendations.length}곳`);
       setText('#mapStatus',`후보 ${state.recommendations.length}곳 · ${j.source||'지도 데이터'}`);
       if(!state.recommendations.length){
@@ -98,7 +140,7 @@ export function createSearchController({state,travelService,setStep}){
       }else if(extra.expanded){
         toast((scopePath.at(-1)||'확대 지역')+' 범위에서 다시 찾았습니다.');
       }
-    }catch(e){$('#ranking').innerHTML=`<span class="error">${esc(e.message)}</span>`}
+    }catch(e){failPlaceLoad(e.message||'플레이스 검색에 실패했습니다.');$('#ranking').innerHTML=`<span class="error">${esc(e.message)}</span>`}
     finally{loading(false);setStep(4)}
   }
 

@@ -50,9 +50,12 @@ export async function resolveRegion(name){
 export async function regionChildren(parent,adminLevel){
   const aid=areaId(parent);
   if(!aid)return [];
-  const key='children:'+aid+':'+adminLevel;
+  const levels=adminLevel===6?[6,7]:adminLevel===8?[8,9]:[adminLevel];
+  const key='children-v2:'+aid+':'+levels.join('-');
   const hit=cacheGet(key); if(hit)return hit;
-  const query='[out:json][timeout:18];area('+aid+')->.a;relation(area.a)["boundary"="administrative"]["admin_level"="'+adminLevel+'"];out center tags;';
+  const levelPattern=levels.join('|');
+  const boundaryPattern=adminLevel===8?'administrative|legal':'administrative';
+  const query='[out:json][timeout:20];area('+aid+')->.a;relation(area.a)["boundary"~"^('+boundaryPattern+')$"]["admin_level"~"^('+levelPattern+')$"];out center tags;';
   const body=new URLSearchParams({data:query});
   const res=await fetch(OVERPASS,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body});
   if(!res.ok)throw new Error('하위 행정구역을 불러오지 못했습니다.');
@@ -61,9 +64,12 @@ export async function regionChildren(parent,adminLevel){
   for(const el of json.elements||[]){
     const name=String(el.tags?.['name:ko']||el.tags?.name||'').trim();
     if(!name||seen.has(name))continue;
+    if(adminLevel===8&&!/(동|읍|면|가|리)$/.test(name))continue;
     seen.add(name);
     items.push({
-      name,displayName:name,osmType:'relation',osmId:Number(el.id),adminLevel:Number(el.tags?.admin_level||adminLevel),
+      name,displayName:name,osmType:'relation',osmId:Number(el.id),
+      adminLevel:Number(el.tags?.admin_level||adminLevel),
+      boundaryType:String(el.tags?.boundary||'administrative'),
       lat:Number(el.center?.lat),lng:Number(el.center?.lon),bbox:null
     });
   }
