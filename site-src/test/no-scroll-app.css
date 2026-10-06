@@ -387,7 +387,7 @@ body:not(.tq-auth-locked) .course-builder-panel>[data-tq-course-page][hidden]{
 
 body:not(.tq-auth-locked) .tq-course-page-nearby{
   display:grid!important;
-  grid-template-rows:auto auto auto minmax(0,1fr) auto!important;
+  grid-template-rows:auto auto auto auto minmax(0,1fr) auto!important;
   gap:5px!important;
 }
 
