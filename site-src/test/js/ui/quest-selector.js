@@ -1,5 +1,5 @@
 import { TOP_REGIONS, PLACE_CATEGORIES } from '../data/selection-taxonomy.js';
-import { resolveRegion, regionChildren } from '../services/live-place-search.js';
+import { localRegionChildren } from '../services/national-place-store.js';
 import { $, setText } from '../core/dom.js';
 
 export function createQuestSelector({state,setStep,syncCategoriesUI,travelService}){
@@ -52,50 +52,26 @@ export function createQuestSelector({state,setStep,syncCategoriesUI,travelServic
     stopProgress();
     renderProgress({stateName:'idle',value:0,title:'REGION READY',text});
   }
-  function waitForLocalProgress(text='읍·면·동을 선택하면 장소 분석을 시작합니다.'){
+  function waitForLocalProgress(text='지역을 선택하세요.'){
     stopProgress();
     renderProgress({stateName:'idle',value:0,title:'REGION READY',text});
   }
-  async function prepareSelectedRegion(){
-    if(!level1||!level2||!level3||!travelService?.prepareRegion)return false;
-    const token=++prepareToken;
-    regionReady=false;
-    const go=$('#regionContinueBtn');if(go)go.disabled=true;
-    renderProgress({stateName:'loading',value:4,title:'REGION SEARCH',text:level3.name+' 장소 데이터를 준비하고 있습니다.'});
-    try{
-      const prepared=await travelService.prepareRegion({
-        regionBoundary:level3,
-        regionPath:[level1.name,level2.name,level3.name],
-        categories:PLACE_CATEGORIES.map(x=>x.id),
-        facilities:[]
-      },{
-        onProgress:info=>{
-          if(token!==prepareToken)return;
-          const value=Math.max(4,Math.min(100,Number(info?.value)||0));
-          const title=value>=100?'REGION READY':'REGION SEARCH';
-          const count=Number(info?.count)||0;
-          const suffix=count&&value>=42?' · '+count+'곳 확인':'';
-          renderProgress({stateName:value>=100?'done':'loading',value,title,text:(info?.text||'장소 데이터를 분석하고 있습니다.')+suffix});
-        }
-      });
-      if(token!==prepareToken)return false;
-      regionReady=true;
-      const count=prepared?.items?.length||0;
+  function localBoundary(name,path,adminLevel){
+    return {
+      name,displayName:path.join(' '),osmType:'local',osmId:null,
+      adminLevel,lat:null,lng:null,bbox:null,local:true,path:[...path]
+    };
+  }
+  function markRegionReady(boundary){
+    regionReady=!!boundary;
+    const go=$('#regionContinueBtn');
+    if(go)go.disabled=!regionReady;
+    if(regionReady){
       renderProgress({
-        stateName:'done',
-        value:100,
-        title:'REGION READY',
-        text:level3.name+' 장소 분석 완료 · '+count+'곳 준비'
+        stateName:'done',value:100,title:'REGION READY',
+        text:(state.regionPath||[]).join(' › ')+' · 지역 설정 완료'
       });
-      if(go)go.disabled=false;
-      return true;
-    }catch(e){
-      if(token!==prepareToken)return false;
-      regionReady=false;
-      failProgress(e?.message||'선택 지역의 장소 분석에 실패했습니다.');
-      if(go)go.disabled=true;
-      return false;
-    }
+    }else idleProgress();
   }
 
   function renderStatic(){
@@ -125,35 +101,34 @@ export function createQuestSelector({state,setStep,syncCategoriesUI,travelServic
     el.disabled=true;local.disabled=true;
     el.innerHTML='<option value="">시·군·구 준비</option>';
     local.innerHTML='<option value="">읍·면·동 전체</option>';
-    waitForLocalProgress('시·군·구 목록을 불러오는 중입니다.');
     try{
-      level2Items=await regionChildren(level1,6);
+      const names=await localRegionChildren([level1.name]);
+      level2Items=names.map(name=>localBoundary(name,[level1.name,name],6));
       el.innerHTML='<option value="">시·군·구 전체</option>'+level2Items.map((x,i)=>option(String(i),x.name)).join('');
       el.disabled=false;
-      if(!level2Items.length)await loadLevel3(level1,false);
-      else waitForLocalProgress('시·군·구를 선택하세요.');
+      markRegionReady(level1);
     }catch(e){
-      failProgress(e?.message||'시·군·구 정보를 불러오지 못했습니다.');
       el.innerHTML='<option value="">시·군·구 전체</option>';
       el.disabled=false;
+      markRegionReady(level1);
     }
     updateState();
   }
 
-  async function loadLevel3(parent,withProgress=true){
+  async function loadLevel3(parent){
     const el=$('#regionLevel3');
     level3=null;level3Items=[];el.disabled=true;
     el.innerHTML='<option value="">읍·면·동 준비</option>';
-    if(withProgress)waitForLocalProgress(parent.name+' 읍·면·동 목록을 불러오는 중입니다.');
     try{
-      level3Items=await regionChildren(parent,8);
-      el.innerHTML='<option value="">읍·면·동 선택</option>'+level3Items.map((x,i)=>option(String(i),x.name)).join('');
-      if(withProgress)waitForLocalProgress('읍·면·동을 선택하면 장소 분석을 시작합니다.');
+      const names=await localRegionChildren([level1.name,parent.name]);
+      level3Items=names.map(name=>localBoundary(name,[level1.name,parent.name,name],8));
+      el.innerHTML='<option value="">읍·면·동 전체</option>'+level3Items.map((x,i)=>option(String(i),x.name)).join('');
     }catch(e){
-      if(withProgress)failProgress(e?.message||'읍·면·동 정보를 불러오지 못했습니다.');
       el.innerHTML='<option value="">읍·면·동 전체</option>';
     }
-    el.disabled=false;updateState();
+    el.disabled=false;
+    markRegionReady(parent);
+    updateState();
   }
 
   async function onLevel1(){
@@ -162,31 +137,24 @@ export function createQuestSelector({state,setStep,syncCategoriesUI,travelServic
     regionReady=false;prepareToken++;
     $('#regionContinueBtn').disabled=true;
     if(!name){idleProgress();updateState();return}
-    $('#regionLevel2').disabled=true;$('#regionLevel3').disabled=true;
-    $('#regionLevel2').innerHTML='<option value="">시·군·구 준비</option>';
-    $('#regionLevel3').innerHTML='<option value="">읍·면·동 전체</option>';
-    waitForLocalProgress(name+' 행정구역을 확인하고 있습니다.');
-    try{
-      level1=await resolveRegion(name);
-      await loadLevel2();
-    }catch(e){
-      failProgress(e?.message||'지역 정보를 불러오지 못했습니다.');
-    }
+    level1=localBoundary(name,[name],4);
     updateState();
+    await loadLevel2();
   }
 
   async function onLevel2(){
     const v=$('#regionLevel2').value;
     level2=v===''?null:level2Items[Number(v)]||null;level3=null;
     regionReady=false;prepareToken++;
-    if(level2){
-      await loadLevel3(level2,true);
-    }else{
-      $('#regionLevel3').innerHTML='<option value="">읍·면·동 선택</option>';
-      $('#regionLevel3').disabled=true;
-      waitForLocalProgress('시·군·구를 선택하세요.');
-    }
     updateState();
+    if(level2){
+      await loadLevel3(level2);
+    }else{
+      $('#regionLevel3').innerHTML='<option value="">읍·면·동 전체</option>';
+      $('#regionLevel3').disabled=true;
+      markRegionReady(level1);
+      updateState();
+    }
   }
 
   async function onLevel3(){
@@ -194,11 +162,7 @@ export function createQuestSelector({state,setStep,syncCategoriesUI,travelServic
     level3=v===''?null:level3Items[Number(v)]||null;
     regionReady=false;prepareToken++;
     updateState();
-    if(!level3){
-      waitForLocalProgress('읍·면·동을 선택하면 장소 분석을 시작합니다.');
-      return;
-    }
-    await prepareSelectedRegion();
+    markRegionReady(level3||level2||level1);
     updateState();
   }
 
