@@ -2,61 +2,87 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 const SUPABASE_URL='https://nlymabguyrnxhfrvzzwr.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_0LTrQJVEVnntfDovu2YgJw_22PfiXZu';
+const REMEMBER_FLAG='trip-quest-test-auto-login-v2';
+const AUTH_STORAGE_KEY='trip-quest-test-auth-v2';
+
+const authStorage={
+  getItem(key){
+    return localStorage.getItem(REMEMBER_FLAG)==='1'
+      ? localStorage.getItem(key)
+      : sessionStorage.getItem(key);
+  },
+  setItem(key,value){
+    if(localStorage.getItem(REMEMBER_FLAG)==='1'){
+      localStorage.setItem(key,value);
+      sessionStorage.removeItem(key);
+    }else{
+      sessionStorage.setItem(key,value);
+      localStorage.removeItem(key);
+    }
+  },
+  removeItem(key){
+    localStorage.removeItem(key);
+    sessionStorage.removeItem(key);
+  }
+};
+
 const supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
   auth:{
     persistSession:true,
     autoRefreshToken:true,
     detectSessionInUrl:true,
-    storageKey:'trip-quest-test-auth-v1'
+    storageKey:AUTH_STORAGE_KEY,
+    storage:authStorage
   }
 });
 
 const $=(s)=>document.querySelector(s);
 const gate=$('#authGate');
-const form=$('#authForm');
-const loginTab=$('#authLoginTab');
-const signupTab=$('#authSignupTab');
-const nicknameWrap=$('#authNicknameWrap');
-const nickname=$('#authNickname');
-const email=$('#authEmail');
-const password=$('#authPassword');
-const passwordConfirmWrap=$('#authPasswordConfirmWrap');
-const passwordConfirm=$('#authPasswordConfirm');
-const submit=$('#authSubmit');
-const message=$('#authMessage');
+const loginView=$('#loginView');
+const signupView=$('#signupView');
+const openSignup=$('#openSignup');
+const backToLogin=$('#backToLogin');
+const loginForm=$('#loginForm');
+const loginId=$('#loginId');
+const loginPassword=$('#loginPassword');
+const autoLogin=$('#autoLogin');
+const loginMessage=$('#loginMessage');
+const loginSubmit=$('#loginSubmit');
+const signupForm=$('#signupForm');
+const signupNickname=$('#signupNickname');
+const signupEmail=$('#signupEmail');
+const signupPassword=$('#signupPassword');
+const signupPasswordConfirm=$('#signupPasswordConfirm');
+const signupMessage=$('#signupMessage');
+const signupSubmit=$('#signupSubmit');
 const accountBar=$('#testAccountBar');
 const accountName=$('#testAccountName');
 const accountEmail=$('#testAccountEmail');
 const logout=$('#testLogout');
 
-let mode='login';
 let appStarted=false;
 
-function setMessage(text='',kind=''){
-  message.textContent=text;
-  message.className='tq-auth-message'+(kind?' '+kind:'');
+function setMessage(el,text='',kind=''){
+  el.textContent=text;
+  el.className='tq-auth-message'+(kind?' '+kind:'');
 }
-function setBusy(busy){
-  submit.disabled=busy;
-  submit.textContent=busy?(mode==='login'?'로그인 중…':'가입 처리 중…'):(mode==='login'?'로그인':'회원가입');
+function showLogin(){
+  signupView.hidden=true;
+  loginView.hidden=false;
+  setMessage(signupMessage);
+  queueMicrotask(()=>loginId.focus());
 }
-function setMode(next){
-  mode=next;
-  const signup=mode==='signup';
-  loginTab.classList.toggle('active',!signup);
-  signupTab.classList.toggle('active',signup);
-  loginTab.setAttribute('aria-selected',String(!signup));
-  signupTab.setAttribute('aria-selected',String(signup));
-  nicknameWrap.hidden=!signup;
-  passwordConfirmWrap.hidden=!signup;
-  password.autocomplete=signup?'new-password':'current-password';
-  submit.textContent=signup?'회원가입':'로그인';
-  setMessage('');
+function showSignup(){
+  loginView.hidden=true;
+  signupView.hidden=false;
+  setMessage(loginMessage);
+  queueMicrotask(()=>signupNickname.focus());
 }
 function lockApp(){
   document.body.classList.add('tq-auth-locked');
   gate.hidden=false;
   accountBar.hidden=true;
+  showLogin();
 }
 async function startApp(user){
   const display=user?.user_metadata?.nickname||user?.email?.split('@')[0]||'사용자';
@@ -70,55 +96,78 @@ async function startApp(user){
   await import('./app.js?v=20261002-v112');
   await import('./app-chrome.js?v=112');
 }
-function friendlyError(err){
+function friendlyLoginError(err){
   const raw=String(err?.message||'').toLowerCase();
-  if(raw.includes('invalid login credentials'))return '이메일 또는 비밀번호를 확인해주세요.';
+  if(raw.includes('invalid login credentials'))return '아이디 또는 비밀번호를 확인해주세요.';
   if(raw.includes('email not confirmed'))return '이메일 인증 후 로그인해주세요.';
+  if(raw.includes('rate limit'))return '요청이 많습니다. 잠시 후 다시 시도해주세요.';
+  return err?.message||'로그인 중 오류가 발생했습니다.';
+}
+function friendlySignupError(err){
+  const raw=String(err?.message||'').toLowerCase();
   if(raw.includes('already registered'))return '이미 가입된 이메일입니다.';
   if(raw.includes('password')&&raw.includes('least'))return '비밀번호는 8자 이상으로 설정해주세요.';
   if(raw.includes('rate limit'))return '요청이 많습니다. 잠시 후 다시 시도해주세요.';
-  return err?.message||'처리 중 오류가 발생했습니다.';
+  return err?.message||'회원가입 중 오류가 발생했습니다.';
 }
 
-loginTab.addEventListener('click',()=>setMode('login'));
-signupTab.addEventListener('click',()=>setMode('signup'));
+autoLogin.checked=localStorage.getItem(REMEMBER_FLAG)==='1';
+openSignup.addEventListener('click',showSignup);
+backToLogin.addEventListener('click',showLogin);
 
-form.addEventListener('submit',async(e)=>{
+loginForm.addEventListener('submit',async(e)=>{
   e.preventDefault();
-  setMessage('');
-  const mail=email.value.trim();
-  const pw=password.value;
-  if(!mail||!pw){setMessage('이메일과 비밀번호를 입력해주세요.','error');return;}
-  if(pw.length<8){setMessage('비밀번호는 8자 이상으로 설정해주세요.','error');return;}
-  if(mode==='signup'&&pw!==passwordConfirm.value){setMessage('비밀번호 확인이 일치하지 않습니다.','error');return;}
-  setBusy(true);
+  setMessage(loginMessage);
+  const id=loginId.value.trim();
+  const pw=loginPassword.value;
+  if(!id||!pw){setMessage(loginMessage,'아이디와 비밀번호를 입력해주세요.','error');return;}
+  if(autoLogin.checked)localStorage.setItem(REMEMBER_FLAG,'1');
+  else localStorage.removeItem(REMEMBER_FLAG);
+  loginSubmit.disabled=true;
+  loginSubmit.textContent='로그인 중…';
   try{
-    if(mode==='login'){
-      const {data,error}=await supabase.auth.signInWithPassword({email:mail,password:pw});
-      if(error)throw error;
-      if(data.user)await startApp(data.user);
+    const {data,error}=await supabase.auth.signInWithPassword({email:id,password:pw});
+    if(error)throw error;
+    if(data.user)await startApp(data.user);
+  }catch(err){
+    setMessage(loginMessage,friendlyLoginError(err),'error');
+  }finally{
+    loginSubmit.disabled=false;
+    loginSubmit.textContent='로그인';
+  }
+});
+
+signupForm.addEventListener('submit',async(e)=>{
+  e.preventDefault();
+  setMessage(signupMessage);
+  const nick=signupNickname.value.trim();
+  const mail=signupEmail.value.trim();
+  const pw=signupPassword.value;
+  if(!mail||!pw){setMessage(signupMessage,'이메일과 비밀번호를 입력해주세요.','error');return;}
+  if(pw.length<8){setMessage(signupMessage,'비밀번호는 8자 이상으로 설정해주세요.','error');return;}
+  if(pw!==signupPasswordConfirm.value){setMessage(signupMessage,'비밀번호 확인이 일치하지 않습니다.','error');return;}
+  localStorage.removeItem(REMEMBER_FLAG);
+  signupSubmit.disabled=true;
+  signupSubmit.textContent='가입 처리 중…';
+  try{
+    const {data,error}=await supabase.auth.signUp({
+      email:mail,
+      password:pw,
+      options:{data:{nickname:nick||mail.split('@')[0]}}
+    });
+    if(error)throw error;
+    if(data.session&&data.user){
+      await startApp(data.user);
     }else{
-      const nick=nickname.value.trim();
-      const {data,error}=await supabase.auth.signUp({
-        email:mail,
-        password:pw,
-        options:{data:{nickname:nick||mail.split('@')[0]}}
-      });
-      if(error)throw error;
-      if(data.session&&data.user){
-        setMessage('회원가입이 완료되었습니다.','success');
-        await startApp(data.user);
-      }else{
-        setMessage('회원가입 요청이 완료되었습니다. 인증 메일이 왔다면 인증 후 로그인해주세요.','success');
-        setMode('login');
-        email.value=mail;
-        password.value='';
-      }
+      showLogin();
+      loginId.value=mail;
+      setMessage(loginMessage,'회원가입이 완료되었습니다. 이메일 인증 후 로그인해주세요.','success');
     }
   }catch(err){
-    setMessage(friendlyError(err),'error');
+    setMessage(signupMessage,friendlySignupError(err),'error');
   }finally{
-    setBusy(false);
+    signupSubmit.disabled=false;
+    signupSubmit.textContent='회원가입';
   }
 });
 
@@ -126,6 +175,8 @@ logout.addEventListener('click',async()=>{
   logout.disabled=true;
   try{await supabase.auth.signOut({scope:'local'});}
   finally{
+    localStorage.removeItem(REMEMBER_FLAG);
+    authStorage.removeItem(AUTH_STORAGE_KEY);
     logout.disabled=false;
     location.reload();
   }

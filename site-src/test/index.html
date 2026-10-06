@@ -18,11 +18,11 @@
   <link rel="stylesheet" href="./css/product.css?v=112" />
   <link rel="stylesheet" href="./css/landing.css?v=101" />
   <link rel="stylesheet" href="./css/search.css?v=100" />
-  <link rel="stylesheet" href="./auth.css?v=20261006-auth1" />
+  <link rel="stylesheet" href="./auth.css?v=20261006-auth2" />
   <link rel="preload" as="image" href="./assets/tq-cover-main-v044.webp" fetchpriority="high" />
 </head>
 <body class="tq-auth-locked">
-  <section id="authGate" class="tq-auth-gate" aria-label="TRIP QUEST TEST 로그인">
+  <section id="authGate" class="tq-auth-gate" aria-label="TRIP QUEST TEST 인증">
     <div class="tq-auth-shell">
       <div class="tq-auth-brand">
         <span class="tq-auth-env">STAGING</span>
@@ -30,31 +30,55 @@
         <p>테스트 서버</p>
       </div>
       <div class="tq-auth-card">
-        <div class="tq-auth-tabs" role="tablist" aria-label="로그인 방식">
-          <button id="authLoginTab" class="active" type="button" role="tab" aria-selected="true">로그인</button>
-          <button id="authSignupTab" type="button" role="tab" aria-selected="false">회원가입</button>
-        </div>
-        <form id="authForm" class="tq-auth-form" novalidate>
-          <label id="authNicknameWrap" hidden>
-            <span>닉네임</span>
-            <input id="authNickname" type="text" maxlength="24" autocomplete="nickname" placeholder="TRIP QUEST에서 사용할 이름" />
-          </label>
-          <label>
-            <span>이메일</span>
-            <input id="authEmail" type="email" inputmode="email" autocomplete="email" required placeholder="you@example.com" />
-          </label>
-          <label>
-            <span>비밀번호</span>
-            <input id="authPassword" type="password" minlength="8" autocomplete="current-password" required placeholder="8자 이상" />
-          </label>
-          <label id="authPasswordConfirmWrap" hidden>
-            <span>비밀번호 확인</span>
-            <input id="authPasswordConfirm" type="password" minlength="8" autocomplete="new-password" placeholder="비밀번호를 다시 입력" />
-          </label>
-          <p id="authMessage" class="tq-auth-message" role="status" aria-live="polite"></p>
-          <button id="authSubmit" class="tq-auth-submit" type="submit">로그인</button>
-        </form>
-        <p class="tq-auth-note">로그인 상태는 이 테스트 서버에만 저장됩니다.</p>
+        <section id="loginView" class="tq-auth-view" aria-labelledby="loginTitle">
+          <div class="tq-auth-head">
+            <div><small>ACCOUNT</small><h2 id="loginTitle">로그인</h2></div>
+            <button id="openSignup" class="tq-auth-switch" type="button">회원가입</button>
+          </div>
+          <form id="loginForm" class="tq-auth-form" novalidate>
+            <p id="loginMessage" class="tq-auth-message" role="status" aria-live="polite"></p>
+            <label>
+              <span>아이디</span>
+              <input id="loginId" type="email" inputmode="email" autocomplete="username" required placeholder="이메일 아이디" />
+            </label>
+            <label>
+              <span>비밀번호</span>
+              <input id="loginPassword" type="password" minlength="8" autocomplete="current-password" required placeholder="비밀번호" />
+            </label>
+            <label class="tq-auth-remember">
+              <input id="autoLogin" type="checkbox" />
+              <span>자동로그인</span>
+            </label>
+            <button id="loginSubmit" class="tq-auth-submit" type="submit">로그인</button>
+          </form>
+        </section>
+
+        <section id="signupView" class="tq-auth-view" aria-labelledby="signupTitle" hidden>
+          <div class="tq-auth-head">
+            <div><small>NEW ACCOUNT</small><h2 id="signupTitle">회원가입</h2></div>
+            <button id="backToLogin" class="tq-auth-switch" type="button">로그인으로</button>
+          </div>
+          <form id="signupForm" class="tq-auth-form" novalidate>
+            <p id="signupMessage" class="tq-auth-message" role="status" aria-live="polite"></p>
+            <label>
+              <span>닉네임</span>
+              <input id="signupNickname" type="text" maxlength="24" autocomplete="nickname" placeholder="사용할 이름" />
+            </label>
+            <label>
+              <span>이메일</span>
+              <input id="signupEmail" type="email" inputmode="email" autocomplete="email" required placeholder="로그인 아이디로 사용됩니다" />
+            </label>
+            <label>
+              <span>비밀번호</span>
+              <input id="signupPassword" type="password" minlength="8" autocomplete="new-password" required placeholder="8자 이상" />
+            </label>
+            <label>
+              <span>비밀번호 확인</span>
+              <input id="signupPasswordConfirm" type="password" minlength="8" autocomplete="new-password" required placeholder="비밀번호를 다시 입력" />
+            </label>
+            <button id="signupSubmit" class="tq-auth-submit" type="submit">회원가입</button>
+          </form>
+        </section>
       </div>
     </div>
   </section>
@@ -140,6 +164,6 @@
   <div id="iosInstallTip" class="install-sheet" hidden><div class="install-card"><button id="closeInstallTip" class="install-close" aria-label="닫기">×</button><b>iPhone / iPad에 설치</b><p>Safari 하단의 공유 버튼을 누른 뒤 <strong>홈 화면에 추가</strong>를 선택하세요.</p></div></div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script type="module" src="./auth.js?v=20261006-auth1"></script>
+  <script type="module" src="./auth.js?v=20261006-auth2"></script>
 </body>
 </html>
