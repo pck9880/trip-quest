@@ -70,8 +70,10 @@ function showSafeRuntimeError(){
   const ranking=$('#ranking');
   if(ranking){ranking.className='ranking empty-state';ranking.innerHTML='<div><strong>화면을 다시 불러오면 정상적으로 사용할 수 있습니다.</strong><br><br><button id="runtimeReloadBtn" class="btn primary" type="button">앱 새로고침</button></div>';$('#runtimeReloadBtn')?.addEventListener('click',()=>location.reload())}
 }
-window.addEventListener('error',e=>{console.error('TRIP QUEST runtime error',e.error||e.message);if(state.step===4)showSafeRuntimeError()});
-window.addEventListener('unhandledrejection',e=>{console.error('TRIP QUEST async error',e.reason);if(state.step===4)showSafeRuntimeError()});
+if(typeof window!=='undefined'){
+  window.addEventListener('error',e=>{console.error('TRIP QUEST runtime error',e.error||e.message);if(state.step===4)showSafeRuntimeError()});
+  window.addEventListener('unhandledrejection',e=>{console.error('TRIP QUEST async error',e.reason);if(state.step===4)showSafeRuntimeError()});
+}
 
 async function boot(){
   initMap();

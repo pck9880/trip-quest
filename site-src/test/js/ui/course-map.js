@@ -1,9 +1,31 @@
 import { $, setText, esc } from '../core/dom.js';
-import { COURSE_PLACE_META } from '../data/course-data.js';
 
 let courseMap=null;
 let courseMarkers=[];
 let courseRouteLine=null;
+
+const CATEGORY_META={
+  '공원':{icon:'P',desc:'공원'},
+  '사찰':{icon:'寺',desc:'절 · 사찰'},
+  '마트':{icon:'M',desc:'마트'},
+  '문화시설':{icon:'C',desc:'문화시설'},
+  '산책로':{icon:'W',desc:'산책로'},
+  '백화점':{icon:'D',desc:'백화점'},
+  '카페':{icon:'C',desc:'카페'},
+  '맛집':{icon:'F',desc:'음식점'},
+  '관광명소':{icon:'★',desc:'관광명소'},
+  '박물관미술관':{icon:'A',desc:'박물관 · 미술관'},
+  '전통시장':{icon:'市',desc:'전통시장'},
+  '쇼핑몰':{icon:'S',desc:'쇼핑몰'},
+  '해변':{icon:'海',desc:'해변'},
+  '산':{icon:'山',desc:'산'},
+  '도서관':{icon:'B',desc:'도서관'},
+  '숙박':{icon:'H',desc:'숙박'},
+  '체험':{icon:'E',desc:'체험'},
+  '테마파크':{icon:'T',desc:'테마파크'},
+  '온천':{icon:'♨',desc:'온천 · 스파'},
+  '캠핑':{icon:'△',desc:'캠핑'}
+};
 
 export function initCourseMap(){
   if(courseMap||typeof L==='undefined')return;
@@ -16,9 +38,8 @@ export function clearCourseMap(){
   courseMarkers.forEach(m=>m.remove());courseMarkers=[];
   if(courseRouteLine){courseRouteLine.remove();courseRouteLine=null}
 }
-
 function coursePlaceMeta(point){
-  return COURSE_PLACE_META[point?.category]||{icon:'⌖',desc:'여행 장소'};
+  return CATEGORY_META[point?.category]||{icon:'⌖',desc:point?.category||'여행 장소'};
 }
 function addCourseMarker(point,rank){
   if(!courseMap)return;
@@ -39,7 +60,6 @@ export function drawCourseRoute(course){
   initCourseMap();if(!courseMap)return;clearCourseMap();
   const stops=course.stops||[];
   if(!stops.length){setText('#courseMapStatus','표시할 지역 코스가 없습니다.');return}
-
   stops.forEach((p,i)=>addCourseMarker(p,i+1));
   const coords=course.route?.coords?.length>1?course.route.coords:stops.map(p=>[p.lat,p.lng]);
   if(coords.length>1){
