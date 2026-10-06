@@ -53,7 +53,12 @@ export function createSearchController({state,travelService,setStep}){
     try{
       const j=await travelService.selectionSearch(payload);presentRecommendations(j.items||[]);finishPlaceLoad(scopeName,state.recommendations.length);setText('#resultCaption',scopePath.join(' › ')+' · '+state.categories.join(' · ')+' · '+state.recommendations.length+'곳');setText('#mapStatus','후보 '+state.recommendations.length+'곳 · '+(j.source||'공식 데이터'));
       if(!state.recommendations.length){const offered=offerExpandedSearch(scopeIndex);if(!offered){$('#noMatchActions').hidden=false;setText('#resultCaption',scopePath.join(' › ')+' · 조건에 맞는 장소 없음')}}else if(extra.expanded)toast((scopePath.at(-1)||'확대 지역')+' 범위에서 다시 찾았습니다.');
-    }catch(e){failPlaceLoad(e.message||'플레이스 검색에 실패했습니다.');$('#ranking').innerHTML='<span class="error">'+esc(e.message)+'</span>'}finally{loading(false);setStep(4)}
+    }catch(e){
+      failPlaceLoad(e.message||'플레이스 검색에 실패했습니다.');
+      $('#ranking').className='ranking empty-state';
+      $('#ranking').innerHTML='<div><span class="error">'+esc(e.message)+'</span><br><br><button id="retryPlaceSearchBtn" class="btn primary" type="button">검색 다시 시도</button></div>';
+      $('#retryPlaceSearchBtn')?.addEventListener('click',()=>recommend(extra));
+    }finally{loading(false);setStep(4)}
   }
 
   function selectedNearby(){const ids=new Set(state.selectedNearbyIds||[]);return (state.nearbyCandidates||[]).filter(x=>ids.has(x.id))}
