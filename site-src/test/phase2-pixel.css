@@ -502,3 +502,6 @@ html.phase2-pixel-ready{
 @media(prefers-reduced-motion:reduce){
   .phase2-pixel-ready *{scroll-behavior:auto!important}
 }
+
+/* Phase-2 sprite owns the cover icon slot. */
+.phase2-pixel-ready .main-landing .loc-dot{display:none!important}
