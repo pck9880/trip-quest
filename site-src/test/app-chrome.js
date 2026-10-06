@@ -49,14 +49,59 @@
     }catch{}
   }
   function forceVisibleMotion(){return}
+  const COVER_SOURCE={w:941,h:1672};
+  const COVER_FX_POINTS={
+    q:[486,236],
+    dot:[318,178],
+    glintA:[205,218],
+    glintB:[756,224],
+    glow:[471,233]
+  };
+  function syncCoverTitleFx(){
+    const landing=$('#mainLanding');
+    const fx=landing?.querySelector('.tq-cover-title-fx');
+    if(!landing||!fx||!landing.classList.contains('tq-photo-ready'))return;
+    const w=landing.clientWidth,h=landing.clientHeight;
+    if(!w||!h)return;
+    const scale=Math.max(w/COVER_SOURCE.w,h/COVER_SOURCE.h);
+    const ox=(w-COVER_SOURCE.w*scale)/2;
+    const oy=(h-COVER_SOURCE.h*scale)/2;
+    const setPoint=(selector,[x,y])=>{
+      const el=fx.querySelector(selector);if(!el)return;
+      el.style.left=(ox+x*scale)+'px';
+      el.style.top=(oy+y*scale)+'px';
+    };
+    setPoint('.tq-title-q-star',COVER_FX_POINTS.q);
+    setPoint('.tq-title-i-dot',COVER_FX_POINTS.dot);
+    setPoint('.tq-title-glint-a',COVER_FX_POINTS.glintA);
+    setPoint('.tq-title-glint-b',COVER_FX_POINTS.glintB);
+    setPoint('.tq-title-glow',COVER_FX_POINTS.glow);
+    fx.style.setProperty('--tq-title-star-size',Math.max(6,Math.min(10,Math.round(15*scale)))+'px');
+    fx.style.setProperty('--tq-title-dot-size',Math.max(5,Math.min(9,Math.round(13*scale)))+'px');
+    fx.style.setProperty('--tq-title-glow-w',Math.max(230,Math.min(470,Math.round(680*scale)))+'px');
+    fx.style.setProperty('--tq-title-glow-h',Math.max(54,Math.min(110,Math.round(150*scale)))+'px');
+  }
+  function bindCoverFxGeometry(){
+    const landing=$('#mainLanding');if(!landing||landing.dataset.fxGeometryBound)return;
+    landing.dataset.fxGeometryBound='1';
+    const sync=()=>requestAnimationFrame(syncCoverTitleFx);
+    window.addEventListener('resize',sync,{passive:true});
+    window.addEventListener('orientationchange',sync,{passive:true});
+    window.visualViewport?.addEventListener('resize',sync,{passive:true});
+  }
   function addCoverMotion(){
     const landing=$('#mainLanding');
     if(!landing)return;
     landing.classList.remove('tq-photo-error');
+    bindCoverFxGeometry();
     const probe=new Image();
     probe.decoding='async';
     probe.fetchPriority='high';
-    probe.onload=()=>{landing.classList.add('tq-photo-ready');landing.classList.remove('tq-photo-error')};
+    probe.onload=()=>{
+      landing.classList.add('tq-photo-ready');
+      landing.classList.remove('tq-photo-error');
+      requestAnimationFrame(syncCoverTitleFx);
+    };
     probe.onerror=()=>{landing.classList.remove('tq-photo-ready');landing.classList.add('tq-photo-error')};
     probe.src='./assets/tq-cover-main-v044.webp?v=20261006-pixelcover1';
     if(probe.complete){
@@ -328,6 +373,6 @@
   function selectedManualCount(){return document.querySelectorAll('#categoryChoices button.selected').length}
   function addManualSearchButton(){const options=$('#manualOptions');if(!options||$('#manualSearchNow'))return;const wrap=el('div','manual-search-now');wrap.style.cssText='margin-top:18px;display:grid;gap:8px';wrap.innerHTML='<button id="manualSearchNow" class="btn primary" type="button" style="width:100%;min-height:56px">선택한 조건으로 검색하기 →</button><small id="manualSearchHint" style="color:#8e99a8;text-align:center"></small>';options.appendChild(wrap);const btn=$('#manualSearchNow'),hint=$('#manualSearchHint');const sync=()=>{const count=selectedManualCount();btn.disabled=count===0;hint.textContent=count?`취향 ${count}개 선택 · 현재 거리/방향 조건으로 검색`:'여행 취향을 1개 이상 선택하세요.'};options.addEventListener('click',()=>setTimeout(sync,0));sync();btn.onclick=async()=>{if(btn.disabled)return;const next=$('#nextBtn');if(!next)return;btn.disabled=true;btn.textContent='추천 조건 준비 중…';try{next.click();await new Promise(r=>setTimeout(r,120));btn.textContent='추천지 검색 중…';$('#nextBtn')?.click()}finally{setTimeout(()=>{btn.disabled=selectedManualCount()===0;btn.textContent='선택한 조건으로 검색하기 →'},900)}}}
   function runtimeHealthCheck(){document.querySelectorAll('#categoryChoices button,#directionChoices button,.progress-step').forEach(b=>b.type='button')}
-  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();bindLandingPressFeedback();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();addManualSearchButton();createVehicleSetup();watchFirstLocation();applyVehicleSettings();refreshEnergyPrices();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST TEST · v1.7.1-titlefx';document.documentElement.classList.add('tq-chrome-ready')}
+  function bootChrome(){enhanceLandingSurface();applyUnifiedIcons();addCoverMotion();bindLandingPressFeedback();enhanceTopbar();addBottomNav();observeLanding();observeCourseDetailOrder();addManualSearchButton();createVehicleSetup();watchFirstLocation();applyVehicleSettings();refreshEnergyPrices();runtimeHealthCheck();const footer=$('.app-version-footer');if(footer)footer.textContent='TRIP QUEST TEST · v1.7.2-cover-final';document.documentElement.classList.add('tq-chrome-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootChrome,{once:true});else bootChrome();
 })();
