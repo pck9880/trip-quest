@@ -106,8 +106,19 @@ async function startApp(user){
   accountBar.hidden=true;
   if(appStarted)return;
   appStarted=true;
-  await import('./app.js?v=20261006-whitefix1');
-  await import('./app-chrome.js?v=20261006-whitefix1');
+  try{
+    await import('./app.js?v=20261006-whitefix1');
+    await import('./app-chrome.js?v=20261006-whitefix1');
+  }catch(err){
+    appStarted=false;
+    document.body.classList.add('tq-auth-locked');
+    gate.hidden=false;
+    loginView.hidden=false;
+    signupView.hidden=true;
+    setMessage(loginMessage,'앱을 시작하지 못했습니다. 새로고침 후 다시 시도해주세요.','error');
+    console.error('TRIP QUEST startup failed',err);
+    throw err;
+  }
 }
 function friendlyLoginError(err){
   const raw=String(err?.message||'').toLowerCase();
