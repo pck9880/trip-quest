@@ -110,3 +110,47 @@ export async function nearbyOfficialPlaces(anchor,radiusKm=5,limit=60){
   return rows.slice(0,limit);
 }
 export async function nationalDatasetStatus(){return loadManifest()}
+
+
+/* Local administrative selector index.
+   Built from the already bundled national dataset: no network geocoding/Overpass calls.
+   The hierarchy is intentionally data-driven so the selector and place DB use the same region spellings. */
+let regionHierarchyPromise=null;
+function uiSidoName(place){
+  if(place.sido==='전남광주통합특별시'){
+    return GWANGJU_GU.has(String(place.sigungu||'').split(' ').at(-1))?'광주광역시':'전라남도';
+  }
+  return place.sido;
+}
+function cleanSigungu(sido,value=''){
+  let v=String(value||'').trim();
+  if(!v)return '';
+  if(v.startsWith(sido+' '))v=v.slice(sido.length+1).trim();
+  return v;
+}
+export async function localRegionHierarchy(){
+  if(!regionHierarchyPromise)regionHierarchyPromise=(async()=>{
+    const {items}=await loadNationalDataset();
+    const tree=new Map();
+    for(const place of items){
+      const sido=uiSidoName(place);
+      if(!sido)continue;
+      if(!tree.has(sido))tree.set(sido,new Map());
+      const sigungu=cleanSigungu(sido,place.sigungu);
+      if(!sigungu)continue;
+      const gu=tree.get(sido);
+      if(!gu.has(sigungu))gu.set(sigungu,new Set());
+      const dong=String(place.eupmyeondong||'').trim();
+      if(dong)gu.get(sigungu).add(dong);
+    }
+    return tree;
+  })();
+  return regionHierarchyPromise;
+}
+export async function localRegionChildren(path=[]){
+  const tree=await localRegionHierarchy();
+  const [sido,sigungu]=path;
+  if(!sido)return [];
+  if(!sigungu)return [...(tree.get(sido)?.keys()||[])].sort((a,b)=>a.localeCompare(b,'ko'));
+  return [...(tree.get(sido)?.get(sigungu)||[])].sort((a,b)=>a.localeCompare(b,'ko'));
+}
