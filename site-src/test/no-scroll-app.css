@@ -1,0 +1,658 @@
+/* TRIP QUEST · NO-SCROLL APP MODE
+   One viewport = one game screen. Vertical scrolling is intentionally disabled.
+   Overflowing datasets use explicit page controls instead. */
+
+:root{
+  --ns-page-gap:6px;
+  --ns-control-h:38px;
+}
+
+/* Entire installed/web app is a single viewport. */
+html,
+body{
+  width:100%;
+  height:100%;
+  overflow:hidden!important;
+  overscroll-behavior:none!important;
+}
+
+body.tq-auth-locked,
+body:not(.tq-auth-locked){
+  height:100dvh!important;
+  min-height:100svh!important;
+  overflow:hidden!important;
+}
+
+/* Auth also stays inside one screen. */
+.tq-auth-gate{
+  height:100dvh!important;
+  min-height:100svh!important;
+  overflow:hidden!important;
+  display:grid!important;
+  place-items:center!important;
+}
+
+.tq-auth-shell{
+  width:min(460px,calc(100% - 24px))!important;
+  max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 20px)!important;
+  overflow:hidden!important;
+}
+
+.tq-auth-brand{
+  margin-bottom:8px!important;
+}
+
+.tq-auth-brand p{
+  display:none!important;
+}
+
+.tq-auth-card{
+  max-height:none!important;
+  overflow:hidden!important;
+}
+
+.tq-auth-form{
+  gap:8px!important;
+}
+
+.tq-auth-form input:not([type="checkbox"]){
+  min-height:40px!important;
+  height:40px!important;
+}
+
+.tq-auth-submit,
+.tq-auth-switch{
+  min-height:40px!important;
+}
+
+/* Main content and every step: never scroll. */
+body:not(.tq-auth-locked) .app-shell,
+body:not(.tq-auth-locked) .app-shell>main,
+body:not(.tq-auth-locked) .wizard,
+body:not(.tq-auth-locked) .wizard>.step-view{
+  overflow:hidden!important;
+  overscroll-behavior:none!important;
+}
+
+body:not(.tq-auth-locked) .wizard>.step-view.active{
+  height:100%!important;
+  min-height:0!important;
+  display:grid!important;
+  grid-template-rows:auto minmax(0,1fr);
+  gap:6px!important;
+}
+
+/* Compact common headers to give the data area maximum room. */
+body:not(.tq-auth-locked) .selector-section-head{
+  margin:0!important;
+}
+
+body:not(.tq-auth-locked) .selector-section-head p{
+  display:none!important;
+}
+
+body:not(.tq-auth-locked) .selector-section-head strong{
+  font-size:14px!important;
+}
+
+body:not(.tq-auth-locked) .selector-section-head>span{
+  font-size:8px!important;
+}
+
+/* Region screen */
+body:not(.tq-auth-locked) [data-step-view="1"]{
+  grid-template-rows:auto auto auto auto!important;
+  align-content:start;
+}
+
+body:not(.tq-auth-locked) .region-select-grid{
+  gap:6px!important;
+}
+
+body:not(.tq-auth-locked) .region-select-grid label{
+  padding:6px!important;
+}
+
+body:not(.tq-auth-locked) .region-select-grid label>span{
+  font-size:9px!important;
+}
+
+body:not(.tq-auth-locked) .region-select-grid select{
+  height:38px!important;
+  min-height:38px!important;
+}
+
+body:not(.tq-auth-locked) .pixel-region-loader{
+  margin:6px 0 0!important;
+  padding:7px!important;
+}
+
+body:not(.tq-auth-locked) .pixel-loader-head{
+  margin-bottom:5px!important;
+}
+
+body:not(.tq-auth-locked) .pixel-loader-frame{
+  height:20px!important;
+}
+
+body:not(.tq-auth-locked) #regionLoadText{
+  margin:5px 0 0!important;
+  max-height:2.5em;
+  overflow:hidden;
+  font-size:9px!important;
+  line-height:1.25!important;
+}
+
+body:not(.tq-auth-locked) #regionContinueBtn{
+  min-height:42px!important;
+  height:42px!important;
+  margin-top:6px!important;
+}
+
+/* Generic game pager */
+.tq-page-controls{
+  flex:0 0 auto;
+  min-height:var(--ns-control-h);
+  height:var(--ns-control-h);
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr) 42px;
+  align-items:center;
+  gap:6px;
+  margin-top:6px;
+  padding:0;
+}
+
+.tq-page-controls[hidden]{
+  display:none!important;
+}
+
+.tq-page-controls button{
+  width:42px!important;
+  min-width:42px!important;
+  height:36px!important;
+  min-height:36px!important;
+  padding:0!important;
+  border:1px solid #40535d!important;
+  border-radius:0!important;
+  background:#0b151c!important;
+  color:#f3f8f6!important;
+  box-shadow:0 3px 0 #020608!important;
+  font:700 12px/1 var(--p3-font-mono,monospace)!important;
+}
+
+.tq-page-controls button:disabled{
+  opacity:.28!important;
+  filter:none!important;
+}
+
+.tq-page-label{
+  min-width:0;
+  text-align:center;
+  color:#9aaab2;
+  font:700 9px/1 var(--p3-font-mono,monospace);
+  letter-spacing:.04em;
+}
+
+.tq-page-label strong{
+  color:var(--p3-lime,#d8ff45);
+  font-size:11px;
+}
+
+/* PLACE SELECT: 2 columns x 3 rows + pager. */
+body:not(.tq-auth-locked) [data-step-view="2"]{
+  grid-template-rows:auto minmax(0,1fr) auto!important;
+}
+
+body:not(.tq-auth-locked) #placeChoices{
+  min-height:0!important;
+  height:100%!important;
+  align-content:stretch!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-template-rows:repeat(3,minmax(0,1fr))!important;
+  gap:6px!important;
+  overflow:hidden!important;
+}
+
+body:not(.tq-auth-locked) #placeChoices button{
+  min-height:0!important;
+  height:100%!important;
+  padding:5px 7px!important;
+  font-size:10px!important;
+}
+
+body:not(.tq-auth-locked) #placeChoices button[hidden]{
+  display:none!important;
+}
+
+/* RESULTS: flatten legacy popular/regular wrappers into a 3-card game page. */
+body:not(.tq-auth-locked) [data-step-view="3"]{
+  grid-template-rows:auto auto minmax(0,1fr) auto!important;
+}
+
+body:not(.tq-auth-locked) #placeLoadStatus{
+  margin:0!important;
+  padding:6px!important;
+}
+
+body:not(.tq-auth-locked) #placeLoadStatus[hidden]{
+  display:none!important;
+}
+
+body:not(.tq-auth-locked) .result-toolbar{
+  min-height:34px!important;
+  margin:0!important;
+  padding:0!important;
+}
+
+body:not(.tq-auth-locked) .result-toolbar>div:first-child span,
+body:not(.tq-auth-locked) .result-sort,
+body:not(.tq-auth-locked) #editConditionsBtn{
+  display:none!important;
+}
+
+body:not(.tq-auth-locked) .result-layout,
+body:not(.tq-auth-locked) #ranking{
+  height:100%!important;
+  min-height:0!important;
+  overflow:hidden!important;
+}
+
+body:not(.tq-auth-locked) #ranking.ranking-with-popular{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  grid-template-rows:repeat(3,minmax(0,1fr))!important;
+  gap:6px!important;
+}
+
+body:not(.tq-auth-locked) #ranking .popular-picks,
+body:not(.tq-auth-locked) #ranking .regular-results,
+body:not(.tq-auth-locked) #ranking .popular-grid,
+body:not(.tq-auth-locked) #ranking .regular-results-list{
+  display:contents!important;
+}
+
+body:not(.tq-auth-locked) #ranking .popular-picks-head,
+body:not(.tq-auth-locked) #ranking .regular-results-head{
+  display:none!important;
+}
+
+body:not(.tq-auth-locked) #ranking .rank-card{
+  min-height:0!important;
+  height:100%!important;
+  padding:7px 8px!important;
+  border-radius:0!important;
+  display:grid!important;
+  grid-template-columns:24px minmax(0,1fr) auto!important;
+  grid-template-rows:auto auto!important;
+  gap:4px 7px!important;
+  align-items:center;
+}
+
+body:not(.tq-auth-locked) #ranking .rank-card[hidden]{
+  display:none!important;
+}
+
+body:not(.tq-auth-locked) #ranking .rank-card h3{
+  margin:0!important;
+  font-size:12px!important;
+  line-height:1.15!important;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+body:not(.tq-auth-locked) #ranking .rank-number{
+  grid-row:1/3;
+  font-size:10px!important;
+}
+
+body:not(.tq-auth-locked) #ranking .rank-tags{
+  margin-top:3px!important;
+}
+
+body:not(.tq-auth-locked) #ranking .rank-meta{
+  margin-top:3px!important;
+  max-width:100%;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  font-size:8px!important;
+}
+
+body:not(.tq-auth-locked) #ranking .rank-reason{
+  display:none!important;
+}
+
+body:not(.tq-auth-locked) #ranking .rank-actions{
+  grid-column:3!important;
+  grid-row:1/3!important;
+}
+
+body:not(.tq-auth-locked) #ranking .rank-actions .btn{
+  width:auto!important;
+  min-width:86px!important;
+  height:34px!important;
+  min-height:34px!important;
+  padding:0 8px!important;
+  font-size:9px!important;
+}
+
+body:not(.tq-auth-locked) #ranking .popular-badge{
+  position:static!important;
+  grid-column:2!important;
+  justify-self:start;
+  padding:3px 5px!important;
+  font-size:7px!important;
+}
+
+/* COURSE: two explicit pages, never a scrolling document. */
+body:not(.tq-auth-locked) [data-step-view="4"]{
+  grid-template-rows:auto auto minmax(0,1fr)!important;
+}
+
+body:not(.tq-auth-locked) .selected-place-head{
+  min-height:42px!important;
+  margin:0!important;
+  padding:5px 7px!important;
+}
+
+body:not(.tq-auth-locked) .selected-place-head h2{
+  margin:2px 0 0!important;
+  font-size:13px!important;
+}
+
+body:not(.tq-auth-locked) .selected-place-head p,
+body:not(.tq-auth-locked) .selected-place-actions{
+  display:none!important;
+}
+
+body:not(.tq-auth-locked) .course-builder-panel{
+  min-height:0!important;
+  height:100%!important;
+  overflow:hidden!important;
+  display:grid!important;
+  grid-template-rows:minmax(0,1fr)!important;
+  gap:0!important;
+}
+
+body:not(.tq-auth-locked) .course-builder-panel>[data-tq-course-page]{
+  min-height:0!important;
+  height:100%!important;
+  overflow:hidden!important;
+}
+
+body:not(.tq-auth-locked) .course-builder-panel>[data-tq-course-page][hidden]{
+  display:none!important;
+}
+
+body:not(.tq-auth-locked) .tq-course-page-nearby{
+  display:grid!important;
+  grid-template-rows:auto auto auto minmax(0,1fr) auto!important;
+  gap:5px!important;
+}
+
+body:not(.tq-auth-locked) .course-builder-head{
+  padding:6px 8px!important;
+  min-height:42px!important;
+  border-radius:0!important;
+}
+
+body:not(.tq-auth-locked) .course-builder-head h3{
+  margin:2px 0 0!important;
+  font-size:12px!important;
+}
+
+body:not(.tq-auth-locked) .course-builder-head p{
+  display:none!important;
+}
+
+body:not(.tq-auth-locked) .course-builder-head>strong{
+  font-size:9px!important;
+}
+
+body:not(.tq-auth-locked) .nearby-radius-box{
+  padding:6px 8px!important;
+  border-radius:0!important;
+}
+
+body:not(.tq-auth-locked) .radius-title{
+  margin-bottom:3px!important;
+}
+
+body:not(.tq-auth-locked) .radius-title strong{
+  font-size:13px!important;
+}
+
+body:not(.tq-auth-locked) .radius-scale{
+  display:none!important;
+}
+
+body:not(.tq-auth-locked) #nearbyRefreshBtn{
+  min-height:32px!important;
+  height:32px!important;
+  margin-top:3px!important;
+}
+
+body:not(.tq-auth-locked) #nearbyLoadStatus{
+  padding:5px!important;
+  margin:0!important;
+}
+
+body:not(.tq-auth-locked) #nearbySource{
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  font-size:8px!important;
+}
+
+body:not(.tq-auth-locked) #nearbyChoiceList{
+  min-height:0!important;
+  height:100%!important;
+  overflow:hidden!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  grid-template-rows:repeat(3,minmax(0,1fr))!important;
+  gap:5px!important;
+}
+
+body:not(.tq-auth-locked) #nearbyChoiceList .nearby-popular-section,
+body:not(.tq-auth-locked) #nearbyChoiceList .nearby-regular-section,
+body:not(.tq-auth-locked) #nearbyChoiceList .nearby-popular-grid,
+body:not(.tq-auth-locked) #nearbyChoiceList .nearby-regular-grid{
+  display:contents!important;
+}
+
+body:not(.tq-auth-locked) #nearbyChoiceList .nearby-popular-head,
+body:not(.tq-auth-locked) #nearbyChoiceList .nearby-regular-head{
+  display:none!important;
+}
+
+body:not(.tq-auth-locked) #nearbyChoiceList .nearby-choice-card{
+  min-height:0!important;
+  height:100%!important;
+  border-radius:0!important;
+}
+
+body:not(.tq-auth-locked) #nearbyChoiceList .nearby-choice-card[hidden]{
+  display:none!important;
+}
+
+body:not(.tq-auth-locked) #nearbyChoiceList .nearby-pick{
+  height:100%!important;
+  min-height:0!important;
+  padding:6px 7px!important;
+  gap:5px!important;
+  align-items:center!important;
+}
+
+body:not(.tq-auth-locked) #nearbyChoiceList .nearby-pick b{
+  font-size:10px!important;
+}
+
+body:not(.tq-auth-locked) #nearbyChoiceList .nearby-pick small{
+  font-size:8px!important;
+}
+
+body:not(.tq-auth-locked) #nearbyChoiceList .nearby-pick em{
+  display:none!important;
+}
+
+body:not(.tq-auth-locked) #nearbyChoiceList .stay-control{
+  position:absolute;
+  right:5px;
+  bottom:4px;
+  border:0!important;
+  padding:0!important;
+  font-size:0!important;
+}
+
+body:not(.tq-auth-locked) #nearbyChoiceList .stay-control select{
+  height:28px!important;
+  min-height:28px!important;
+  padding:0 4px!important;
+  font-size:8px!important;
+}
+
+body:not(.tq-auth-locked) #nearbyChoiceList .nearby-choice-card{
+  position:relative;
+}
+
+/* Course setup/result page */
+body:not(.tq-auth-locked) .tq-course-page-plan{
+  display:grid!important;
+  grid-template-rows:auto minmax(0,1fr) auto!important;
+  gap:6px!important;
+}
+
+body:not(.tq-auth-locked) .schedule-builder{
+  padding:7px!important;
+  gap:6px!important;
+  border-radius:0!important;
+}
+
+body:not(.tq-auth-locked) .schedule-builder>div:first-child p{
+  display:none!important;
+}
+
+body:not(.tq-auth-locked) .schedule-builder h3{
+  margin:2px 0!important;
+  font-size:12px!important;
+}
+
+body:not(.tq-auth-locked) .schedule-inputs{
+  grid-template-columns:1fr 1fr!important;
+  gap:5px!important;
+}
+
+body:not(.tq-auth-locked) .schedule-inputs label{
+  gap:3px!important;
+}
+
+body:not(.tq-auth-locked) .schedule-inputs input,
+body:not(.tq-auth-locked) .schedule-inputs select{
+  height:34px!important;
+  min-height:34px!important;
+}
+
+body:not(.tq-auth-locked) #buildSelectedCourseBtn{
+  min-height:36px!important;
+  height:36px!important;
+}
+
+body:not(.tq-auth-locked) #courseTimeline{
+  min-height:0!important;
+  height:100%!important;
+  overflow:hidden!important;
+  padding:6px!important;
+  border-radius:0!important;
+}
+
+body:not(.tq-auth-locked) .course-total{
+  grid-template-columns:repeat(4,1fr)!important;
+  gap:4px!important;
+  margin-bottom:5px!important;
+}
+
+body:not(.tq-auth-locked) .course-total>div{
+  padding:5px!important;
+  border-radius:0!important;
+}
+
+body:not(.tq-auth-locked) .course-total span{
+  font-size:7px!important;
+}
+
+body:not(.tq-auth-locked) .course-total strong{
+  margin-top:2px!important;
+  font-size:10px!important;
+}
+
+body:not(.tq-auth-locked) .timeline-stops{
+  gap:3px!important;
+}
+
+body:not(.tq-auth-locked) .timeline-stops li{
+  min-height:34px;
+  padding:4px 5px!important;
+  gap:5px!important;
+}
+
+body:not(.tq-auth-locked) .timeline-stops li[hidden]{
+  display:none!important;
+}
+
+body:not(.tq-auth-locked) .timeline-stops b{
+  font-size:9px!important;
+}
+
+body:not(.tq-auth-locked) .timeline-stops span{
+  font-size:7px!important;
+}
+
+body:not(.tq-auth-locked) .course-rule{
+  display:none!important;
+}
+
+/* Popups stay one-screen as well. */
+body:not(.tq-auth-locked) .range-expand-card,
+body:not(.tq-auth-locked) .install-card{
+  max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 20px)!important;
+  overflow:hidden!important;
+}
+
+/* Very short phones: compress chrome first, never introduce scrolling. */
+@media(max-height:680px){
+  body:not(.tq-auth-locked) .selector-intro{
+    display:none!important;
+  }
+  body:not(.tq-auth-locked) .wizard-head #stepDescription{
+    display:none!important;
+  }
+  body:not(.tq-auth-locked) .wizard-head{
+    min-height:30px!important;
+  }
+  body:not(.tq-auth-locked) .wizard-head h2{
+    font-size:12px!important;
+  }
+  .tq-auth-brand{
+    display:none!important;
+  }
+  .tq-auth-card{
+    padding:10px!important;
+  }
+}
+
+/* Landscape is still one screen; controls compact horizontally. */
+@media(orientation:landscape) and (max-height:520px){
+  body:not(.tq-auth-locked) .selector-intro,
+  body:not(.tq-auth-locked) .progress{
+    display:none!important;
+  }
+  body:not(.tq-auth-locked) .wizard{
+    padding:5px!important;
+  }
+  body:not(.tq-auth-locked) #placeChoices{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    grid-template-rows:repeat(2,minmax(0,1fr))!important;
+  }
+}
