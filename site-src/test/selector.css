@@ -1,0 +1,15 @@
+.selector-intro{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:24px}
+.selector-intro span,.selector-section-head>span{color:#c9ff45;font-size:11px;font-weight:900;letter-spacing:.12em}
+.selector-intro h1{margin:5px 0 6px;font-size:28px;letter-spacing:-.04em}.selector-intro p{margin:0;color:#84909e;font-size:13px}
+.selector-intro>strong{max-width:44%;text-align:right;color:#c6d0da;font-size:12px;font-weight:700;line-height:1.5}
+.selector-section-head{margin-bottom:18px}.selector-section-head strong{display:block;margin-top:5px;font-size:20px}.selector-section-head p{margin:7px 0 0;color:#85919f;font-size:12px;line-height:1.6}
+.region-select-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.region-select-grid label{display:grid;gap:8px}.region-select-grid label>span{font-size:12px;font-weight:800;color:#b8c3ce}.region-select-grid label b{color:#c9ff45;font-size:10px}
+.region-select-grid select{width:100%;height:52px;border:1px solid #31404f;border-radius:14px;background:#0b1118;color:#f4f7fa;padding:0 13px;font:inherit;outline:none}
+.region-select-grid select:focus{border-color:#c9ff45}.region-select-grid select:disabled{opacity:.5}
+.selector-status{margin-top:14px;border:1px solid #263544;border-radius:12px;background:#0c131b;padding:11px 13px;color:#8f9cab;font-size:12px}
+.selector-chip-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.selector-chip-grid button{min-height:50px;border:1px solid #304050;border-radius:14px;background:#0c131b;color:#b8c3ce;font-weight:800;cursor:pointer;padding:8px 10px}
+.selector-chip-grid button.selected{border-color:#c9ff45;background:#17220f;color:#d8ff62;box-shadow:0 0 0 1px rgba(201,255,69,.14) inset}
+.selector-chip-grid.facility{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:760px){.selector-intro{display:block}.selector-intro>strong{display:block;max-width:none;text-align:left;margin-top:14px}.region-select-grid{grid-template-columns:1fr}.selector-chip-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.selector-chip-grid.facility{grid-template-columns:repeat(2,minmax(0,1fr))}}
