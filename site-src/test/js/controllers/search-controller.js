@@ -140,8 +140,9 @@ export function createSearchController({state,travelService,setStep}){
 
     list.className='nearby-choice-list nearby-choice-grouped';
     list.innerHTML=topHtml+regularHtml;
-    setText('#selectedNearbyCount',selected.size+'곳 선택');
-    $('#buildSelectedCourseBtn').disabled=selected.size===0;
+    setText('#selectedNearbyCount',selected.size+' / 3 선택');
+    const build=$('#buildSelectedCourseBtn');
+    if(build){build.disabled=selected.size!==3;build.textContent=selected.size===3?'선택한 3곳으로 코스 계산':(3-selected.size)+'곳 더 선택하세요.'}
   }
   async function refreshNearby(){
     if(!state.selected)return;const radius=Number(state.courseRadiusKm||5);startNearbyProgress();$('#nearbyChoiceList').className='nearby-choice-list empty-state';$('#nearbyChoiceList').innerHTML='주변 추천 장소를 준비하고 있습니다…';
@@ -152,7 +153,7 @@ export function createSearchController({state,travelService,setStep}){
     const d=new Date(Date.now()+30*60*1000);d.setMinutes(Math.ceil(d.getMinutes()/10)*10,0,0);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
   }
   async function buildCourse(){
-    const chosen=selectedNearby();if(!chosen.length){toast('코스에 넣을 장소를 한 곳 이상 선택하세요.');return}
+    const chosen=selectedNearby();if(chosen.length!==3){toast('코스에 추가할 장소 3곳을 선택해 주세요.');return}
     const depart=$('#courseDepartTime').value||defaultDeparture();const stay={...(state.courseStayById||{}),[state.selected.id]:Number($('#destinationStayMin').value||60)};
     loading(true);$('#courseTimeline').className='course-timeline empty-state';$('#courseTimeline').innerHTML='선택한 장소의 최적 순서를 계산하고 있습니다…';
     try{
@@ -166,7 +167,7 @@ export function createSearchController({state,travelService,setStep}){
 
   async function selectPlace(i,goCourse=false){
     state.selected=state.recommendations[i];state.nearbyCandidates=[];state.selectedNearbyIds=[];state.courseStayById={[state.selected.id]:60};state.selectedCourse=null;state.selectedCourseData=null;
-    setText('#selectedPlaceName',state.selected.name);setText('#selectedPlaceMeta',(state.selected.category||'여행지')+' · '+(state.selected.address||'주소 정보 없음'));setText('#selectedNearbyCount','0곳 선택');$('#courseTimeline').className='course-timeline empty-state';$('#courseTimeline').innerHTML='주변 장소를 선택한 뒤 코스를 계산하세요.';
+    setText('#selectedPlaceName',state.selected.name);setText('#selectedPlaceMeta',(state.selected.category||'여행지')+' · '+(state.selected.address||'주소 정보 없음'));setText('#selectedNearbyCount','0 / 3 선택');$('#courseTimeline').className='course-timeline empty-state';$('#courseTimeline').innerHTML='주변 장소를 선택한 뒤 코스를 계산하세요.';
     if($('#courseDepartTime'))$('#courseDepartTime').value=defaultDeparture();if(goCourse)setStep(4);await refreshNearby();
   }
   function bindCourseBuilder(){
@@ -174,11 +175,21 @@ export function createSearchController({state,travelService,setStep}){
     $('#destinationStayMin')?.addEventListener('change',e=>{if(state.selected)state.courseStayById={...(state.courseStayById||{}),[state.selected.id]:Number(e.target.value)}});
     $('#nearbyChoiceList')?.addEventListener('click',e=>{
       if(e.target.closest('select'))return;const card=e.target.closest('.nearby-choice-card');if(!card)return;const id=card.dataset.id,ids=new Set(state.selectedNearbyIds||[]);
-      if(ids.has(id))ids.delete(id);else{if(ids.size>=6){toast('한 코스에는 주변 장소를 최대 6곳까지 선택할 수 있습니다.');return}ids.add(id)}
+      if(ids.has(id))ids.delete(id);else{if(ids.size>=3){toast('코스에는 최대 3곳까지 선택할 수 있습니다.');return}ids.add(id)}
       state.selectedNearbyIds=[...ids];if(ids.has(id)&&!state.courseStayById?.[id])state.courseStayById={...(state.courseStayById||{}),[id]:60};renderNearby();
+      if(ids.size===3){
+        const modal=$('#courseSelectModal');if(modal)modal.hidden=false;
+      }
     });
     $('#nearbyChoiceList')?.addEventListener('change',e=>{const id=e.target?.dataset?.stay;if(!id)return;state.courseStayById={...(state.courseStayById||{}),[id]:Number(e.target.value)}});
     $('#buildSelectedCourseBtn')?.addEventListener('click',buildCourse);
+    $('#courseSelectEdit')?.addEventListener('click',()=>{const modal=$('#courseSelectModal');if(modal)modal.hidden=true});
+    $('#courseSelectNext')?.addEventListener('click',()=>{
+      if((state.selectedNearbyIds||[]).length!==3){toast('코스에 추가할 장소 3곳을 선택해 주세요.');return}
+      const modal=$('#courseSelectModal');if(modal)modal.hidden=true;
+      document.dispatchEvent(new CustomEvent('tq:course-page',{detail:{page:1}}));
+    });
+    $('#courseSelectModal')?.addEventListener('click',e=>{if(e.target===$('#courseSelectModal'))e.currentTarget.hidden=true});
     const expandConfirm=$('#rangeExpandConfirm');if(expandConfirm)expandConfirm.onclick=async()=>{const req=pendingExpand;hideExpandModal();if(req)await recommend(req)};
     $('#rangeExpandCancel')?.addEventListener('click',()=>{hideExpandModal();setStep(1)});$('#rangeExpandModal')?.addEventListener('click',e=>{if(e.target===$('#rangeExpandModal'))hideExpandModal()});
   }
