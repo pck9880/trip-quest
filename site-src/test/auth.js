@@ -90,7 +90,7 @@ async function startApp(user){
   accountEmail.textContent=user?.email||'';
   gate.hidden=true;
   document.body.classList.remove('tq-auth-locked');
-  accountBar.hidden=false;
+  accountBar.hidden=true;
   if(appStarted)return;
   appStarted=true;
   await import('./app.js?v=20261006-region1');
