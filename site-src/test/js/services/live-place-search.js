@@ -200,7 +200,7 @@ export async function searchRegionPlaces({boundary,categories=[],facilities=[],o
   const tasks=selected.map(async category=>{
     const query='[out:json][timeout:10];area('+aid+')->.searchArea;('+CATEGORY_SELECTORS[category].join('')+');out center tags qt 70;';
     try{
-      const json=await overpassJson(query,{timeoutMs:2100,label:category});
+      const json=await overpassJson(query,{timeoutMs:2800,label:category});
       const value={category,items:parseElements(json,category,facilities,boundary)};
       report(category,'fulfilled');
       return value;
