@@ -340,3 +340,151 @@
 }
 
 
+
+
+/* ==========================================================
+   TRIP QUEST COVER TITLE FX · phase 2
+   Effects only: the approved logo remains baked into artwork.
+   ========================================================== */
+.tq-cover-title-fx{
+  position:absolute;
+  inset:0;
+  z-index:8;
+  overflow:hidden;
+  pointer-events:none!important;
+  user-select:none;
+  image-rendering:pixelated;
+}
+
+/* Very subtle breathing light around the original title area. */
+.tq-title-glow{
+  position:absolute;
+  left:50%;
+  top:13.4%;
+  width:min(76vw,430px);
+  height:min(12vw,74px);
+  transform:translate(-50%,-50%);
+  opacity:.12;
+  background:radial-gradient(ellipse at center,
+    rgba(216,255,69,.28) 0,
+    rgba(106,201,255,.10) 32%,
+    transparent 72%);
+  filter:blur(8px);
+  animation:tqTitleGlow 3.6s steps(6,end) infinite;
+}
+
+/* Q center star: crisp 4-point pixel sparkle over the existing symbol. */
+.tq-title-q-star{
+  position:absolute;
+  left:calc(50% + 1.75dvh);
+  top:13.35%;
+  width:8px;
+  height:8px;
+  transform:translate(-50%,-50%);
+  background:#f5ffbd;
+  box-shadow:
+    -6px 0 0 -2px rgba(225,255,79,.92),
+    6px 0 0 -2px rgba(225,255,79,.92),
+    0 -6px 0 -2px rgba(225,255,79,.92),
+    0 6px 0 -2px rgba(225,255,79,.92),
+    0 0 12px 4px rgba(216,255,69,.34);
+  clip-path:polygon(
+    38% 0,62% 0,62% 38%,100% 38%,
+    100% 62%,62% 62%,62% 100%,38% 100%,
+    38% 62%,0 62%,0 38%,38% 38%
+  );
+  opacity:.56;
+  animation:tqQStarPulse 2.05s steps(5,end) infinite;
+}
+
+/* Green dot above the I gets a tiny arcade-style pulse, not movement. */
+.tq-title-i-dot{
+  position:absolute;
+  left:calc(50% - 9.15dvh);
+  top:10.55%;
+  width:7px;
+  height:7px;
+  transform:translate(-50%,-50%);
+  border-radius:1px;
+  background:rgba(221,255,69,.72);
+  box-shadow:0 0 0 2px rgba(216,255,69,.10),0 0 11px rgba(216,255,69,.34);
+  opacity:.28;
+  animation:tqIDotPulse 2.8s steps(4,end) infinite;
+}
+
+/* Two restrained pixel glints. They flash rather than slide, so the logo stays stable. */
+.tq-title-glint{
+  position:absolute;
+  width:4px;
+  height:4px;
+  background:#fff;
+  opacity:0;
+  box-shadow:
+    -4px 0 0 rgba(163,222,255,.7),
+    4px 0 0 rgba(163,222,255,.7),
+    0 -4px 0 rgba(255,255,255,.75),
+    0 4px 0 rgba(255,255,255,.75);
+}
+
+.tq-title-glint-a{
+  left:calc(50% - 15.6dvh);
+  top:12.2%;
+  animation:tqTitleGlint 4.4s steps(2,end) .55s infinite;
+}
+
+.tq-title-glint-b{
+  left:calc(50% + 12.8dvh);
+  top:14.4%;
+  animation:tqTitleGlint 5.2s steps(2,end) 2.15s infinite;
+}
+
+@keyframes tqTitleGlow{
+  0%,100%{opacity:.08;transform:translate(-50%,-50%) scale(1)}
+  45%{opacity:.17;transform:translate(-50%,-50%) scale(1.025)}
+  65%{opacity:.12;transform:translate(-50%,-50%) scale(1.01)}
+}
+
+@keyframes tqQStarPulse{
+  0%,100%{opacity:.42;transform:translate(-50%,-50%) scale(.84)}
+  42%{opacity:1;transform:translate(-50%,-50%) scale(1.34)}
+  58%{opacity:.72;transform:translate(-50%,-50%) scale(1)}
+}
+
+@keyframes tqIDotPulse{
+  0%,100%{opacity:.18;filter:brightness(1)}
+  48%{opacity:.62;filter:brightness(1.34)}
+  62%{opacity:.34;filter:brightness(1.08)}
+}
+
+@keyframes tqTitleGlint{
+  0%,82%,100%{opacity:0;transform:scale(.5)}
+  86%{opacity:.82;transform:scale(1)}
+  90%{opacity:.18;transform:scale(.7)}
+}
+
+/* Wide preview / landscape: use width-derived offsets because background-size:cover scales by width. */
+@media(min-aspect-ratio:9/16){
+  .tq-title-q-star{left:53.2%;top:13.35%}
+  .tq-title-i-dot{left:33.6%;top:10.55%}
+  .tq-title-glint-a{left:24.4%;top:12.2%}
+  .tq-title-glint-b{left:72.8%;top:14.4%}
+}
+
+@media(max-width:390px){
+  .tq-title-q-star{width:7px;height:7px}
+  .tq-title-i-dot{width:6px;height:6px}
+}
+
+/* Motion preference: preserve the approved static cover with no flashing. */
+@media(prefers-reduced-motion:reduce){
+  .tq-title-glow,
+  .tq-title-q-star,
+  .tq-title-i-dot,
+  .tq-title-glint{
+    animation:none!important;
+  }
+  .tq-title-glow{opacity:.08}
+  .tq-title-q-star{opacity:.48}
+  .tq-title-i-dot{opacity:.24}
+  .tq-title-glint{display:none}
+}
