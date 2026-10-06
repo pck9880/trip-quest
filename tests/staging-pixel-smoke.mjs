@@ -53,8 +53,8 @@ for(const asset of [
   './phase5-final.css?v=20261006-phase5b',
   './js/ui/phase2-pixel.js?v=20261006-phase2',
   './js/ui/phase5-polish.js?v=20261006-phase5',
-  './no-scroll-app.css?v=20261006-nearbyscroll1',
-  './js/ui/no-scroll-app.js?v=20261006-noscroll2'
+  './no-scroll-app.css?v=20261006-placescroll1',
+  './js/ui/no-scroll-app.js?v=20261006-placescroll1'
 ]){
   assert.ok(html.includes(asset),'staging HTML asset missing: '+asset);
 }
@@ -154,10 +154,10 @@ assert.ok(chromeJs.includes('scale=Math.max(w/COVER_SOURCE.w,h/COVER_SOURCE.h)')
 assert.ok(chromeJs.includes('window.visualViewport?.addEventListener'),'visual viewport resize correction missing');
 assert.ok(chromeJs.includes('requestAnimationFrame(syncCoverTitleFx)'),'title fx post-load alignment missing');
 
-assert.ok(html.includes('./no-scroll-app.css?v=20261006-nearbyscroll1'),'no-scroll HTML asset missing');
-assert.ok(html.includes('./js/ui/no-scroll-app.js?v=20261006-noscroll2'),'no-scroll pagination script missing');
-assert.ok(sw.includes('./no-scroll-app.css?v=20261006-nearbyscroll1'),'no-scroll CSS cache missing');
-assert.ok(sw.includes('./js/ui/no-scroll-app.js?v=20261006-noscroll2'),'no-scroll JS cache missing');
+assert.ok(html.includes('./no-scroll-app.css?v=20261006-placescroll1'),'no-scroll HTML asset missing');
+assert.ok(html.includes('./js/ui/no-scroll-app.js?v=20261006-placescroll1'),'no-scroll pagination script missing');
+assert.ok(sw.includes('./no-scroll-app.css?v=20261006-placescroll1'),'no-scroll CSS cache missing');
+assert.ok(sw.includes('./js/ui/no-scroll-app.js?v=20261006-placescroll1'),'no-scroll JS cache missing');
 assert.ok(sw.includes('./app.js?v=20261006-localfirst1'),'no-scroll app runtime cache missing');
 assert.ok(sw.includes('./app-chrome.js?v=20261006-localfirst1'),'no-scroll chrome runtime cache missing');
 assert.ok(sw.includes('./auth.js?v=20261006-localfirst1'),'no-scroll auth loader cache missing');
@@ -212,3 +212,10 @@ assert.ok(noScrollCss.includes('touch-action:pan-y!important'),'nearby touch scr
 assert.ok(noScrollCss.includes('-webkit-overflow-scrolling:touch'),'iOS nearby momentum scrolling missing');
 
 console.log('TRIP QUEST staging pixel/app-frame regression checks passed');
+
+assert.ok(!html.includes('id="progress"'),'top 1-4 progress rail must be removed');
+assert.ok(!html.includes('id="nearbyRadiusRange"'),'nearby radius slider must be removed');
+assert.ok(!html.includes('id="nearbyRefreshBtn"'),'nearby radius refresh button must be removed');
+assert.ok(noScrollCss.includes('PLACE LIST SCROLL'),'place-list scroll exception missing');
+assert.ok(noScrollCss.includes('#ranking::-webkit-scrollbar'),'search result internal scroll missing');
+assert.ok(noScrollJs.includes('one continuous internal list'),'result pagination removal missing');
