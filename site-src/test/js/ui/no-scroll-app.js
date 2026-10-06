@@ -60,16 +60,22 @@ function refreshPlacePager(reset=false){
   paginate({key:'places',host:$('#placeChoices'),itemSelector:'button[data-value]',pageSize:6,label:'PLACE'});
 }
 
-function refreshResultPager(reset=false){
+function refreshResultPager(){
   const host=$('#ranking');if(!host)return;
-  if(reset&&pagerState.get('results'))pagerState.get('results').page=0;
-  paginate({key:'results',host,itemSelector:'.rank-card',pageSize:3,label:'RESULT'});
+  // Search results are the deliberate no-scroll exception: one continuous internal list.
+  $('.rank-card',host).forEach(el=>{el.hidden=false});
+  const pager=host.parentElement?.querySelector(':scope > .tq-page-controls[data-pager="results"]');
+  if(pager)pager.remove();
+  pagerState.delete('results');
 }
 
-function refreshNearbyPager(reset=false){
+function refreshNearbyPager(){
   const host=$('#nearbyChoiceList');if(!host)return;
-  if(reset&&pagerState.get('nearby'))pagerState.get('nearby').page=0;
-  paginate({key:'nearby',host,itemSelector:'.nearby-choice-card',pageSize:3,label:'NEARBY'});
+  // Nearby search results also use one continuous internal scroll list.
+  $('.nearby-choice-card',host).forEach(el=>{el.hidden=false});
+  const pager=host.parentElement?.querySelector(':scope > .tq-page-controls[data-pager="nearby"]');
+  if(pager)pager.remove();
+  pagerState.delete('nearby');
 }
 
 function refreshTimelinePager(reset=false){
@@ -84,13 +90,12 @@ function buildCoursePages(){
   panel.dataset.noScrollPages='1';
 
   const head=$('.course-builder-head',panel);
-  const radius=$('.nearby-radius-box',panel);
   const load=$('#nearbyLoadStatus',panel);
   const source=$('#nearbySource',panel);
   const list=$('#nearbyChoiceList',panel);
   const schedule=$('.schedule-builder',panel);
   const timeline=$('#courseTimeline',panel);
-  if(!head||!radius||!list||!schedule||!timeline)return;
+  if(!head||!list||!schedule||!timeline)return;
 
   const nearby=document.createElement('div');
   nearby.className='tq-course-page-nearby';
@@ -102,7 +107,7 @@ function buildCoursePages(){
   plan.hidden=true;
 
   panel.insertBefore(nearby,head);
-  nearby.append(head,radius);
+  nearby.append(head);
   if(load)nearby.append(load);
   if(source)nearby.append(source);
   nearby.append(list);
