@@ -869,3 +869,48 @@ body:not(.tq-auth-locked) #nearbyChoiceList .nearby-pick{
   height:auto!important;
   min-height:58px!important;
 }
+
+
+/* PLACE LIST SCROLL · app chrome stays fixed; only generated place lists scroll */
+body:not(.tq-auth-locked) #progress,
+body:not(.tq-auth-locked) .progress{
+  display:none!important;
+}
+body:not(.tq-auth-locked) #stepEyebrow{
+  display:none!important;
+}
+body:not(.tq-auth-locked) #ranking{
+  display:block!important;
+  height:100%!important;
+  min-height:0!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain!important;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y!important;
+  scrollbar-width:none;
+  padding-bottom:max(10px,env(safe-area-inset-bottom,0px))!important;
+}
+body:not(.tq-auth-locked) #ranking::-webkit-scrollbar{
+  display:none;
+}
+body:not(.tq-auth-locked) #ranking.ranking-with-popular{
+  display:block!important;
+}
+body:not(.tq-auth-locked) #ranking .popular-picks,
+body:not(.tq-auth-locked) #ranking .regular-results,
+body:not(.tq-auth-locked) #ranking .popular-grid,
+body:not(.tq-auth-locked) #ranking .regular-results-list{
+  display:block!important;
+}
+body:not(.tq-auth-locked) #ranking .rank-card{
+  height:auto!important;
+  min-height:64px!important;
+  margin-bottom:6px!important;
+}
+body:not(.tq-auth-locked) [data-step-view="3"] .result-layout{
+  display:block!important;
+  height:100%!important;
+  min-height:0!important;
+  overflow:hidden!important;
+}
