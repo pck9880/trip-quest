@@ -134,6 +134,12 @@ function buildCoursePages(){
     setCoursePage(target);
   });
   document.addEventListener('tq:course-page',e=>setCoursePage(Number(e.detail?.page||0)));
+  document.addEventListener('tq:course-built-next',()=>{
+    setCoursePage(1);
+    refreshTimelinePager(true);
+    const timeline=$('#courseTimeline');
+    if(timeline)timeline.scrollTop=0;
+  });
 }
 
 function setCoursePage(page){
