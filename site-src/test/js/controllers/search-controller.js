@@ -153,16 +153,38 @@ export function createSearchController({state,travelService,setStep}){
     const d=new Date(Date.now()+30*60*1000);d.setMinutes(Math.ceil(d.getMinutes()/10)*10,0,0);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
   }
   async function buildCourse(){
-    const chosen=selectedNearby();if(chosen.length!==3){toast('코스에 추가할 장소 3곳을 선택해 주세요.');return}
-    const depart=$('#courseDepartTime').value||defaultDeparture();const stay={...(state.courseStayById||{}),[state.selected.id]:Number($('#destinationStayMin').value||60)};
-    loading(true);$('#courseTimeline').className='course-timeline empty-state';$('#courseTimeline').innerHTML='선택한 장소의 최적 순서를 계산하고 있습니다…';
+    const chosen=selectedNearby();
+    if(chosen.length!==3){toast('코스에 추가할 장소 3곳을 선택해 주세요.');return}
+    if(!state.selected){toast('기준 여행지를 다시 선택해 주세요.');return}
+    const btn=$('#buildSelectedCourseBtn');
+    const depart=$('#courseDepartTime')?.value||defaultDeparture();
+    const destinationStay=Number($('#destinationStayMin')?.value||60);
+    const stay={...(state.courseStayById||{}),[state.selected.id]:destinationStay};
+    if(btn){btn.disabled=true;btn.textContent='코스 계산 중…'}
+    loading(true);
+    const timeline=$('#courseTimeline');
+    if(timeline){timeline.className='course-timeline empty-state';timeline.innerHTML='선택한 장소의 최적 순서를 계산하고 있습니다…'}
     try{
-      const course=await travelService.buildCourse({destination:state.selected,selectedStops:chosen,departureTime:depart,stayById:stay});state.selectedCourse='SELECTED';state.selectedCourseData=course;
-      $('#courseTimeline').className='course-timeline';
-      const endLabel=course.endDayOffset?('다음날 '+course.endTime):course.endTime;
-      $('#courseTimeline').innerHTML='<div class="course-total"><div><span>출발</span><strong>'+esc(course.departureTime)+'</strong></div><div><span>이동</span><strong>'+course.travelMin+'분</strong></div><div><span>체류</span><strong>'+course.stayMin+'분</strong></div><div><span>예상 종료</span><strong>'+esc(endLabel)+'</strong></div></div><ol class="timeline-stops">'+course.legs.map((x,i)=>'<li><b>'+String(i+1).padStart(2,'0')+' · '+esc(x.stop.name)+'</b><span>'+esc(x.arrival.time)+(x.arrival.dayOffset?' (+1일)':'')+' 도착 · '+x.stayMin+'분 체류 · '+esc(x.leave.time)+' 출발</span></li>').join('')+'</ol><div class="course-rule">도보 예상 '+course.route.distanceKm.toFixed(1)+'km · 선택한 장소만 사용 · 거리 최적화 순서</div>';
-      setText('#actionHint','코스 계산 완료 · 예상 종료 '+endLabel);toast('선택한 장소로 최적 코스를 만들었습니다.');
-    }catch(e){$('#courseTimeline').innerHTML='<span class="error">'+esc(e.message)+'</span>'}finally{loading(false)}
+      const course=await travelService.buildCourse({destination:state.selected,selectedStops:chosen,departureTime:depart,stayById:stay});
+      if(!course?.legs?.length)throw new Error('코스 계산 결과를 만들지 못했습니다.');
+      state.selectedCourse='SELECTED';state.selectedCourseData=course;
+      if(timeline){
+        timeline.className='course-timeline';
+        const endLabel=course.endDayOffset?('다음날 '+course.endTime):course.endTime;
+        timeline.innerHTML='<div class="course-total"><div><span>출발</span><strong>'+esc(course.departureTime)+'</strong></div><div><span>이동</span><strong>'+course.travelMin+'분</strong></div><div><span>체류</span><strong>'+course.stayMin+'분</strong></div><div><span>예상 종료</span><strong>'+esc(endLabel)+'</strong></div></div><ol class="timeline-stops">'+course.legs.map((x,i)=>'<li><b>'+String(i+1).padStart(2,'0')+' · '+esc(x.stop.name)+'</b><span>'+esc(x.arrival.time)+(x.arrival.dayOffset?' (+1일)':'')+' 도착 · '+x.stayMin+'분 체류 · '+esc(x.leave.time)+' 출발</span></li>').join('')+'</ol><div class="course-rule">도보 예상 '+course.route.distanceKm.toFixed(1)+'km · 선택한 장소만 사용 · 거리 최적화 순서</div>';
+        setText('#actionHint','코스 계산 완료 · 예상 종료 '+endLabel);
+        const builtText=$('#courseBuiltText');if(builtText)builtText.textContent='선택한 3곳의 최적 순서를 계산했습니다. 예상 종료 '+endLabel+'입니다.';
+      }
+      const modal=$('#courseBuiltModal');if(modal)modal.hidden=false;
+      toast('선택한 3곳으로 코스 계산을 완료했습니다.');
+    }catch(e){
+      const message=e?.message||'코스 계산에 실패했습니다.';
+      if(timeline)timeline.innerHTML='<span class="error">'+esc(message)+'</span>';
+      toast(message);
+    }finally{
+      loading(false);
+      if(btn){btn.disabled=false;btn.textContent='선택한 3곳으로 코스 계산'}
+    }
   }
 
   async function selectPlace(i,goCourse=false){
@@ -182,7 +204,13 @@ export function createSearchController({state,travelService,setStep}){
       }
     });
     $('#nearbyChoiceList')?.addEventListener('change',e=>{const id=e.target?.dataset?.stay;if(!id)return;state.courseStayById={...(state.courseStayById||{}),[id]:Number(e.target.value)}});
-    $('#buildSelectedCourseBtn')?.addEventListener('click',buildCourse);
+    $('#buildSelectedCourseBtn')?.addEventListener('click',e=>{e.preventDefault();buildCourse()});
+    $('#courseBuiltClose')?.addEventListener('click',()=>{const modal=$('#courseBuiltModal');if(modal)modal.hidden=true});
+    $('#courseBuiltNext')?.addEventListener('click',()=>{
+      const modal=$('#courseBuiltModal');if(modal)modal.hidden=true;
+      document.dispatchEvent(new CustomEvent('tq:course-built-next'));
+    });
+    $('#courseBuiltModal')?.addEventListener('click',e=>{if(e.target===$('#courseBuiltModal'))e.currentTarget.hidden=true});
     $('#courseSelectEdit')?.addEventListener('click',()=>{const modal=$('#courseSelectModal');if(modal)modal.hidden=true});
     $('#courseSelectNext')?.addEventListener('click',()=>{
       if((state.selectedNearbyIds||[]).length!==3){toast('코스에 추가할 장소 3곳을 선택해 주세요.');return}
