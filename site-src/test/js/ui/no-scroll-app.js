@@ -137,8 +137,6 @@ function buildCoursePages(){
   document.addEventListener('tq:course-built-next',()=>{
     setCoursePage(1);
     refreshTimelinePager(true);
-    const timeline=$('#courseTimeline');
-    if(timeline)timeline.scrollTop=0;
   });
 }
 
