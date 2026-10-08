@@ -133,12 +133,12 @@ assert.ok(landingCss.includes('@keyframes tqTitleGlint'),'pixel glint animation 
 assert.ok(landingCss.includes('@media(prefers-reduced-motion:reduce)'),'cover title fx reduced-motion guard missing');
 assert.ok(landingCss.includes('.main-landing:not(.tq-photo-ready) .tq-cover-title-fx'),'title fx must hide when artwork fails');
 assert.ok(sw.includes('./css/landing.css?v=20261006-titlefx2'),'title fx stylesheet cache version missing');
-assert.ok(sw.includes('./app-chrome.js?v=20261007-coursebuild1'),'title fx app chrome cache version missing');
+assert.ok(sw.includes('./app-chrome.js?v=20261008-searchfix1'),'title fx app chrome cache version missing');
 
 assert.ok(html.includes('./cover-phase3-final.css?v=20261006-coverfinal3'),'final cover QA stylesheet missing');
 assert.ok(sw.includes('./cover-phase3-final.css?v=20261006-coverfinal3'),'final cover QA stylesheet cache missing');
-assert.ok(sw.includes('./app-chrome.js?v=20261007-coursebuild1'),'final cover runtime cache version missing');
-assert.ok(sw.includes('./auth.js?v=20261007-coursebuild1'),'final cover auth cache version missing');
+assert.ok(sw.includes('./app-chrome.js?v=20261008-searchfix1'),'final cover runtime cache version missing');
+assert.ok(sw.includes('./auth.js?v=20261008-searchfix1'),'final cover auth cache version missing');
 assert.ok(coverFinalCss.includes('env(safe-area-inset-bottom,0px)'),'final cover bottom safe area missing');
 assert.ok(coverFinalCss.includes('env(safe-area-inset-left,0px)'),'final cover left safe area missing');
 assert.ok(coverFinalCss.includes('env(safe-area-inset-right,0px)'),'final cover right safe area missing');
@@ -158,9 +158,9 @@ assert.ok(html.includes('./no-scroll-app.css?v=20261006-placescroll1'),'no-scrol
 assert.ok(html.includes('./js/ui/no-scroll-app.js?v=20261006-course3fix1'),'no-scroll pagination script missing');
 assert.ok(sw.includes('./no-scroll-app.css?v=20261006-placescroll1'),'no-scroll CSS cache missing');
 assert.ok(sw.includes('./js/ui/no-scroll-app.js?v=20261006-course3fix1'),'no-scroll JS cache missing');
-assert.ok(sw.includes('./app.js?v=20261007-coursebuild1'),'no-scroll app runtime cache missing');
-assert.ok(sw.includes('./app-chrome.js?v=20261007-coursebuild1'),'no-scroll chrome runtime cache missing');
-assert.ok(sw.includes('./auth.js?v=20261007-coursebuild1'),'no-scroll auth loader cache missing');
+assert.ok(sw.includes('./app.js?v=20261008-searchfix1'),'no-scroll app runtime cache missing');
+assert.ok(sw.includes('./app-chrome.js?v=20261008-searchfix1'),'no-scroll chrome runtime cache missing');
+assert.ok(sw.includes('./auth.js?v=20261008-searchfix1'),'no-scroll auth loader cache missing');
 
 assert.ok(noScrollCss.includes('html,\nbody'),'document-level scroll lock missing');
 assert.ok(noScrollCss.includes('.tq-auth-gate'),'auth one-screen rule missing');
@@ -201,7 +201,13 @@ assert.ok(liveSearch.includes('name:ko'),'Korean region-name fallback query miss
 assert.ok(travelService.includes('Phase A: bundled/official data always runs first'),'local-first search phase missing');
 assert.ok(travelService.includes('const neededLive='),'supplemental live category calculation missing');
 assert.ok(travelService.includes('ensureLiveBoundary(criteria)'),'lazy live boundary lookup missing');
-assert.ok(travelService.includes("9000,\n          {items:[],source:'지도 보조 시간 제한'}"),'supplemental live timeout guard missing');
+assert.ok(travelService.includes('failed:neededLive.map'),'supplemental live timeout must identify failed categories');
+assert.ok(travelService.includes('MIN_CATEGORY_RESULTS=3'),'missing minimum-results external supplementation');
+assert.ok(travelService.includes("status==='unavailable'"),'search results must distinguish outages from empty regions');
+assert.ok(searchControllerJs.includes("finalStatus==='unavailable'"),'search UI must explain failed provider queries');
+assert.ok(nationalStore.includes('datasetPromise=null;throw error'),'national DB must recover after a failed initial fetch');
+assert.ok(nationalStore.includes('regionMatches(x,regionPath)'),'official DB must use standard district matching');
+assert.ok(sw.includes('./js/services/search-normalization.js'),'new normalized search dependency missing from offline shell');
 assert.ok(searchControllerJs.includes('while(scopeIndex>=0)'),'automatic hierarchical range expansion missing');
 assert.ok(searchControllerJs.includes('결과 부족으로'),'automatic range expansion UX message missing');
 assert.ok(liveSearch.includes("timeoutMs:2800,label:category"),'live category endpoint timeout recovery missing');
