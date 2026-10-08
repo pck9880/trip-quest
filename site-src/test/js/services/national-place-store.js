@@ -63,7 +63,7 @@ function destinationQuality(place){
     const type=place.subcategory||'';
     if(BAD_PARK.test(type)||BAD_PARK.test(place.name||''))return false;
     // Missing subtype metadata must not silently erase valid named parks.
-    return GOOD_PARK.test(type)||(!type&&/공원|수목원|정원/.test(place.name||''));
+    return GOOD_PARK.test(type)||/공원|수목원|정원/.test(place.name||'');
   }
   if(place.category==='전통시장')return !BAD_MARKET.test(place.name||'');
   if(place.category==='대형도서관')return /(도서관|라이브러리)/.test(place.name||'')&&!/북카페/.test(place.name||'');
