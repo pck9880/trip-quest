@@ -24,7 +24,7 @@
   <link rel="stylesheet" href="./phase4-app-frame.css?v=20261006-phase4a" />
   <link rel="stylesheet" href="./phase5-final.css?v=20261006-phase5b" />
   <link rel="stylesheet" href="./cover-phase3-final.css?v=20261006-coverfinal3" />
-  <link rel="stylesheet" href="./no-scroll-app.css?v=20261006-placescroll1" />
+  <link rel="stylesheet" href="./no-scroll-app.css?v=20261008-courseone1" />
   <link rel="preload" as="image" href="./assets/tq-cover-main-v044.webp?v=20261006-pixelcover1" fetchpriority="high" />
 </head>
 <body class="tq-auth-locked">
@@ -177,12 +177,12 @@
         <div class="step-view" data-step-view="4">
           <div class="selected-place-head"><div><span>기준 목적지</span><h2 id="selectedPlaceName">—</h2><p id="selectedPlaceMeta">—</p></div><div class="selected-place-actions"><button id="shareTripBtn" class="btn primary small">여행 공유</button><button id="changePlaceBtn" class="btn secondary small">다른 여행지</button></div></div>
           <section class="course-builder-panel">
-            <div class="course-builder-head"><div><span>NEARBY SELECT</span><h3>코스에 추가할 장소 3곳을 선택하세요.</h3><p>최대 3곳까지 선택할 수 있습니다. 3곳을 모두 선택하면 다음 단계로 이동할 수 있습니다.</p></div><strong id="selectedNearbyCount">0 / 3 선택</strong></div>
+            <div class="course-builder-head"><div><span>NEARBY SELECT</span><h3>장소 3곳 선택</h3><p>3곳 선택 후 아래에서 코스를 계산하세요.</p></div><strong id="selectedNearbyCount">0 / 3 선택</strong></div>
             <div id="nearbyLoadStatus" class="place-load-status" data-state="idle" hidden aria-live="polite"><div class="pixel-loader-head"><span>NEARBY INDEX</span><b id="nearbyLoadPercent">0%</b></div><div class="pixel-loader-frame" aria-hidden="true"><div id="nearbyLoadBar" class="pixel-loader-fill"></div><div class="pixel-loader-scan"></div></div><p id="nearbyLoadText">주변 장소를 준비합니다.</p></div>
             <small id="nearbySource" class="nearby-source">목적지를 선택하면 주변 장소를 추천합니다.</small>
             <div id="nearbyChoiceList" class="nearby-choice-list empty-state">주변 추천 장소를 준비하고 있습니다.</div>
             <div class="schedule-builder">
-              <div><span>SCHEDULE</span><h3>출발시간과 머무는 시간을 설정하세요.</h3><p>이동시간과 각 장소 체류시간을 합산해 예상 종료시간을 계산합니다.</p></div>
+              <div><span>SCHEDULE</span><h3>시간 설정</h3><p></p></div>
               <div class="schedule-inputs"><label><span>코스 출발시간</span><input id="courseDepartTime" type="time" step="600" /></label><label><span>기준 목적지 체류</span><select id="destinationStayMin"><option value="30">30분</option><option value="60" selected>60분</option><option value="90">90분</option><option value="120">120분</option></select></label></div>
               <button id="buildSelectedCourseBtn" class="btn primary" type="button" disabled>3곳 선택 후 코스 계산</button>
             </div>
@@ -194,7 +194,7 @@
       </section>
     </main>
   </div>
-  <footer class="app-version-footer">TRIP QUEST TEST · v1.9.7-search-stable</footer>
+  <footer class="app-version-footer">TRIP QUEST TEST · v1.10.0-course-single</footer>
   <div id="iosInstallTip" class="install-sheet" hidden><div class="install-card"><button id="closeInstallTip" class="install-close" aria-label="닫기">×</button><b>iPhone / iPad에 설치</b><p>Safari 하단의 공유 버튼을 누른 뒤 <strong>홈 화면에 추가</strong>를 선택하세요.</p></div></div>
   <div id="rangeExpandModal" class="range-expand-modal" hidden>
     <section class="range-expand-card" role="dialog" aria-modal="true" aria-labelledby="rangeExpandTitle">
@@ -214,10 +214,10 @@
     <section class="range-expand-card" role="dialog" aria-modal="true" aria-labelledby="courseSelectTitle">
       <span class="range-expand-kicker">COURSE SELECT</span>
       <h3 id="courseSelectTitle">장소 선택 완료</h3>
-      <p id="courseSelectText">코스에 추가할 장소 3곳을 선택했습니다.</p>
+      <p id="courseSelectText">3곳 선택 완료. 아래에서 시간을 설정하세요.</p>
       <div class="range-expand-actions">
         <button id="courseSelectEdit" class="btn secondary" type="button">다시 선택</button>
-        <button id="courseSelectNext" class="btn primary" type="button">다음 페이지 →</button>
+        <button id="courseSelectNext" class="btn primary" type="button">시간 설정하기 →</button>
       </div>
     </section>
   </div>
@@ -235,7 +235,7 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script type="module" src="./js/ui/phase2-pixel.js?v=20261006-phase2"></script>
 <script type="module" src="./js/ui/phase5-polish.js?v=20261006-phase5"></script>
-<script type="module" src="./js/ui/no-scroll-app.js?v=20261006-course3fix1"></script>
-<script type="module" src="./auth.js?v=20261008-searchfix1"></script>
+<script type="module" src="./js/ui/no-scroll-app.js?v=20261008-courseone1"></script>
+<script type="module" src="./auth.js?v=20261008-courseone1"></script>
 </body>
 </html>
