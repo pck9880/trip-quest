@@ -1,4 +1,5 @@
 import { geoKm } from '../domain/geo.js';
+import { regionMatches } from './search-normalization.js';
 
 const MANIFEST_URL='./data/national/runtime-manifest.json';
 let datasetPromise=null;
@@ -14,12 +15,16 @@ async function loadManifest(){
   if(!manifestPromise)manifestPromise=fetch(MANIFEST_URL,{cache:'no-store'}).then(r=>{
     if(!r.ok)throw new Error('전국 장소 DB manifest를 불러오지 못했습니다.');
     return r.json();
-  });
+  }).catch(error=>{manifestPromise=null;throw error;});
   return manifestPromise;
 }
 async function inflateParts(parts){
   const buffers=await Promise.all(parts.map(async p=>{
-    const r=await fetch('./data/national/'+p,{cache:'force-cache'});
+    let r;
+    try{r=await fetch('./data/national/'+p,{cache:'force-cache'});}
+    catch(_){r=null}
+    // One uncached attempt protects against a stale/offline service-worker entry.
+    if(!r?.ok)r=await fetch('./data/national/'+p,{cache:'reload'});
     if(!r.ok)throw new Error('전국 장소 DB 조각을 불러오지 못했습니다: '+p);
     return new Uint8Array(await r.arrayBuffer());
   }));
@@ -34,7 +39,8 @@ export async function loadNationalDataset(){
   if(!datasetPromise)datasetPromise=(async()=>{
     const manifest=await loadManifest();
     if(manifest.status!=='ready')throw new Error('전국 공식 DB 런타임 파일 배포 대기');
-    const payload=await inflateParts(manifest.parts||[]);
+    if(!Array.isArray(manifest.parts)||!manifest.parts.length)throw new Error('전국 장소 DB 목록이 비어 있습니다.');
+    const payload=await inflateParts(manifest.parts);
     const items=(payload.items||[]).map(x=>({
       id:x.i,name:x.n,category:x.c,subcategory:x.sc||'',
       sido:x.s||'',sigungu:x.g||'',eupmyeondong:x.d||'',address:x.a||'',
@@ -42,31 +48,12 @@ export async function loadNationalDataset(){
       source:x.src||'공식 전국데이터',referenceDate:x.dt||''
     })).filter(x=>x.name&&Number.isFinite(x.lat)&&Number.isFinite(x.lng));
     return {manifest,items};
-  })();
+  })().catch(error=>{datasetPromise=null;throw error;});
   return datasetPromise;
 }
 export function preloadNationalDataset(){return loadNationalDataset()}
 export function officialCategories(){return new Set(OFFICIAL_CATEGORIES)}
 
-function regionAliases(name=''){
-  const s=String(name).trim(),out=new Set([s]);
-  const numbered=s.replace(/(?:제)?\d+동$/,'동');
-  if(numbered!==s)out.add(numbered);
-  return [...out].filter(Boolean);
-}
-function regionMatch(place,path=[]){
-  if(!path.length)return true;
-  const [top,...rest]=path.filter(Boolean);
-  if(top==='광주광역시'){
-    if(place.sido!=='전남광주통합특별시'||!GWANGJU_GU.has(place.sigungu.split(' ').at(-1)))return false;
-  }else if(top==='전라남도'){
-    if(place.sido!=='전남광주통합특별시'||GWANGJU_GU.has(place.sigungu.split(' ').at(-1)))return false;
-  }else if(top&&place.sido!==top){
-    if(!(place.sido+' '+place.address).includes(top))return false;
-  }
-  const hay=[place.sigungu,place.eupmyeondong,place.address].join(' ');
-  return rest.every(x=>regionAliases(x).some(alias=>hay.includes(alias)));
-}
 function facilityMatch(place,filters=[]){
   if(!filters.length)return true;
   return filters.every(k=>place.facilities?.[k]===true);
@@ -74,7 +61,9 @@ function facilityMatch(place,filters=[]){
 function destinationQuality(place){
   if(place.category==='공원'){
     const type=place.subcategory||'';
-    return !BAD_PARK.test(type)&&GOOD_PARK.test(type);
+    if(BAD_PARK.test(type)||BAD_PARK.test(place.name||''))return false;
+    // Missing subtype metadata must not silently erase valid named parks.
+    return GOOD_PARK.test(type)||(!type&&/공원|수목원|정원/.test(place.name||''));
   }
   if(place.category==='전통시장')return !BAD_MARKET.test(place.name||'');
   if(place.category==='대형도서관')return /(도서관|라이브러리)/.test(place.name||'')&&!/북카페/.test(place.name||'');
@@ -93,7 +82,7 @@ export async function searchOfficialPlaces({regionPath=[],categories=[],faciliti
   const wanted=new Set(categories.filter(x=>OFFICIAL_CATEGORIES.has(x)));
   if(!wanted.size)return {items:[],coveredCategories:[]};
   const {items,manifest}=await loadNationalDataset();
-  const found=items.filter(x=>wanted.has(x.category)&&destinationQuality(x)&&regionMatch(x,regionPath)&&facilityMatch(x,facilities))
+  const found=items.filter(x=>wanted.has(x.category)&&destinationQuality(x)&&regionMatches(x,regionPath)&&facilityMatch(x,facilities))
     .map(x=>publicPlace(x,'TRIP QUEST 공식 DB · 여행 목적지 선별'));
   found.sort((a,b)=>a.name.localeCompare(b.name,'ko'));
   return {items:found.slice(0,120),coveredCategories:[...wanted],manifest};
@@ -144,7 +133,7 @@ export async function localRegionHierarchy(){
       if(dong)gu.get(sigungu).add(dong);
     }
     return tree;
-  })();
+  })().catch(error=>{regionHierarchyPromise=null;throw error;});
   return regionHierarchyPromise;
 }
 export async function localRegionChildren(path=[]){
