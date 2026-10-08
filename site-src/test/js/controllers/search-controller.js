@@ -58,6 +58,7 @@ export function createSearchController({state,travelService,setStep}){
     const requestedIndex=scopeIndex;
     let finalPath=originalPath.slice(0,scopeIndex+1);
     let finalSource='검색 결과 없음';
+    let finalStatus='empty',finalFailures=[];
     let found=[];
 
     loading(true);
@@ -81,20 +82,34 @@ export function createSearchController({state,travelService,setStep}){
         found=j.items||[];
         finalPath=scopePath;
         finalSource=j.source||'장소 데이터';
-        if(found.length)break;
+        finalStatus=j.status||'empty';
+        finalFailures=j.failures||[];
+        // Provider outages are not evidence that a district contains no places.
+        if(found.length||finalStatus==='unavailable')break;
         scopeIndex--;
       }
 
       presentRecommendations(found);
       const scopeName=finalPath.at(-1)||'선택 지역';
-      finishPlaceLoad(scopeName,state.recommendations.length);
+      if(finalStatus==='unavailable'&&!state.recommendations.length){
+        const reason=finalFailures.map(x=>x.reason).filter(Boolean).join(' · ')||'검색 서비스 연결이 지연되고 있습니다.';
+        failPlaceLoad(reason);
+        $('#ranking').className='ranking empty-state';
+        $('#ranking').innerHTML='<div><span class="error">장소가 없는 것이 아니라 검색 서비스 연결에 실패했습니다.</span><br><small>'+esc(reason)+'</small><br><br><button id="retryPlaceSearchBtn" class="btn primary" type="button">검색 다시 시도</button></div>';
+        $('#retryPlaceSearchBtn')?.addEventListener('click',()=>recommend(extra));
+        $('#noMatchActions').hidden=true;
+        setText('#resultCaption',finalPath.join(' › ')+' · 외부 검색 연결 실패 · 다시 시도할 수 있습니다.');
+      }else{
+        finishPlaceLoad(scopeName,state.recommendations.length);
+      }
 
       if(state.recommendations.length){
         const expanded=scopeIndex<requestedIndex;
         const expansionText=expanded?' · 결과 부족으로 '+scopeName+'까지 자동 확대':'';
-        setText('#resultCaption',finalPath.join(' › ')+' · '+state.categories.join(' · ')+' · '+state.recommendations.length+'곳 · '+finalSource+expansionText);
+        const availabilityNote=finalStatus==='partial'?' · 일부 외부 검색 응답 지연':'';
+        setText('#resultCaption',finalPath.join(' › ')+' · '+state.categories.join(' · ')+' · '+state.recommendations.length+'곳 · '+finalSource+expansionText+availabilityNote);
         if(expanded)toast(scopeName+'까지 자동으로 범위를 넓혀 찾았습니다.');
-      }else{
+      }else if(finalStatus!=='unavailable'){
         $('#noMatchActions').hidden=false;
         setText('#resultCaption',originalPath.join(' › ')+' · 상위 지역까지 검색했지만 조건에 맞는 장소가 없습니다.');
       }
