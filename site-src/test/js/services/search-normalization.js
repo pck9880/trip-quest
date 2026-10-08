@@ -8,10 +8,10 @@ const SIDO_ALIASES=new Map([
   ['전북','전북특별자치도'],['제주도','제주특별자치도']
 ]);
 export function normalizeSido(value=''){
-  const text=String(value||'').trim().replace(/\\s+/g,' ');
+  const text=String(value||'').trim().replace(/\s+/g,' ');
   return SIDO_ALIASES.get(text)||text;
 }
-function words(value=''){return String(value||'').trim().split(/\\s+/).filter(Boolean)}
+function words(value=''){return String(value||'').trim().split(/\s+/).filter(Boolean)}
 function addressHas(address,token){
   const expected=words(token);
   if(!expected.length)return false;
@@ -36,7 +36,7 @@ export function regionMatches(place,path=[]){
     return false;
   }
   if(sigungu){
-    const city=String(place.sigungu||'').trim().replace(new RegExp('^'+wantedSido+'\\\\s+'),'');
+    const city=String(place.sigungu||'').trim().replace(new RegExp('^'+wantedSido+'\\\s+'),'');
     if(city!==sigungu&&!addressHas(city,sigungu)&&!addressHas(place.address,sigungu))return false;
   }
   if(dong){
@@ -49,7 +49,7 @@ export function mergePlaces(...groups){
   const seen=new Set(),out=[];
   for(const place of groups.flat()){
     if(!place||!place.name||!Number.isFinite(Number(place.lat))||!Number.isFinite(Number(place.lng)))continue;
-    const key=String(place.name).replace(/\\s+/g,'').toLocaleLowerCase('ko')+'|'+Number(place.lat).toFixed(3)+'|'+Number(place.lng).toFixed(3);
+    const key=String(place.name).replace(/\s+/g,'').toLocaleLowerCase('ko')+'|'+Number(place.lat).toFixed(3)+'|'+Number(place.lng).toFixed(3);
     if(seen.has(key))continue;
     seen.add(key);
     out.push(place);
