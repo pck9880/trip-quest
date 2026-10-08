@@ -5,15 +5,10 @@ import { resolveRegion, searchRegionPlaces, searchNearbyPlaces } from './live-pl
 import { searchOfficialPlaces, nearbyOfficialPlaces, officialCategories, nationalDatasetStatus, preloadNationalDataset } from './national-place-store.js';
 import { buildSelectedCourse } from '../domain/course-planner.js';
 import { geoKm } from '../domain/geo.js';
+import { mergePlaces } from './search-normalization.js';
 
-function dedupePlaces(items=[]){
-  const seen=new Set(),out=[];
-  for(const x of items){
-    const key=(x.name||'')+'|'+Number(x.lat).toFixed(4)+'|'+Number(x.lng).toFixed(4);
-    if(seen.has(key))continue;seen.add(key);out.push(x);
-  }
-  return out;
-}
+// A search needs enough choices, not just a single matching row.
+const MIN_CATEGORY_RESULTS=3;
 function softDeadline(promise,ms,fallback){
   return Promise.race([promise,new Promise(resolve=>setTimeout(()=>resolve(fallback),ms))]);
 }
@@ -46,7 +41,7 @@ export function createTravelService(){
     const categories=[...new Set(criteria.categories||[])];
     const officialSet=officialCategories();
     const facilities=criteria.facilities||[];
-    let official={items:[]},officialReady=true;
+    let official={items:[]},officialReady=true,officialError='';
 
     // Phase A: bundled/official data always runs first and never needs geocoding.
     try{
@@ -57,35 +52,54 @@ export function createTravelService(){
       });
     }catch(e){
       officialReady=false;
-      console.warn('official DB fallback',e?.message||e);
+      officialError=e?.message||'전국 DB 확인 실패';
+      console.warn('official DB fallback',officialError);
     }
 
-    const liveCats=categories.filter(x=>!officialSet.has(x));
-    const missingOfficial=categories.filter(x=>officialSet.has(x)&&!(official.items||[]).some(p=>p.category===x));
-    const neededLive=[...new Set([...liveCats,...missingOfficial])];
+    const officialCounts=new Map();
+    for(const row of official.items||[])officialCounts.set(row.category,(officialCounts.get(row.category)||0)+1);
+    const neededLive=categories.filter(category=>!officialSet.has(category)||(officialCounts.get(category)||0)<MIN_CATEGORY_RESULTS);
 
     // Phase B: live map is supplemental only. Resolve an OSM boundary lazily here,
     // never while the user is choosing a region.
-    let live={items:[],source:''};
-    if(neededLive.length){
+    let live={items:[],source:''},liveError='',liveAttempted=neededLive.length>0;
+    if(liveAttempted){
       const boundary=await softDeadline(ensureLiveBoundary(criteria),5200,null);
-      if(boundary){
+      if(!boundary){
+        liveError='외부 지도에서 지역 경계를 확인하지 못했습니다.';
+      }else{
         live=await softDeadline(
           searchRegionPlaces({boundary,categories:neededLive,facilities}),
           9000,
-          {items:[],source:'지도 보조 시간 제한'}
-        ).catch(e=>{console.warn('live place fallback',e?.message||e);return {items:[],source:'지도 보조 오류'}});
+          {items:[],source:'지도 보조 시간 제한',failed:neededLive.map(category=>({category,error:'시간 초과'}))}
+        ).catch(e=>{
+          liveError=e?.message||'외부 지도 오류';
+          console.warn('live place fallback',liveError);
+          return {items:[],source:'지도 보조 오류',failed:neededLive.map(category=>({category,error:liveError}))};
+        });
+        if(live.failed?.length){
+          liveError='외부 지도에서 일부 장소를 가져오지 못했습니다.';
+        }
       }
     }
 
-    const items=dedupePlaces([...(official.items||[]),...(live.items||[])]);
+    const items=mergePlaces(official.items||[],live.items||[]);
     items.sort((a,b)=>(b.score||0)-(a.score||0)||a.name.localeCompare(b.name,'ko'));
+    const failures=[];
+    if(!officialReady)failures.push({provider:'national',reason:officialError});
+    if(liveAttempted&&liveError)failures.push({provider:'osm',reason:liveError,details:live.failed||[]});
+
+    // Empty results and temporarily unavailable providers are different outcomes.
+    const status=items.length?(failures.length?'partial':'ok'):(failures.length?'unavailable':'empty');
     const source=official.items?.length&&live.items?.length
       ?'TRIP QUEST 공식 DB + 지도 보조'
       :official.items?.length?'TRIP QUEST 공식 여행지 DB'
       :live.items?.length?'선별 지도 보조'
-      :officialReady?'검색 결과 없음':'공식 DB 확인 실패';
-    return {items,source,liveSupplemented:neededLive.length>0};
+      :status==='unavailable'?'검색 서비스 일부 연결 실패':'검색 결과 없음';
+    return {
+      items,source,status,failures,liveSupplemented:liveAttempted,
+      counts:{national:official.items?.length||0,external:live.items?.length||0}
+    };
   }
   async function nearbyCandidates({destination,radiusKm=5}){
     let official=[];
@@ -94,7 +108,7 @@ export function createTravelService(){
       return {items:official.slice(0,40),source:'TRIP QUEST 공식 여행지 DB'};
     }
     const live=await softDeadline(searchNearbyPlaces(destination,Math.round(radiusKm*1000)),4500,[]);
-    const items=dedupePlaces([...official,...live]).map(x=>({...x,distanceKm:Number(x.distanceKm)||geoKm(destination,x)}))
+    const items=mergePlaces(official,live).map(x=>({...x,distanceKm:Number(x.distanceKm)||geoKm(destination,x)}))
       .filter(x=>x.distanceKm>=0.05&&x.distanceKm<=radiusKm)
       .sort((a,b)=>(b.score||0)-(a.score||0)||a.distanceKm-b.distanceKm);
     return {items:items.slice(0,40),source:official.length?'공식 여행지 DB + 선별 지도 보조':'선별 지도 보조'};
