@@ -107,8 +107,8 @@ async function startApp(user){
   if(appStarted)return;
   appStarted=true;
   try{
-    await import('./app.js?v=20261008-searchfix1');
-    await import('./app-chrome.js?v=20261008-searchfix1');
+    await import('./app.js?v=20261008-courseone1');
+    await import('./app-chrome.js?v=20261008-courseone1');
   }catch(err){
     appStarted=false;
     document.body.classList.add('tq-auth-locked');
