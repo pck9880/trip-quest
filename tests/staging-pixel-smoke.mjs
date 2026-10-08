@@ -53,8 +53,8 @@ for(const asset of [
   './phase5-final.css?v=20261006-phase5b',
   './js/ui/phase2-pixel.js?v=20261006-phase2',
   './js/ui/phase5-polish.js?v=20261006-phase5',
-  './no-scroll-app.css?v=20261006-placescroll1',
-  './js/ui/no-scroll-app.js?v=20261006-course3fix1'
+  './no-scroll-app.css?v=20261008-courseone1',
+  './js/ui/no-scroll-app.js?v=20261008-courseone1'
 ]){
   assert.ok(html.includes(asset),'staging HTML asset missing: '+asset);
 }
@@ -133,12 +133,12 @@ assert.ok(landingCss.includes('@keyframes tqTitleGlint'),'pixel glint animation 
 assert.ok(landingCss.includes('@media(prefers-reduced-motion:reduce)'),'cover title fx reduced-motion guard missing');
 assert.ok(landingCss.includes('.main-landing:not(.tq-photo-ready) .tq-cover-title-fx'),'title fx must hide when artwork fails');
 assert.ok(sw.includes('./css/landing.css?v=20261006-titlefx2'),'title fx stylesheet cache version missing');
-assert.ok(sw.includes('./app-chrome.js?v=20261008-searchfix1'),'title fx app chrome cache version missing');
+assert.ok(sw.includes('./app-chrome.js?v=20261008-courseone1'),'title fx app chrome cache version missing');
 
 assert.ok(html.includes('./cover-phase3-final.css?v=20261006-coverfinal3'),'final cover QA stylesheet missing');
 assert.ok(sw.includes('./cover-phase3-final.css?v=20261006-coverfinal3'),'final cover QA stylesheet cache missing');
-assert.ok(sw.includes('./app-chrome.js?v=20261008-searchfix1'),'final cover runtime cache version missing');
-assert.ok(sw.includes('./auth.js?v=20261008-searchfix1'),'final cover auth cache version missing');
+assert.ok(sw.includes('./app-chrome.js?v=20261008-courseone1'),'final cover runtime cache version missing');
+assert.ok(sw.includes('./auth.js?v=20261008-courseone1'),'final cover auth cache version missing');
 assert.ok(coverFinalCss.includes('env(safe-area-inset-bottom,0px)'),'final cover bottom safe area missing');
 assert.ok(coverFinalCss.includes('env(safe-area-inset-left,0px)'),'final cover left safe area missing');
 assert.ok(coverFinalCss.includes('env(safe-area-inset-right,0px)'),'final cover right safe area missing');
@@ -154,13 +154,13 @@ assert.ok(chromeJs.includes('scale=Math.max(w/COVER_SOURCE.w,h/COVER_SOURCE.h)')
 assert.ok(chromeJs.includes('window.visualViewport?.addEventListener'),'visual viewport resize correction missing');
 assert.ok(chromeJs.includes('requestAnimationFrame(syncCoverTitleFx)'),'title fx post-load alignment missing');
 
-assert.ok(html.includes('./no-scroll-app.css?v=20261006-placescroll1'),'no-scroll HTML asset missing');
-assert.ok(html.includes('./js/ui/no-scroll-app.js?v=20261006-course3fix1'),'no-scroll pagination script missing');
-assert.ok(sw.includes('./no-scroll-app.css?v=20261006-placescroll1'),'no-scroll CSS cache missing');
-assert.ok(sw.includes('./js/ui/no-scroll-app.js?v=20261006-course3fix1'),'no-scroll JS cache missing');
-assert.ok(sw.includes('./app.js?v=20261008-searchfix1'),'no-scroll app runtime cache missing');
-assert.ok(sw.includes('./app-chrome.js?v=20261008-searchfix1'),'no-scroll chrome runtime cache missing');
-assert.ok(sw.includes('./auth.js?v=20261008-searchfix1'),'no-scroll auth loader cache missing');
+assert.ok(html.includes('./no-scroll-app.css?v=20261008-courseone1'),'no-scroll HTML asset missing');
+assert.ok(html.includes('./js/ui/no-scroll-app.js?v=20261008-courseone1'),'no-scroll pagination script missing');
+assert.ok(sw.includes('./no-scroll-app.css?v=20261008-courseone1'),'no-scroll CSS cache missing');
+assert.ok(sw.includes('./js/ui/no-scroll-app.js?v=20261008-courseone1'),'no-scroll JS cache missing');
+assert.ok(sw.includes('./app.js?v=20261008-courseone1'),'no-scroll app runtime cache missing');
+assert.ok(sw.includes('./app-chrome.js?v=20261008-courseone1'),'no-scroll chrome runtime cache missing');
+assert.ok(sw.includes('./auth.js?v=20261008-courseone1'),'no-scroll auth loader cache missing');
 
 assert.ok(noScrollCss.includes('html,\nbody'),'document-level scroll lock missing');
 assert.ok(noScrollCss.includes('.tq-auth-gate'),'auth one-screen rule missing');
@@ -173,10 +173,12 @@ assert.ok(noScrollCss.includes('.tq-page-controls'),'pager UI rule missing');
 assert.ok(noScrollJs.includes("pageSize:6,label:'PLACE'"),'place 6-item pagination missing');
 assert.ok(!noScrollJs.includes("pageSize:3,label:'RESULT'"),'result pagination must stay removed for scrolling lists');
 assert.ok(!noScrollJs.includes("pageSize:3,label:'NEARBY'"),'nearby pagination must stay removed for scrolling lists');
-assert.ok(noScrollJs.includes("pageSize:3,label:'ROUTE'"),'route 3-stop pagination missing');
-assert.ok(noScrollJs.includes('function buildCoursePages()'),'two-page course layout missing');
-assert.ok(noScrollJs.includes("dataset.tqCoursePage='nearby'"),'course nearby page missing');
-assert.ok(noScrollJs.includes("dataset.tqCoursePage='plan'"),'course plan page missing');
+assert.ok(!noScrollJs.includes("pageSize:3,label:'ROUTE'"),'single-screen route must not paginate');
+assert.ok(noScrollJs.includes("$('li',host).forEach"),'single-screen timeline must display all selected stops');
+assert.ok(noScrollJs.includes('function buildCoursePages()'),'course single-screen setup missing');
+assert.ok(noScrollJs.includes("panel.dataset.courseSinglePage='1'"),'course screen must be unified');
+assert.ok(!noScrollJs.includes("dataset.tqCoursePage='nearby'"),'course must not generate a nearby sub-page');
+assert.ok(!noScrollJs.includes("dataset.tqCoursePage='plan'"),'course must not generate a second sub-page');
 assert.ok(!noScrollJs.includes('preventDefault('),'pagination layer must not intercept business clicks');
 assert.ok(!noScrollJs.includes('stopPropagation('),'pagination layer must not block app handlers');
 assert.ok(!noScrollJs.includes('state.categories'),'pagination layer must not mutate category state');
@@ -231,7 +233,7 @@ assert.ok(html.includes('0 / 3 선택'),'three-place selection counter missing')
 assert.ok(searchControllerJs.includes('ids.size>=3'),'nearby selection maximum three guard missing');
 assert.ok(searchControllerJs.includes('chosen.length!==3'),'course build exact-three guard missing');
 assert.ok(searchControllerJs.includes("new CustomEvent('tq:course-page'"),'course completion dialog navigation event missing');
-assert.ok(noScrollJs.includes("count!==3"),'course next button exact-three guard missing');
+assert.ok(!noScrollJs.includes('data-course-dir'),'course 1/2 page switch must be removed');
 assert.ok(noScrollJs.includes("'tq:course-page'"),'course page navigation listener missing');
 
 assert.ok(noScrollJs.includes("$$('.rank-card',host).forEach"),'result scroll runtime must iterate querySelectorAll results');
@@ -243,3 +245,8 @@ assert.ok(searchControllerJs.includes("$('#courseDepartTime')?.value"),'course d
 assert.ok(searchControllerJs.includes("$('#destinationStayMin')?.value"),'destination stay null-safe guard missing');
 assert.ok(searchControllerJs.includes("course?.legs?.length"),'course result validation missing');
 assert.ok(noScrollJs.includes("'tq:course-built-next'"),'course built completion navigation missing');
+
+assert.ok(html.includes('시간 설정하기 →'),'selection confirmation must stay on one page');
+assert.ok(noScrollCss.includes('COURSE SINGLE SCREEN v1.10'),'compact single-screen course layout missing');
+assert.ok(noScrollCss.includes('#courseTimeline.empty-state'),'course result placeholder must not waste screen space');
+assert.ok(noScrollCss.includes('#nearbyLoadStatus[data-state="done"]'),'completed nearby progress must not consume screen space');
