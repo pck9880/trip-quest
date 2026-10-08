@@ -78,83 +78,28 @@ function refreshNearbyPager(){
   pagerState.delete('nearby');
 }
 
-function refreshTimelinePager(reset=false){
-  const host=$('#courseTimeline .timeline-stops');if(!host)return;
-  if(reset&&pagerState.get('timeline'))pagerState.get('timeline').page=0;
-  paginate({key:'timeline',host,itemSelector:'li',pageSize:3,label:'ROUTE'});
+function refreshTimelinePager(){
+  const host=$('#courseTimeline .timeline-stops');
+  if(!host)return;
+  // One-screen course view: all selected stops share the same timeline.
+  $$('li',host).forEach(el=>{el.hidden=false});
+  const old=host.parentElement?.querySelector(':scope > .tq-page-controls[data-pager="timeline"]');
+  if(old)old.remove();
+  pagerState.delete('timeline');
 }
 
 function buildCoursePages(){
   const panel=$('.course-builder-panel');
-  if(!panel||panel.dataset.noScrollPages)return;
-  panel.dataset.noScrollPages='1';
-
-  const head=$('.course-builder-head',panel);
-  const load=$('#nearbyLoadStatus',panel);
-  const source=$('#nearbySource',panel);
-  const list=$('#nearbyChoiceList',panel);
-  const schedule=$('.schedule-builder',panel);
-  const timeline=$('#courseTimeline',panel);
-  if(!head||!list||!schedule||!timeline)return;
-
-  const nearby=document.createElement('div');
-  nearby.className='tq-course-page-nearby';
-  nearby.dataset.tqCoursePage='nearby';
-
-  const plan=document.createElement('div');
-  plan.className='tq-course-page-plan';
-  plan.dataset.tqCoursePage='plan';
-  plan.hidden=true;
-
-  panel.insertBefore(nearby,head);
-  nearby.append(head);
-  if(load)nearby.append(load);
-  if(source)nearby.append(source);
-  nearby.append(list);
-
-  panel.append(plan);
-  plan.append(schedule,timeline);
-
-  const controls=document.createElement('div');
-  controls.className='tq-page-controls tq-course-switch';
-  controls.dataset.pager='course';
-  controls.innerHTML='<button type="button" data-course-dir="-1" disabled aria-label="장소 선택 화면">◀</button><div class="tq-page-label"><span>COURSE</span> <strong>1 / 2</strong></div><button type="button" data-course-dir="1" aria-label="코스 설정 화면">▶</button>';
-  const step=$('[data-step-view="4"]');
-  step?.insertBefore(controls,panel);
-  controls.addEventListener('click',e=>{
-    const b=e.target.closest('button[data-course-dir]');if(!b)return;
-    const target=Number(b.dataset.courseDir)>0?1:0;
-    if(target===1){
-      const count=$('#nearbyChoiceList .nearby-choice-card.selected').length;
-      if(count!==3){
-        const toast=$('#toast');if(toast){toast.textContent='코스에 추가할 장소 3곳을 선택해 주세요.';toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),1800)}
-        return;
-      }
-    }
-    setCoursePage(target);
+  if(!panel||panel.dataset.courseSinglePage)return;
+  panel.dataset.courseSinglePage='1';
+  // Preserve source DOM order: heading → nearby choices → schedule → result.
+  // Retain the existing event for backward compatibility with selection modal.
+  document.addEventListener('tq:course-page',()=>{
+    $('#courseDepartTime')?.focus({preventScroll:true});
   });
-  document.addEventListener('tq:course-page',e=>setCoursePage(Number(e.detail?.page||0)));
   document.addEventListener('tq:course-built-next',()=>{
-    setCoursePage(1);
-    refreshTimelinePager(true);
+    refreshTimelinePager();
   });
-}
-
-function setCoursePage(page){
-  const nearby=$('[data-tq-course-page="nearby"]');
-  const plan=$('[data-tq-course-page="plan"]');
-  const controls=$('.tq-course-switch');
-  if(!nearby||!plan||!controls)return;
-  const p=page?1:0;
-  nearby.hidden=p!==0;
-  plan.hidden=p!==1;
-  const strong=$('strong',controls);if(strong)strong.textContent=(p+1)+' / 2';
-  const buttons=$$('button',controls);
-  if(buttons[0])buttons[0].disabled=p===0;
-  if(buttons[1])buttons[1].disabled=p===1;
-  controls.dataset.page=String(p);
-  if(p===0)refreshNearbyPager(false);
-  else refreshTimelinePager(false);
 }
 
 function observe(host,callback){
@@ -183,7 +128,6 @@ function boot(){
       if(n===2)refreshPlacePager(false);
       if(n===3)refreshResultPager(false);
       if(n===4){
-        setCoursePage(Number($('.tq-course-switch')?.dataset.page||0));
         refreshNearbyPager(false);
         refreshTimelinePager(false);
       }
