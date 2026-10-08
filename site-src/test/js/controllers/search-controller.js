@@ -230,7 +230,7 @@ export function createSearchController({state,travelService,setStep}){
     $('#courseSelectNext')?.addEventListener('click',()=>{
       if((state.selectedNearbyIds||[]).length!==3){toast('코스에 추가할 장소 3곳을 선택해 주세요.');return}
       const modal=$('#courseSelectModal');if(modal)modal.hidden=true;
-      document.dispatchEvent(new CustomEvent('tq:course-page',{detail:{page:1}}));
+      document.dispatchEvent(new CustomEvent('tq:course-page',{detail:{page:0}}));
     });
     $('#courseSelectModal')?.addEventListener('click',e=>{if(e.target===$('#courseSelectModal'))e.currentTarget.hidden=true});
     const expandConfirm=$('#rangeExpandConfirm');if(expandConfirm)expandConfirm.onclick=async()=>{const req=pendingExpand;hideExpandModal();if(req)await recommend(req)};
