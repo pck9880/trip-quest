@@ -36,7 +36,7 @@ export function regionMatches(place,path=[]){
     return false;
   }
   if(sigungu){
-    const city=String(place.sigungu||'').trim().replace(new RegExp('^'+wantedSido+'\\\s+'),'');
+    const parts=words(place.sigungu);const city=(parts[0]===wantedSido?parts.slice(1):parts).join(' ');
     if(city!==sigungu&&!addressHas(city,sigungu)&&!addressHas(place.address,sigungu))return false;
   }
   if(dong){
